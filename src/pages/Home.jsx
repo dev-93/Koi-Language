@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useStore from '../store';
 import { situations } from '../data/situations';
