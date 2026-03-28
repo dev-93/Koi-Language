@@ -6,11 +6,17 @@ export const situations = [
     expressions: {
       kr_wants_jp: [
         { kr: '여기 자리 비어있나요?', jp: 'ここ、空いてますか？', romaji: 'Koko, aitemasuka?', reading: '코코, 아이테마스카?', tip: '자연스러운 첫 마디입니다.' },
-        { kr: '자주 오시나봐요.', jp: 'よく来られるんですか？', romaji: 'Yoku korarerun desuka?', reading: '요쿠 코라레룬 데스카?', tip: '가벼운 스몰토크로 대화를 이어갑니다.' }
+        { kr: '자주 오시나봐요.', jp: 'よく来られるんですか？', romaji: 'Yoku korarerun desuka?', reading: '요쿠 코라레룬 데스카?', tip: '가벼운 스몰토크로 대화를 이어갑니다.' },
+        { kr: '무슨 커피 드시나요?', jp: '何のコーヒー를 飲んで いますか？', romaji: 'Nan no koohii o nonde imasuka?', reading: '난노 코히오 논데 이마스카?', tip: '마시고 있는 메뉴로 자연스럽게 대화 주제를 잡습니다.' },
+        { kr: '책 제목이 재미있어 보이네요.', jp: '本の タイトルが 面白そうですね。', romaji: 'Hon no taitoru ga omoshirosou desune.', reading: '혼노 타이토루가 오모시로소오 데스네.', tip: '상대가 보고 있는 책이나 소품을 칭찬해보세요.' },
+        { kr: '분위기가 참 좋네요.', jp: '雰囲気が すごく いいですね。', romaji: 'Fuuniki ga sugoku iidesune.', reading: '훙이키가 스고쿠 이이데스네.', tip: '카페의 분위기를 소재로 말을 걸어봅니다.' }
       ],
       jp_wants_kr: [
         { jp: 'ここ、空いてますか？', kr: '여기 자리 비어있나요?', romaji: 'yeogi jari bieoinnayo?', reading: 'yeogi jari bieoinnayo?' },
-        { jp: 'よく来られるんですか？', kr: '자주 오시나봐요.', romaji: 'jaju osinabwayo.', reading: 'jaju osinabwayo.' }
+        { jp: 'よく来られるんですか？', kr: '자주 오시나봐요.', romaji: 'jaju osinabwayo.', reading: 'jaju osinabwayo.' },
+        { jp: '何のコーヒーを飲んでいますか？', kr: '무슨 커피 드시나요?', romaji: 'museun keopi deusinayo?', reading: 'museun keopi deusinayo?' },
+        { jp: '本のタイトルが面白そうですね。', kr: '책 제목이 재미있어 보이네요.', romaji: 'chaek jemogi jaemiisseo boineyo.', reading: 'chaek jemogi jaemiisseo boineyo.' },
+        { jp: '雰囲気がすごくいいですね。', kr: '분위기가 참 좋네요.', romaji: 'bunwigiga cham jonneyo.', reading: 'bunwigiga cham jonneyo.' }
       ]
     },
     difficulty: '초급'
