@@ -12,6 +12,19 @@ const useStore = create(
       
       setUserProfile: (profile) => set({ userProfile: profile }),
       
+      checkAndResetProgress: () => {
+        const state = get();
+        const today = new Date().toDateString();
+        if (state.dailyProgress.date !== today) {
+          set({
+            dailyProgress: {
+              date: today,
+              cardsLearned: []
+            }
+          });
+        }
+      },
+
       markCardLearned: (situationId) => set((state) => {
         const today = new Date().toDateString();
         // Reset if it's a new day

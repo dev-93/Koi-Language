@@ -4,13 +4,19 @@ import { situations } from '../data/situations';
 import { BookOpen, MessageCircleHeart } from 'lucide-react';
 
 export default function Home() {
-  const { userProfile, dailyProgress } = useStore();
+  const { userProfile, dailyProgress, checkAndResetProgress, markCardLearned } = useStore();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    checkAndResetProgress();
+  }, [checkAndResetProgress]);
 
   const isKr = userProfile.myNationality === 'KR';
   const myIcon = isKr ? '🇰🇷' : '🇯🇵';
   const targetIcon = isKr ? '🇯🇵' : '🇰🇷';
   const targetGenderAvatar = userProfile.targetGender === 'M' ? '👨' : '👩';
+
+  const currentSituation = situations[0]; 
 
   const completedCount = dailyProgress.cardsLearned.length;
   const targetCards = 10;
@@ -23,48 +29,59 @@ export default function Home() {
         <div className="text-xl">{myIcon} ✨ {targetIcon}{targetGenderAvatar}</div>
       </div>
 
-      <div className="card text-center relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-2 bg-pink-100" />
-        <h2 className="mb-2">오늘의 데이트 학습</h2>
-        <p className="text-sm text-gray-500 mb-4">하루 10개의 상황을 마스터해보세요!</p>
+      <div className="card text-center relative overflow-hidden bg-primary-peach-light/20">
+        <h2 className="mb-2 text-xl font-bold">오늘의 한마디 ✨</h2>
+        <p className="text-sm text-gray-600 mb-4">부담 없이, 하루에 한 상황만 완벽하게!</p>
         
-        <div className="flex justify-between mb-1 mt-4 text-sm font-bold">
-          <span>진행도</span>
+        <div className="flex justify-between mb-1 mt-4 text-xs font-bold text-gray-500">
+          <span>마스터한 상황</span>
           <span>{completedCount} / {targetCards}</span>
         </div>
-        <div className="progress-bar-bg">
+        <div className="progress-bar-bg h-2">
           <div className="progress-bar-fill" style={{ width: `${progressRatio}%` }} />
         </div>
       </div>
 
-      <h3 className="mb-4 mt-6 flex items-center gap-2">
-        <BookOpen size={20} className="text-pink-400" /> 상황 리스트
-      </h3>
-      
-      <div className="flex flex-col gap-4">
-        {situations.map(sit => {
-          const isLearned = dailyProgress.cardsLearned.includes(sit.id);
-          return (
-            <div key={sit.id} className="card flex flex-col gap-3 relative cursor-pointer hover:shadow-lg transition-transform" onClick={() => navigate(`/learn/${sit.id}`)}>
-              {isLearned && <div className="absolute top-4 right-4 text-green-500 font-bold text-sm">✓ 완료</div>}
-              <div>
-                <span className="text-xs font-bold text-pink-400 bg-pink-50 px-2 py-1 rounded-full mb-2 inline-block">
-                  {sit.difficulty}
-                </span>
-                <h4 className="text-lg m-0">{isKr ? sit.title.kr : sit.title.jp}</h4>
-                <p className="text-sm text-gray-500 mt-1">{isKr ? sit.desc.kr : sit.desc.jp}</p>
-              </div>
-              <div className="flex gap-2 mt-2">
-                <button className="btn btn-outline flex-1 py-2 text-sm" onClick={(e) => { e.stopPropagation(); navigate(`/learn/${sit.id}`); }}>
-                  <BookOpen size={16} /> 학습하기
-                </button>
-                <button className="btn btn-primary flex-1 py-2 text-sm" onClick={(e) => { e.stopPropagation(); navigate(`/practice/${sit.id}`); }}>
-                  <MessageCircleHeart size={16} /> 연습하기
-                </button>
+      <div className="mt-8">
+        <div className="flex flex-col gap-1 mb-6">
+          <h3 className="text-2xl font-bold m-0">오늘의 상황:</h3>
+          <p className="text-pink-500 font-bold text-lg">{isKr ? currentSituation.title.kr : currentSituation.title.jp}</p>
+          <p className="text-sm text-gray-500">{isKr ? currentSituation.desc.kr : currentSituation.desc.jp}</p>
+        </div>
+        
+        <div className="flex flex-col gap-3">
+          {(isKr ? currentSituation.expressions.kr_wants_jp : currentSituation.expressions.jp_wants_kr).map((expr, idx) => (
+            <div key={idx} className="card p-5 border-none shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex flex-col gap-2">
+                <div className="flex justify-between items-start">
+                  <span className="text-xs font-bold text-gray-400"># 표현 {idx + 1}</span>
+                  <span className="text-[10px] bg-pink-100 text-pink-500 px-2 py-0.5 rounded-full">상대방 언어</span>
+                </div>
+                <h4 className="text-xl font-bold m-0">{isKr ? expr.jp : expr.kr}</h4>
+                <div className="flex flex-col gap-1 mt-1">
+                   <p className="text-sm text-blue-500 font-bold">{isKr ? expr.reading : expr.jp}</p>
+                   <p className="text-xs text-gray-400 italic">{expr.romaji}</p>
+                </div>
+                <div className="mt-4 pt-4 border-t border-gray-50">
+                  <p className="text-sm text-gray-600"><span className="font-bold text-gray-400 mr-2">뜻:</span>{isKr ? expr.kr : expr.jp}</p>
+                  {expr.tip && <p className="text-[11px] text-gray-400 mt-2">💡 {expr.tip}</p>}
+                </div>
               </div>
             </div>
-          );
-        })}
+          ))}
+          
+          <button 
+            className="btn btn-primary mt-4 py-4" 
+            onClick={() => {
+              if (!dailyProgress.cardsLearned.includes(currentSituation.id)) {
+                markCardLearned(currentSituation.id);
+              }
+              alert('오늘의 학습이 완료되었습니다! 내일 또 만나요 ✨');
+            }}
+          >
+             학습 완료하기 ✨
+          </button>
+        </div>
       </div>
     </div>
   );
