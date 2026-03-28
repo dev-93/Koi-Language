@@ -65,20 +65,23 @@ export default function Home() {
         <div className="flex flex-col gap-4 mb-20">
           {(isKr ? currentSituation.expressions.kr_wants_jp : currentSituation.expressions.jp_wants_kr).map((expr, idx) => (
             <div key={idx} className="relative">
-              <div className="card p-6 border-none shadow-sm bg-white rounded-[1.5rem]">
-                <div className="flex flex-col gap-3">
-                  <div className="flex flex-col gap-1">
-                    <h4 className="text-[22px] font-bold m-0 text-gray-800 tracking-tight">{isKr ? expr.jp : expr.kr}</h4>
-                    <p className="text-sm text-blue-500 font-bold tracking-tight">{isKr ? expr.reading : expr.jp}</p>
+              <div className="card p-6 border-none shadow-sm bg-white rounded-[1.8rem] hover:ring-2 hover:ring-primary-peach/10 transition-all">
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <h4 className="text-[21px] font-bold m-0 text-gray-800 tracking-tight leading-tight">{isKr ? expr.jp : expr.kr}</h4>
+                    <p className="text-[13px] text-blue-500/80 font-bold tracking-tight">{isKr ? expr.reading : expr.jp}</p>
                   </div>
 
-                  <div className="mt-1 pt-3 border-t border-gray-50">
-                    <p className="text-[15px] text-gray-500 font-medium leading-relaxed">
-                      {isKr ? expr.kr : expr.jp}
-                    </p>
+                  <div className="pt-4 border-t border-gray-50 flex flex-col gap-2">
+                    <div className="bg-gray-50/80 px-4 py-3 rounded-2xl">
+                      <p className="text-[14px] text-gray-600 font-semibold leading-relaxed">
+                        {isKr ? expr.kr : expr.jp}
+                      </p>
+                    </div>
                     {expr.tip && (
-                      <p className="mt-2 text-[11px] text-gray-400 font-normal leading-normal">
-                        💡 {expr.tip}
+                      <p className="px-1 text-[11px] text-gray-400 font-medium leading-normal flex gap-1 items-start">
+                        <span className="shrink-0 opacity-60">💡</span> 
+                        <span>{expr.tip}</span>
                       </p>
                     )}
                   </div>
