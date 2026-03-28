@@ -62,32 +62,24 @@ export default function Home() {
           </div>
         </div>
         
-        <div className="flex flex-col gap-6 mb-20">
+        <div className="flex flex-col gap-4 mb-20">
           {(isKr ? currentSituation.expressions.kr_wants_jp : currentSituation.expressions.jp_wants_kr).map((expr, idx) => (
-            <div key={idx} className="relative group">
-              <div className="card p-6 border-none shadow-md hover:shadow-xl transition-all duration-300 bg-white rounded-[2rem]">
-                <div className="flex flex-col gap-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[11px] font-black text-gray-300 uppercase">PHRASE {idx + 1}</span>
-                    <span className="text-[10px] font-bold text-pink-400 bg-pink-50 px-3 py-1 rounded-full uppercase tracking-tighter">TARGET LANGUAGE</span>
-                  </div>
-                  
+            <div key={idx} className="relative">
+              <div className="card p-6 border-none shadow-sm bg-white rounded-[1.5rem]">
+                <div className="flex flex-col gap-3">
                   <div className="flex flex-col gap-1">
-                    <h4 className="text-2xl font-bold m-0 text-gray-800 tracking-tight">{isKr ? expr.jp : expr.kr}</h4>
-                    <p className="text-base text-blue-500 font-bold tracking-tight">{isKr ? expr.reading : expr.jp}</p>
-                    <p className="text-xs text-gray-400 font-medium italic mt-1">{expr.romaji}</p>
+                    <h4 className="text-[22px] font-bold m-0 text-gray-800 tracking-tight">{isKr ? expr.jp : expr.kr}</h4>
+                    <p className="text-sm text-blue-500 font-bold tracking-tight">{isKr ? expr.reading : expr.jp}</p>
                   </div>
 
-                  <div className="mt-4 pt-5 border-t border-dashed border-gray-100">
-                    <div className="flex items-start gap-3">
-                       <span className="text-[10px] font-black text-gray-400 mt-1 uppercase">Mean</span>
-                       <p className="text-base text-gray-700 font-semibold">{isKr ? expr.kr : expr.jp}</p>
-                    </div>
+                  <div className="mt-1 pt-3 border-t border-gray-50">
+                    <p className="text-[15px] text-gray-500 font-medium leading-relaxed">
+                      {isKr ? expr.kr : expr.jp}
+                    </p>
                     {expr.tip && (
-                      <div className="mt-4 p-3 bg-blue-50/50 rounded-xl flex gap-2 items-start">
-                        <span className="text-xs">💡</span>
-                        <p className="text-xs text-blue-600/80 font-medium leading-normal">{expr.tip}</p>
-                      </div>
+                      <p className="mt-2 text-[11px] text-gray-400 font-normal leading-normal">
+                        💡 {expr.tip}
+                      </p>
                     )}
                   </div>
                 </div>
