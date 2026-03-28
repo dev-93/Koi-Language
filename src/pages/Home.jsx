@@ -65,12 +65,12 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen p-6 pb-24 d-flex flex-col items-center" style={{ background: 'var(--bg-gradient)' }}>
+    <div className="min-h-screen p-6 pb-24 d-flex flex-col items-center" style={{ background: 'var(--bg-gradient)', width: '100%' }}>
       {/* Header */}
       <div className="w-full d-flex justify-between items-center mb-10 max-w-[420px]">
         <div>
           <h1 className="title-cute m-0 text-3xl leading-none mb-1">Koi Language</h1>
-          <p style={{ fontSize: '10px', color: '#9CA3AF', fontWeight: 'bold' }} className="m-0 uppercase tracking-widest pl-1">Dating Expression Master</p>
+          <p style={{ fontSize: '10px', color: '#9CA3AF', fontWeight: '900' }} className="m-0 uppercase tracking-widest pl-1">Dating Expression Master</p>
         </div>
         <div className="u-bg-white/80 u-backdrop-blur px-4 py-2 u-rounded-2xl shadow-sm border border-white d-flex items-center gap-2">
           <span className="text-xl">{myIcon}</span>
@@ -102,19 +102,19 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Main Content Container */}
-      <div className="w-full max-w-[420px]">
+      {/* Main Study Controller Container */}
+      <div className="w-full max-w-[420px] d-flex flex-col items-center">
         {/* Title & Page Indicator */}
-        <div className="d-flex items-center justify-between mb-6 px-1">
+        <div className="w-full d-flex items-center justify-between mb-6 px-2">
           <div className="d-flex items-center gap-2">
             <Sparkles className="text-peach" size={18} />
             <h3 className="text-lg font-black m-0 text-gray-800">{isKr ? currentSituation.title.kr : currentSituation.title.jp}</h3>
           </div>
-          <span className="text-peach font-black">{activeIdx + 1} / {totalCards}</span>
+          <span className="text-peach font-black text-lg">{activeIdx + 1} / {totalCards}</span>
         </div>
 
         {/* Card Section */}
-        <div className="min-h-[460px] d-flex justify-center mb-10">
+        <div className="w-full min-h-[460px] d-flex justify-center mb-12">
           <Swiper
             effect={'cards'}
             grabCursor={true}
@@ -139,7 +139,7 @@ export default function Home() {
                     />
                   </button>
 
-                  {/* Text Content */}
+                  {/* Content Area */}
                   <div className="flex-1 d-flex flex-col items-center justify-center gap-4 w-full pt-8">
                     <h2 className="m-0 text-[30px] font-black text-center leading-tight text-gray-800">
                       {isKr ? expr.jp : expr.kr}
@@ -167,12 +167,12 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* Footnote Tip */}
+                  {/* Footer Tip */}
                   <div className="w-full pt-10">
                     {expr.tip && (
-                      <div style={{ background: '#FFF9F9', padding: '16px', borderRadius: '20px', border: '1px solid #FFECEC' }} className="d-flex items-start gap-3 shadow-sm">
+                      <div style={{ background: '#FFF9F9', padding: '20px', borderRadius: '24px', border: '1px solid #FFECEC' }} className="d-flex items-start gap-4 shadow-sm">
                         <span className="text-xl">💡</span>
-                        <p className="m-0 text-xs text-gray-500 leading-relaxed font-bold">
+                        <p className="m-0 text-[13px] text-gray-500 leading-relaxed font-bold">
                           {expr.tip}
                         </p>
                       </div>
@@ -184,24 +184,28 @@ export default function Home() {
           </Swiper>
         </div>
 
-        {/* Navigation Buttons Area */}
-        <div className="w-full d-flex gap-4">
+        {/* Navigation Buttons Row - Explicitly Centered */}
+        <div className="w-full d-flex justify-center gap-5 mt-4">
           <button 
             onClick={() => swiperRef.current?.slidePrev()}
             disabled={activeIdx === 0}
-            className="secondary-btn flex-1 h-16"
-            style={{ opacity: activeIdx === 0 ? 0.3 : 1 }}
+            className="secondary-btn h-16 flex-1 px-4"
+            style={{ 
+              opacity: activeIdx === 0 ? 0.2 : 1,
+              minWidth: '120px'
+            }}
           >
-            <ChevronLeft size={20} />
-            <span>이전</span>
+            <ChevronLeft size={22} />
+            <span style={{ fontSize: '16px' }}>이전으로</span>
           </button>
           
           <button 
             onClick={() => isLastCard ? handleFinish() : swiperRef.current?.slideNext()}
-            className="primary-btn flex-[2.5] h-16"
+            className="primary-btn h-16 flex-[1.5] px-6"
+            style={{ minWidth: '160px' }}
           >
-            <span>{isLastCard ? '정복 완료!' : '다음 카드로'}</span>
-            <ChevronRight size={20} />
+            <span style={{ fontSize: '17px' }}>{isLastCard ? '정복 완료!' : '다음으로'}</span>
+            <ChevronRight size={22} />
           </button>
         </div>
       </div>
