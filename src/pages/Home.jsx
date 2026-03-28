@@ -80,12 +80,11 @@ export default function Home() {
                     </div>
 
                     {expr.words && (
-                      <div className="flex flex-wrap gap-2 px-1 mt-1">
+                      <div className="flex flex-col gap-1 px-1 mt-0.5 border-l-2 border-pink-100/50 pl-3 py-0.5">
                         {expr.words.map((item, wIdx) => (
-                          <div key={wIdx} className="bg-pink-50/30 px-2.5 py-1 rounded-lg border border-pink-100/40">
-                            <span className="text-[10px] text-pink-400 font-bold">{item.word}</span>
-                            <span className="text-[10px] text-gray-400 mx-1">:</span>
-                            <span className="text-[10px] text-gray-500 font-medium">{item.mean}</span>
+                          <div key={wIdx} className="flex items-center gap-2">
+                            <span className="text-[11px] text-pink-500 font-bold whitespace-nowrap">• {item.word}</span>
+                            <span className="text-[11px] text-gray-400 font-medium">{item.mean}</span>
                           </div>
                         ))}
                       </div>
