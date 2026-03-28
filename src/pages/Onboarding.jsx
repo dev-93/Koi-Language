@@ -19,7 +19,7 @@ export default function Onboarding() {
       
       {step === 1 && (
         <div className="card text-center">
-          <h2 className="mb-4">당신의 위치는? / あなたは？</h2>
+          <h2 className="mb-4">너는 누구니? / あなたは誰？</h2>
           <div className="flex flex-col gap-4">
             <button className={`btn ${profile.myNationality === 'KR' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setProfile({...profile, myNationality: 'KR'})}>
               🇰🇷 한국인 (Korean)
