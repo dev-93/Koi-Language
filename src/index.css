@@ -1,7 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@400;500;700&display=swap');
 
 :root {
-    --primary-peach: #ff8a8a; /* Slightly more vibrant peach/pink */
+    --primary-peach: #ff8a8a;
+    /* Slightly more vibrant peach/pink */
     --primary-peach-light: #fff0f0;
     --primary-peach-soft: #fff9f9;
     --primary-lavender: #dde2ff;
@@ -138,48 +139,63 @@ h6 {
 .text-center {
     text-align: center;
 }
+
 .mb-1 {
     margin-bottom: 0.5rem;
 }
+
 .mb-2 {
     margin-bottom: 1rem;
 }
+
 .mb-4 {
     margin-bottom: 2rem;
 }
+
 .mt-2 {
     margin-top: 1rem;
 }
+
 .mt-4 {
     margin-top: 2rem;
 }
+
 .p-4 {
     padding: 1rem;
 }
+
 .p-6 {
     padding: 1.5rem;
 }
+
 .flex {
     display: flex;
 }
+
 .flex-col {
     flex-direction: column;
 }
+
 .items-center {
     align-items: center;
 }
+
 .justify-center {
     justify-content: center;
 }
+
 .justify-between {
     justify-content: space-between;
 }
+
 .gap-2 {
     gap: 0.5rem;
 }
+
 .gap-4 {
     gap: 1rem;
 }
+
 .w-full {
     width: 100%;
 }
@@ -231,9 +247,11 @@ textarea:focus {
 .u-invisible {
     visibility: hidden;
 }
+
 .u-bg-white\/80 {
     background-color: rgba(255, 255, 255, 0.8);
 }
+
 .u-backdrop-blur {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -242,12 +260,15 @@ textarea:focus {
 .u-rounded-2xl {
     border-radius: 1rem;
 }
+
 .u-rounded-3xl {
     border-radius: 1.5rem;
 }
+
 .u-rounded-full {
     border-radius: 9999px;
 }
+
 .u-rounded-card {
     border-radius: 28px;
 }
@@ -255,9 +276,11 @@ textarea:focus {
 .u-shadow-md {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
+
 .u-shadow-lg {
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
+
 .u-shadow-xl {
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
@@ -266,9 +289,11 @@ textarea:focus {
 .bg-peach {
     background-color: #ff8a8a;
 }
+
 .text-peach {
     color: #ff8a8a;
 }
+
 .bg-gray-light {
     background-color: #f9fafb;
 }
@@ -277,48 +302,63 @@ textarea:focus {
 .d-flex {
     display: flex;
 }
+
 .flex-col {
     flex-direction: column;
 }
+
 .flex-row {
     flex-direction: row;
 }
+
 .items-center {
     align-items: center;
 }
+
 .justify-center {
     justify-content: center;
 }
+
 .justify-between {
     justify-content: space-between;
 }
+
 .flex-wrap {
     flex-wrap: wrap;
 }
+
 .flex-1 {
     flex: 1;
 }
+
 .shrink-0 {
     flex-shrink: 0;
 }
+
 .w-full {
     width: 100%;
 }
+
 .h-full {
     height: 100%;
 }
+
 .h-screen {
     height: 100vh;
 }
+
 .min-h-screen {
     min-height: 100vh;
 }
+
 .overflow-hidden {
     overflow: hidden;
 }
+
 .relative {
     position: relative;
 }
+
 .absolute {
     position: absolute;
 }
@@ -332,89 +372,116 @@ textarea:focus {
 .m-0 {
     margin: 0;
 }
+
 .mb-2 {
     margin-bottom: 0.5rem;
 }
+
 .mb-4 {
     margin-bottom: 1rem;
 }
+
 .mb-6 {
     margin-bottom: 1.5rem;
 }
+
 .mb-8 {
     margin-bottom: 2rem;
 }
+
 .mb-10 {
     margin-bottom: 2.5rem;
 }
+
 .mb-12 {
     margin-bottom: 3rem;
 }
+
 .mt-4 {
     margin-top: 1rem;
 }
+
 .mt-8 {
     margin-top: 2rem;
 }
+
 .p-2 {
     padding: 0.5rem;
 }
+
 .p-4 {
     padding: 1rem;
 }
+
 .p-6 {
     padding: 1.5rem;
 }
+
 .p-8 {
     padding: 2rem;
 }
+
 .px-2 {
     padding-left: 0.5rem;
     padding-right: 0.5rem;
 }
+
 .px-4 {
     padding-left: 1rem;
     padding-right: 1rem;
 }
+
 .px-6 {
     padding-left: 1.5rem;
     padding-right: 1.5rem;
 }
+
 .py-1 {
     padding-top: 0.25rem;
     padding-bottom: 0.25rem;
 }
+
 .py-2 {
     padding-top: 0.5rem;
     padding-bottom: 0.5rem;
 }
+
 .pt-4 {
     padding-top: 1rem;
 }
+
 .pt-8 {
     padding-top: 2rem;
 }
+
 .pt-10 {
     padding-top: 2.5rem;
 }
+
 .pb-24 {
     padding-bottom: 6rem;
 }
+
 .gap-1 {
     gap: 0.25rem;
 }
+
 .gap-1-5 {
     gap: 0.375rem;
 }
+
 .gap-2 {
     gap: 0.5rem;
 }
+
 .gap-3 {
     gap: 0.75rem;
 }
+
 .gap-4 {
     gap: 1rem;
 }
+
 .gap-5 {
     gap: 1.25rem;
 }

@@ -3,15 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import useStore from '../store';
 import { situations } from '../data/situations';
 import {
-    PlayCircle,
     Star,
     Sparkles,
     ChevronRight,
     ChevronLeft,
     Heart,
-    CheckCircle2,
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 
 // Import Swiper React components and styles
@@ -184,7 +181,7 @@ export default function Home() {
                                     </div>
 
                                     {/* Footer Tip */}
-                                    <div className="w-full pt-10 tip-container">
+                                    <div className="w-full tip-container">
                                         {expr.tip && (
                                             <div className="tip-box d-flex items-start gap-4 shadow-sm">
                                                 <span className="text-xl">💡</span>

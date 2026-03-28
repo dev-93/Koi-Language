@@ -30,12 +30,7 @@ export default [
             ...reactHooks.configs.recommended.rules,
             'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
             'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
-            'prettier/prettier': [
-                'error',
-                {
-                    tabWidth: 4,
-                },
-            ],
+            'prettier/prettier': 'error',
         },
     },
     prettierConfig, // Add this last to disable conflicting rules
