@@ -69,17 +69,30 @@ export default function Home() {
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-col gap-1.5">
                     <h4 className="text-[21px] font-bold m-0 text-gray-800 tracking-tight leading-tight">{isKr ? expr.jp : expr.kr}</h4>
-                    <p className="text-[13px] text-blue-500/80 font-bold tracking-tight">{isKr ? expr.reading : expr.jp}</p>
+                    <p className="text-[11px] text-blue-500/80 font-bold tracking-tight">{isKr ? expr.reading : expr.jp}</p>
                   </div>
 
-                  <div className="pt-4 border-t border-gray-50 flex flex-col gap-2">
+                  <div className="pt-4 border-t border-gray-50 flex flex-col gap-3">
                     <div className="bg-gray-50/80 px-4 py-3 rounded-2xl">
-                      <p className="text-[14px] text-gray-600 font-semibold leading-relaxed">
+                      <p className="text-[15px] text-gray-800 font-black leading-relaxed">
                         {isKr ? expr.kr : expr.jp}
                       </p>
                     </div>
+
+                    {expr.words && (
+                      <div className="flex flex-wrap gap-2 px-1 mt-1">
+                        {expr.words.map((item, wIdx) => (
+                          <div key={wIdx} className="bg-pink-50/30 px-2.5 py-1 rounded-lg border border-pink-100/40">
+                            <span className="text-[10px] text-pink-400 font-bold">{item.word}</span>
+                            <span className="text-[10px] text-gray-400 mx-1">:</span>
+                            <span className="text-[10px] text-gray-500 font-medium">{item.mean}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
                     {expr.tip && (
-                      <p className="px-1 text-[11px] text-gray-400 font-medium leading-normal flex gap-1 items-start">
+                      <p className="px-1 text-[11px] text-gray-400 font-medium leading-normal flex gap-1 items-start mt-1">
                         <span className="shrink-0 opacity-60">💡</span> 
                         <span>{expr.tip}</span>
                       </p>

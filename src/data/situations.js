@@ -5,11 +5,56 @@ export const situations = [
     desc: { kr: '우연히 합석하게 된 카페에서 말을 걸어보세요.', jp: '偶然相席になったカフェで話しかけてみましょう。' },
     expressions: {
       kr_wants_jp: [
-        { kr: '여기 자리 비어있나요?', jp: 'ここ、空いてますか？', romaji: 'Koko, aitemasuka?', reading: '코코, 아이테마스카?', tip: '자연스러운 첫 마디입니다.' },
-        { kr: '자주 오시나봐요.', jp: 'よく来られるんですか？', romaji: 'Yoku korarerun desuka?', reading: '요쿠 코라레룬 데스카?', tip: '가벼운 스몰토크로 대화를 이어갑니다.' },
-        { kr: '무슨 커피 드시나요?', jp: '何のコーヒー를 飲んで いますか？', romaji: 'Nan no koohii o nonde imasuka?', reading: '난노 코히오 논데 이마스카?', tip: '마시고 있는 메뉴로 자연스럽게 대화 주제를 잡습니다.' },
-        { kr: '책 제목이 재미있어 보이네요.', jp: '本の タイトルが 面白そうですね。', romaji: 'Hon no taitoru ga omoshirosou desune.', reading: '혼노 타이토루가 오모시로소오 데스네.', tip: '상대가 보고 있는 책이나 소품을 칭찬해보세요.' },
-        { kr: '분위기가 참 좋네요.', jp: '雰囲気が すごく いいですね。', romaji: 'Fuuniki ga sugoku iidesune.', reading: '훙이키가 스고쿠 이이데스네.', tip: '카페의 분위기를 소재로 말을 걸어봅니다.' }
+        { 
+          kr: '여기 자리 비어있나요?', 
+          jp: 'ここ、空いてますか？', 
+          reading: '코코, 아이테마스카?', 
+          tip: '자연스러운 첫 마디입니다.',
+          words: [
+            { word: 'ここ (코코)', mean: '여기' },
+            { word: '空く (아쿠)', mean: '비다' }
+          ]
+        },
+        { 
+          kr: '자주 오시나봐요.', 
+          jp: 'よく来られるんですか？', 
+          reading: '요쿠 코라레룬 데스카?', 
+          tip: '가벼운 스몰토크로 대화를 이어갑니다.',
+          words: [
+            { word: 'よく (요쿠)', mean: '자주' },
+            { word: '来る (쿠루)', mean: '오다' }
+          ]
+        },
+        { 
+          kr: '무슨 커피 드시나요?', 
+          jp: '何のコーヒーを 飲んで いますか？', 
+          reading: '난노 코히오 논데 이마스카?', 
+          tip: '마시고 있는 메뉴로 자연스럽게 대화 주제를 잡습니다.',
+          words: [
+            { word: '何 (난)', mean: '무엇' },
+            { word: '飲む (노무)', mean: '마시다' }
+          ]
+        },
+        { 
+          kr: '책 제목이 재미있어 보이네요.', 
+          jp: '本の タイトルが 面白そうですね。', 
+          reading: '혼노 타이토루가 오모시로 소오 데스네.', 
+          tip: '상대가 보고 있는 책이나 소품을 칭찬해보세요.',
+          words: [
+            { word: '本 (혼)', mean: '책' },
+            { word: '面白い (오모시로이)', mean: '재밌다' }
+          ]
+        },
+        { 
+          kr: '분위기가 참 좋네요.', 
+          jp: '雰囲気が すごく いいですね。', 
+          reading: '훙이키가 스고쿠 이이데스네.', 
+          tip: '카페의 분위기를 소재로 말을 걸어봅니다.',
+          words: [
+            { word: '雰囲気 (훙이키)', mean: '분위기' },
+            { word: 'いい (이이)', mean: '좋다' }
+          ]
+        }
       ],
       jp_wants_kr: [
         { jp: 'ここ、空いてますか？', kr: '여기 자리 비어있나요?', romaji: 'yeogi jari bieoinnayo?', reading: 'yeogi jari bieoinnayo?' },
