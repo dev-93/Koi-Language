@@ -32,9 +32,9 @@ export default function Home() {
   const targetGenderAvatar = userProfile.targetGender === 'M' ? '👨🏻‍💼' : '👩🏻‍💼';
 
   const currentSituation = situations[0]; 
-  const completedSituations = dailyProgress.cardsLearned.length;
-  const targetSituations = 5;
-  const dailyProgressRatio = Math.min((completedSituations / targetSituations) * 100, 100);
+  const completedSituationsCount = dailyProgress.cardsLearned.length;
+  const targetSituationsCount = 5;
+  const dailyProgressRatio = Math.min((completedSituationsCount / targetSituationsCount) * 100, 100);
 
   const myPerspective = isKr ? 'kr_wants_jp' : 'jp_wants_kr';
   const expressions = currentSituation.expressions[myPerspective];
@@ -42,7 +42,9 @@ export default function Home() {
   const isLastCard = activeIdx === totalCards - 1;
 
   const handleFinish = () => {
-    markCardLearned(currentSituation.id);
+    if (!dailyProgress.cardsLearned.includes(currentSituation.id)) {
+      markCardLearned(currentSituation.id);
+    }
     confetti({
       particleCount: 150,
       spread: 70,
@@ -63,9 +65,9 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen p-6 pb-24" style={{ background: 'var(--bg-gradient)' }}>
+    <div className="min-h-screen p-6 pb-24 flex flex-col items-center" style={{ background: 'var(--bg-gradient)' }}>
       {/* Header */}
-      <div className="flex justify-between items-center mb-8">
+      <div className="w-full flex justify-between items-center mb-8 max-w-[400px]">
         <div>
           <h1 className="title-cute m-0 text-3xl leading-none mb-1">Koi Language</h1>
           <p className="text-[10px] m-0 text-gray-400 font-bold uppercase tracking-widest pl-1">Dating Expression Master</p>
@@ -78,25 +80,21 @@ export default function Home() {
       </div>
 
       {/* Daily Progress Card */}
-      <div className="card relative overflow-hidden bg-white/80 backdrop-blur-xl border border-white/50 mb-10 p-6 rounded-[28px] shadow-xl">
+      <div className="w-full max-w-[400px] card relative overflow-hidden bg-white/80 backdrop-blur-xl border border-white/50 mb-8 p-6 rounded-[28px] shadow-xl">
         <div className="absolute -top-6 -right-6 w-24 h-24 bg-pink-100/30 rounded-full blur-2xl" />
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-pink-50 rounded-xl flex items-center justify-center">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-10 h-10 bg-pink-50 rounded-xl flex items-center justify-center shrink-0">
              <Star className="text-pink-500" size={20} fill="#FF8A8A" />
           </div>
           <div>
-            <h2 className="m-0 text-lg font-black text-gray-800">오늘의 학습 목표</h2>
-            <p className="m-0 text-xs text-gray-400 font-bold">상황 {targetSituations}개 마스터하기</p>
+            <h2 className="m-0 text-lg font-black text-gray-800">현지인 데이트 실전 정복</h2>
+            <p className="m-0 text-xs text-gray-400 font-bold">마스터한 대화 포인트: {completedSituationsCount}개</p>
           </div>
         </div>
         
-        <div className="flex justify-between mb-2.5 text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">
-          <span>Daily Goal</span>
-          <span className="text-pink-500">{completedSituations} / {targetSituations}</span>
-        </div>
-        <div className="h-3.5 w-full bg-gray-100/50 rounded-full overflow-hidden border border-gray-100 shadow-inner">
+        <div className="h-4 w-full bg-gray-100/50 rounded-full overflow-hidden border border-gray-100 shadow-inner p-[2px]">
           <motion.div 
-            className="h-full bg-pink-400 rounded-full"
+            className="h-full bg-pink-400 rounded-full shadow-[0_0_10px_rgba(255,138,138,0.3)]"
             initial={{ width: 0 }}
             animate={{ width: `${dailyProgressRatio}%` }}
             transition={{ duration: 1, ease: "circOut" }}
@@ -105,31 +103,22 @@ export default function Home() {
       </div>
 
       {/* Study Section */}
-      <div className="relative">
-        <div className="flex items-center justify-between mb-6 px-1">
+      <div className="w-full max-w-[340px] relative">
+        <div className="flex items-center justify-between mb-4 px-1">
           <div className="flex items-center gap-2">
-            <Sparkles className="text-pink-400" size={20} />
-            <h3 className="text-xl font-black m-0 text-gray-800">오늘의 상황: {isKr ? currentSituation.title.kr : currentSituation.title.jp}</h3>
+            <Sparkles className="text-pink-400" size={18} />
+            <h3 className="text-[16px] font-black m-0 text-gray-800 truncate">{isKr ? currentSituation.title.kr : currentSituation.title.jp}</h3>
           </div>
+          <span className="text-[14px] font-black text-pink-500 shrink-0">{activeIdx + 1} / {totalCards}</span>
         </div>
 
         {/* Card Swiper Container */}
-        <div className="mb-4">
-          <div className="flex justify-between items-center mb-1.5 px-1">
-             <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Card Progress</span>
-             <span className="text-[11px] font-black text-pink-500">{Math.round(((activeIdx + 1) / totalCards) * 100)}%</span>
-          </div>
-          <div className="h-1.5 w-full bg-white rounded-full overflow-hidden border border-pink-50">
-             <div className="h-full bg-pink-400 rounded-full transition-all duration-300" style={{ width: `${((activeIdx + 1) / totalCards) * 100}%` }} />
-          </div>
-        </div>
-
-        <div className="min-h-[480px]">
+        <div className="min-h-[460px] flex justify-center">
           <Swiper
             effect={'cards'}
             grabCursor={true}
             modules={[EffectCards, Navigation, Pagination]}
-            className="mySwiper w-full max-w-[340px]"
+            className="mySwiper w-full"
             onSwiper={(swiper) => (swiperRef.current = swiper)}
             onSlideChange={(swiper) => setActiveIdx(swiper.activeIndex)}
           >
@@ -139,7 +128,7 @@ export default function Home() {
                   {/* Heart Button */}
                   <button 
                     onClick={(e) => toggleLike(e, idx)}
-                    className="absolute top-6 right-6 p-2 border-none bg-transparent"
+                    className="absolute top-6 right-6 p-2 z-10"
                   >
                     <Heart 
                       size={26} 
@@ -148,12 +137,12 @@ export default function Home() {
                     />
                   </button>
 
-                  {/* Content */}
-                  <div className="flex-1 flex flex-col items-center justify-center gap-4 w-full pt-4">
+                  {/* Content Area */}
+                  <div className="flex-1 flex flex-col items-center justify-center gap-4 w-full pt-6">
                     <h2 className="m-0 text-[28px] font-black text-center leading-tight text-gray-800">
                       {isKr ? expr.jp : expr.kr}
                     </h2>
-                    <p className="m-0 text-[16px] text-gray-400 font-bold">
+                    <p className="m-0 text-[18px] text-gray-400 font-bold">
                       {expr.reading}
                     </p>
                     <h3 className="m-0 text-[24px] font-bold text-pink-500">
@@ -165,10 +154,10 @@ export default function Home() {
                     <div className="flex flex-wrap justify-center gap-2 px-2">
                       {expr.words?.map((w, i) => (
                         <div key={i} className="flex items-center gap-1">
-                          <span className="bg-[#FFF0F0] text-[#FF8A8A] text-[11px] font-black px-2 py-1 rounded-md border border-[#FFECEC]">
+                          <span className="bg-[#FFF0F0] text-[#FF8A8A] text-[12px] font-black px-2 py-1 rounded-md border border-[#FFECEC]">
                             [{w.word.split(' ')[0]}]
                           </span>
-                          <span className="bg-gray-50 text-gray-400 text-[11px] font-bold px-2 py-1 rounded-md border border-gray-100">
+                          <span className="bg-gray-50 text-gray-400 text-[12px] font-bold px-2 py-1 rounded-md border border-gray-100">
                             [{w.mean}]
                           </span>
                         </div>
@@ -176,12 +165,12 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* Footer Tip */}
-                  <div className="w-full pt-6">
+                  {/* Footer Tip - Increased Spacing */}
+                  <div className="w-full pt-8">
                     {expr.tip && (
-                      <div className="bg-gray-50 rounded-2xl p-4 flex items-start gap-3 border border-gray-100">
-                        <span className="text-lg">💡</span>
-                        <p className="m-0 text-[12px] text-gray-500 leading-relaxed font-bold">
+                      <div className="bg-pink-50/30 rounded-2xl p-4 flex items-start gap-3 border border-pink-50/50 shadow-sm">
+                        <span className="text-xl">💡</span>
+                        <p className="m-0 text-[13px] text-gray-500 leading-relaxed font-bold">
                           {expr.tip}
                         </p>
                       </div>
@@ -193,46 +182,28 @@ export default function Home() {
           </Swiper>
         </div>
 
-        {/* Custom Navigation */}
-        <div className="mt-8 flex flex-col items-center gap-6">
-          <div className="px-4 py-1.5 bg-white rounded-full shadow-sm border border-gray-100 text-[12px] font-black text-gray-300">
-            <span className="text-pink-500">{activeIdx + 1}</span> / {totalCards}
-          </div>
-
-          <div className="flex items-center gap-4 w-full">
+        {/* Navigation Buttons Area - Centered and Spaced */}
+        <div className="mt-8 flex flex-col gap-4 w-full">
+          <div className="flex items-center gap-3 w-full">
             <button 
               onClick={() => swiperRef.current?.slidePrev()}
-              className={`flex-1 h-16 rounded-[22px] font-bold shadow-md flex items-center justify-center gap-2 transition-all ${activeIdx === 0 ? 'bg-gray-100 text-gray-300' : 'bg-white text-gray-600 active:scale-95'}`}
+              disabled={activeIdx === 0}
+              className={`flex-1 h-16 rounded-[24px] font-black shadow-md flex items-center justify-center transition-all ${activeIdx === 0 ? 'bg-gray-50 text-gray-200' : 'bg-white text-gray-500 active:scale-95'}`}
             >
-              <ChevronLeft size={20} /> PREV
+              <ChevronLeft size={24} />
             </button>
             
             <button 
               onClick={() => isLastCard ? handleFinish() : swiperRef.current?.slideNext()}
-              className={`flex-[2] h-16 rounded-[22px] font-black shadow-lg flex items-center justify-center gap-3 text-white transition-all bg-pink-400 active:scale-95`}
+              className={`flex-[3] h-16 rounded-[24px] font-black shadow-lg shadow-pink-100 flex items-center justify-center gap-3 text-white transition-all bg-pink-400 active:scale-95`}
             >
               {isLastCard ? (
-                <>FINISH <CheckCircle2 size={20}/></>
+                <>정복 완료! <CheckCircle2 size={24}/></>
               ) : (
-                <>NEXT <ChevronRight size={20}/></>
+                <>다음 카드로 <ChevronRight size={24}/></>
               )}
             </button>
           </div>
-        </div>
-      </div>
-
-      {/* Next Items Footer */}
-      <div className="mt-12 opacity-50">
-        <h3 className="text-lg font-black text-gray-400 mb-4 px-1">Next Situations</h3>
-        <div className="card p-5 bg-white border border-gray-50 rounded-[28px] flex items-center justify-between shadow-sm">
-          <div className="flex items-center gap-4">
-             <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-lg">☕</div>
-             <div className="flex flex-col">
-               <p className="m-0 text-sm font-black text-gray-600">식사 데이트 신청</p>
-               <p className="m-0 text-[10px] text-gray-400 font-bold uppercase tracking-widest">Locked</p>
-             </div>
-          </div>
-          <PlayCircle className="text-gray-200" size={20} />
         </div>
       </div>
     </div>
