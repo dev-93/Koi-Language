@@ -89,12 +89,9 @@ export default function LearnCard() {
     };
 
     return (
-        <div
-            className="flex flex-col h-screen overflow-hidden p-6"
-            style={{ background: 'var(--bg-gradient)' }}
-        >
+        <div className="d-flex flex-col h-screen overflow-hidden p-6 bg-main-gradient">
             {/* Header */}
-            <div className="flex items-center justify-between mb-2">
+            <div className="d-flex items-center justify-between mb-2">
                 <button
                     onClick={() => navigate('/home')}
                     className="p-2 border-none bg-white rounded-full shadow-sm hover:bg-gray-50 active:scale-95 transition-all"
@@ -114,7 +111,7 @@ export default function LearnCard() {
 
             {/* Progress Bar Section */}
             <div className="mb-8">
-                <div className="flex justify-between items-center mb-2 px-1">
+                <div className="d-flex justify-between items-center mb-2 px-1">
                     <span className="text-[10px] font-bold text-pink-400 uppercase tracking-wider">
                         Learning Progress
                     </span>
@@ -122,9 +119,9 @@ export default function LearnCard() {
                         {Math.round((currentIndex / totalCards) * 100)}%
                     </span>
                 </div>
-                <div className="h-2.5 w-full bg-white rounded-full shadow-inner overflow-hidden border border-pink-50">
+                <div className="progress-bar-container">
                     <motion.div
-                        className="h-full bg-gradient-to-r from-pink-300 to-pink-500 rounded-full shadow-[0_0_8px_rgba(255,138,138,0.4)]"
+                        className="progress-bar-fill-gradient"
                         initial={{ width: 0 }}
                         animate={{ width: `${(currentIndex / totalCards) * 100}%` }}
                         transition={{ duration: 0.5, ease: 'circOut' }}
@@ -133,7 +130,7 @@ export default function LearnCard() {
             </div>
 
             {/* Card Container */}
-            <div className="flex-1 relative flex items-center justify-center">
+            <div className="flex-1 relative d-flex items-center justify-center">
                 <AnimatePresence initial={false} custom={direction}>
                     <motion.div
                         key={currentIndex}
@@ -155,13 +152,7 @@ export default function LearnCard() {
                             if (swipe < -100) handleNext();
                             else if (swipe > 100) handlePrev();
                         }}
-                        className="card w-full max-w-[360px] flex flex-col items-center justify-between relative cursor-grab active:cursor-grabbing transform-gpu"
-                        style={{
-                            padding: '32px 24px',
-                            touchAction: 'none',
-                            minHeight: '440px',
-                            backgroundColor: 'white',
-                        }}
+                        className="card w-full learn-card-container d-flex flex-col items-center justify-between relative cursor-grab active:cursor-grabbing transform-gpu"
                     >
                         {/* Heart Button */}
                         <motion.button
@@ -179,36 +170,34 @@ export default function LearnCard() {
                         </motion.button>
 
                         {/* Transcription & Translation */}
-                        <div className="flex-1 flex flex-col items-center justify-center gap-4 w-full pt-4">
+                        <div className="flex-1 d-flex flex-col items-center justify-center gap-4 w-full pt-4">
                             <h2 className="m-0 text-[32px] font-black text-center leading-tight text-gray-800">
                                 {isKr ? currentExpr.jp : currentExpr.kr}
                             </h2>
                             <p className="m-0 text-[18px] text-gray-400 font-bold tracking-wide">
                                 {currentExpr.reading}
                             </p>
-                            <h3 className="m-0 text-[26px] font-bold text-[#FF8A8A]">
+                            <h3 className="m-0 text-[26px] font-bold text-peach">
                                 {isKr ? currentExpr.kr : currentExpr.jp}
                             </h3>
 
                             {/* Divider */}
-                            <div className="w-[90%] h-[1px] bg-gradient-to-r from-transparent via-pink-100 to-transparent my-6" />
+                            <div className="card-divider-wide" />
 
                             {/* Word Chips */}
-                            <div className="flex flex-wrap justify-center gap-2.5 px-2">
+                            <div className="d-flex flex-wrap justify-center gap-2.5 px-2">
                                 {currentExpr.words?.map((w, i) => (
                                     <motion.div
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: i * 0.1 }}
                                         key={i}
-                                        className="flex items-center gap-1.5"
+                                        className="d-flex items-center gap-1.5"
                                     >
-                                        <span className="bg-[#FFF0F0] text-[#FF8A8A] text-[12px] font-black px-2.5 py-1.5 rounded-lg border border-[#FFECEC]">
-                                            [{w.word.split(' ')[0]}]
+                                        <span className="word-tag-primary">
+                                            {w.word.split(' ')[0]}
                                         </span>
-                                        <span className="bg-gray-50 text-gray-500 text-[12px] font-bold px-2.5 py-1.5 rounded-lg border border-gray-100">
-                                            [{w.mean}]
-                                        </span>
+                                        <span className="word-tag-secondary">{w.mean}</span>
                                     </motion.div>
                                 ))}
                             </div>
@@ -217,7 +206,7 @@ export default function LearnCard() {
                         {/* Tip at Bottom */}
                         <div className="w-full pt-8">
                             {currentExpr.tip && (
-                                <div className="bg-[#FBFBFF] rounded-2xl p-4 flex items-start gap-3 border border-[#F0F0FF]">
+                                <div className="tip-box d-flex items-start gap-3">
                                     <span className="text-lg">💡</span>
                                     <p className="m-0 text-[13px] text-gray-500 leading-relaxed font-bold">
                                         {currentExpr.tip}
@@ -230,7 +219,7 @@ export default function LearnCard() {
             </div>
 
             {/* Indicators and Navigation */}
-            <div className="mt-8 mb-4 flex flex-col items-center gap-6">
+            <div className="mt-8 mb-4 d-flex flex-col items-center gap-6">
                 <div className="px-4 py-1.5 bg-white rounded-full shadow-sm border border-gray-100 text-[13px] font-black text-gray-300 tracking-widest">
                     <span className="text-[#FF8A8A]">{currentIndex + 1}</span> / {totalCards}
                 </div>

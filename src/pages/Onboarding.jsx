@@ -29,17 +29,14 @@ export default function Onboarding() {
     };
 
     return (
-        <div
-            className="min-h-screen flex flex-col items-center justify-center p-8 overflow-hidden"
-            style={{ background: 'var(--bg-gradient)' }}
-        >
+        <div className="min-h-screen d-flex flex-col items-center justify-center p-8 overflow-hidden bg-main-gradient">
             <header className="mb-12 text-center">
                 <motion.div
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className="flex justify-center mb-4"
+                    className="d-flex justify-center mb-4"
                 >
-                    <div className="w-20 h-20 bg-white rounded-[30%] shadow-xl flex items-center justify-center relative">
+                    <div className="onboarding-logo-box d-flex items-center justify-center relative">
                         <Heart fill="#FF8A8A" stroke="none" size={40} />
                         <Sparkles className="absolute top-2 right-2 text-pink-300" size={16} />
                     </div>
@@ -59,7 +56,7 @@ export default function Onboarding() {
                             initial="enter"
                             animate="center"
                             exit="exit"
-                            className="card p-10 flex flex-col items-center gap-6"
+                            className="card p-10 d-flex flex-col items-center gap-6"
                         >
                             <div className="text-center">
                                 <h2 className="m-0 text-2xl font-black text-gray-800 mb-1">
@@ -70,15 +67,15 @@ export default function Onboarding() {
                                 </p>
                             </div>
 
-                            <div className="flex flex-col gap-3 w-full">
+                            <div className="d-flex flex-col gap-3 w-full">
                                 <button
-                                    className={`w-full h-16 rounded-[22px] border-none font-black text-lg transition-all flex items-center justify-center gap-3 shadow-md ${profile.myNationality === 'KR' ? 'bg-gradient-to-r from-pink-400 to-pink-500 text-white' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'}`}
+                                    className={`onboarding-btn-option d-flex items-center justify-center gap-3 ${profile.myNationality === 'KR' ? 'bg-pink-gradient' : 'inactive-btn'}`}
                                     onClick={() => setProfile({ ...profile, myNationality: 'KR' })}
                                 >
                                     <span className="text-2xl">🇰🇷</span> 한국인
                                 </button>
                                 <button
-                                    className={`w-full h-16 rounded-[22px] border-none font-black text-lg transition-all flex items-center justify-center gap-3 shadow-md ${profile.myNationality === 'JP' ? 'bg-gradient-to-r from-pink-400 to-pink-500 text-white' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'}`}
+                                    className={`onboarding-btn-option d-flex items-center justify-center gap-3 ${profile.myNationality === 'JP' ? 'bg-pink-gradient' : 'inactive-btn'}`}
                                     onClick={() => setProfile({ ...profile, myNationality: 'JP' })}
                                 >
                                     <span className="text-2xl">🇯🇵</span> 일본인
@@ -101,7 +98,7 @@ export default function Onboarding() {
                             initial="enter"
                             animate="center"
                             exit="exit"
-                            className="card p-10 flex flex-col items-center gap-6"
+                            className="card p-10 d-flex flex-col items-center gap-6"
                         >
                             <div className="text-center">
                                 <h2 className="m-0 text-2xl font-black text-gray-800 mb-1">
@@ -112,16 +109,16 @@ export default function Onboarding() {
                                 </p>
                             </div>
 
-                            <div className="flex gap-4 w-full">
+                            <div className="d-flex gap-4 w-full">
                                 <button
-                                    className={`flex-1 flex flex-col gap-3 items-center justify-center h-32 rounded-[28px] border-none font-black text-lg transition-all shadow-md ${profile.myGender === 'M' ? 'bg-white ring-4 ring-pink-100 text-gray-800' : 'bg-gray-50 text-gray-400 opacity-60'}`}
+                                    className={`onboarding-gender-card d-flex flex-col gap-3 items-center justify-center ${profile.myGender === 'M' ? 'active' : 'inactive'}`}
                                     onClick={() => setProfile({ ...profile, myGender: 'M' })}
                                 >
                                     <span className="text-4xl">👨🏻‍💼</span>
                                     남자
                                 </button>
                                 <button
-                                    className={`flex-1 flex flex-col gap-3 items-center justify-center h-32 rounded-[28px] border-none font-black text-lg transition-all shadow-md ${profile.myGender === 'F' ? 'bg-white ring-4 ring-pink-100 text-gray-800' : 'bg-gray-50 text-gray-400 opacity-60'}`}
+                                    className={`onboarding-gender-card d-flex flex-col gap-3 items-center justify-center ${profile.myGender === 'F' ? 'active' : 'inactive'}`}
                                     onClick={() => setProfile({ ...profile, myGender: 'F' })}
                                 >
                                     <span className="text-4xl">👩🏻‍💼</span>
@@ -129,15 +126,15 @@ export default function Onboarding() {
                                 </button>
                             </div>
 
-                            <div className="flex justify-between w-full mt-4">
+                            <div className="d-flex justify-between w-full mt-4">
                                 <button
-                                    className="flex items-center gap-1 text-gray-400 font-bold border-none bg-transparent"
+                                    className="d-flex items-center gap-1 text-gray-400 font-bold border-none bg-transparent"
                                     onClick={prevStep}
                                 >
                                     <ChevronLeft size={18} /> 이전
                                 </button>
                                 <button
-                                    className="flex items-center gap-1 text-pink-500 font-black text-lg border-none bg-transparent"
+                                    className="d-flex items-center gap-1 text-peach font-black text-lg border-none bg-transparent"
                                     onClick={nextStep}
                                 >
                                     다음 <ChevronRight size={20} />
@@ -153,7 +150,7 @@ export default function Onboarding() {
                             initial="enter"
                             animate="center"
                             exit="exit"
-                            className="card p-10 flex flex-col items-center gap-6"
+                            className="card p-10 d-flex flex-col items-center gap-6"
                         >
                             <div className="text-center">
                                 <h2 className="m-0 text-2xl font-black text-gray-800 mb-1">
@@ -164,16 +161,16 @@ export default function Onboarding() {
                                 </p>
                             </div>
 
-                            <div className="flex gap-4 w-full">
+                            <div className="d-flex gap-4 w-full">
                                 <button
-                                    className={`flex-1 flex flex-col gap-3 items-center justify-center h-32 rounded-[28px] border-none font-black text-lg transition-all shadow-md ${profile.targetGender === 'M' ? 'bg-white ring-4 ring-pink-100 text-gray-800' : 'bg-gray-50 text-gray-400 opacity-60'}`}
+                                    className={`onboarding-gender-card d-flex flex-col gap-3 items-center justify-center ${profile.targetGender === 'M' ? 'active' : 'inactive'}`}
                                     onClick={() => setProfile({ ...profile, targetGender: 'M' })}
                                 >
                                     <span className="text-4xl">👨🏻‍💼</span>
                                     남자
                                 </button>
                                 <button
-                                    className={`flex-1 flex flex-col gap-3 items-center justify-center h-32 rounded-[28px] border-none font-black text-lg transition-all shadow-md ${profile.targetGender === 'F' ? 'bg-white ring-4 ring-pink-100 text-gray-800' : 'bg-gray-50 text-gray-400 opacity-60'}`}
+                                    className={`onboarding-gender-card d-flex flex-col gap-3 items-center justify-center ${profile.targetGender === 'F' ? 'active' : 'inactive'}`}
                                     onClick={() => setProfile({ ...profile, targetGender: 'F' })}
                                 >
                                     <span className="text-4xl">👩🏻‍💼</span>
@@ -181,15 +178,15 @@ export default function Onboarding() {
                                 </button>
                             </div>
 
-                            <div className="flex flex-col gap-4 w-full mt-4">
+                            <div className="d-flex flex-col gap-4 w-full mt-4">
                                 <button
-                                    className="w-full h-16 bg-gradient-to-r from-pink-400 to-pink-600 text-white rounded-[22px] border-none font-black text-xl shadow-lg shadow-pink-200 active:scale-95 transition-all"
+                                    className="w-full h-16 bg-pink-gradient rounded-[22px] border-none font-black text-xl shadow-lg shadow-pink-200 active:scale-95 transition-all"
                                     onClick={handleComplete}
                                 >
                                     시작하기 ✨
                                 </button>
                                 <button
-                                    className="flex items-center justify-center gap-1 text-gray-400 font-bold border-none bg-transparent"
+                                    className="d-flex items-center justify-center gap-1 text-gray-400 font-bold border-none bg-transparent"
                                     onClick={prevStep}
                                 >
                                     이전으로
@@ -201,11 +198,11 @@ export default function Onboarding() {
             </div>
 
             {/* Progress Dots */}
-            <div className="flex gap-2.5 mt-10">
+            <div className="d-flex gap-2.5 mt-10">
                 {[1, 2, 3].map((i) => (
                     <div
                         key={i}
-                        className={`h-2.5 rounded-full transition-all duration-300 ${step === i ? 'w-10 bg-pink-500 shadow-[0_0_8px_rgba(255,138,138,0.4)]' : 'w-2.5 bg-gray-200'}`}
+                        className={`dot-indicator ${step === i ? 'dot-active' : 'dot-inactive'}`}
                     />
                 ))}
             </div>

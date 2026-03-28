@@ -76,24 +76,18 @@ export default function Home() {
     };
 
     return (
-        <div
-            className="min-h-screen p-6 pb-24 d-flex flex-col items-center"
-            style={{ background: 'var(--bg-gradient)', width: '100%' }}
-        >
+        <div className="min-h-screen p-6 pb-24 d-flex flex-col items-center bg-main-gradient w-full">
             {/* Header */}
-            <div className="w-full d-flex justify-between items-center mb-10 max-w-[420px]">
+            <div className="w-full d-flex justify-between items-center mb-10 header-container">
                 <div>
                     <h1 className="title-cute m-0 text-3xl leading-none mb-1">Koi Language</h1>
-                    <p
-                        style={{ fontSize: '10px', color: '#9CA3AF', fontWeight: '900' }}
-                        className="m-0 uppercase tracking-widest pl-1"
-                    >
+                    <p className="m-0 uppercase tracking-widest pl-1 header-subtitle">
                         Dating Expression Master
                     </p>
                 </div>
                 <div className="u-bg-white/80 u-backdrop-blur px-4 py-2 u-rounded-2xl shadow-sm border border-white d-flex items-center gap-2">
                     <span className="text-xl">{myIcon}</span>
-                    <span style={{ width: '1px', height: '12px', background: '#E5E7EB' }} />
+                    <span className="header-divider" />
                     <span className="text-xl">
                         {targetIcon}
                         {targetGenderAvatar}
@@ -102,7 +96,7 @@ export default function Home() {
             </div>
 
             {/* Progress Card */}
-            <div className="w-full max-w-[420px] card relative overflow-hidden u-bg-white/80 u-backdrop-blur mb-12 p-6 u-rounded-card shadow-xl border-none">
+            <div className="w-full progress-card-container card relative overflow-hidden u-bg-white/80 u-backdrop-blur mb-12 p-6 u-rounded-card shadow-xl border-none">
                 <div className="absolute -top-6 -right-6 w-24 h-24 bg-pink-100/30 rounded-full blur-2xl" />
                 <div className="d-flex items-center gap-3 mb-5">
                     <div className="w-10 h-10 bg-pink-100/30 rounded-xl d-flex items-center justify-center shrink-0">
@@ -115,7 +109,7 @@ export default function Home() {
             </div>
 
             {/* Main Study Controller Container */}
-            <div className="w-full max-w-[420px] d-flex flex-col items-center">
+            <div className="w-full study-controller-container d-flex flex-col items-center">
                 {/* Title & Page Indicator */}
                 <div className="w-full d-flex items-center justify-between mb-6 px-2">
                     <div className="d-flex items-center gap-2">
@@ -148,8 +142,7 @@ export default function Home() {
                                     {/* Like Button */}
                                     <button
                                         onClick={(e) => toggleLike(e, idx)}
-                                        className="absolute top-5 right-5 z-20"
-                                        style={{ padding: '4px' }}
+                                        className="absolute top-5 right-5 z-20 like-btn-wrapper"
                                     >
                                         <Heart
                                             size={28}
@@ -171,14 +164,7 @@ export default function Home() {
                                             {isKr ? expr.kr : expr.jp}
                                         </h3>
 
-                                        <div
-                                            style={{
-                                                width: '60%',
-                                                height: '1.5px',
-                                                background: '#FFF0F0',
-                                                margin: '15px 0',
-                                            }}
-                                        />
+                                        <div className="card-divider" />
 
                                         <div className="d-flex flex-wrap justify-center gap-2 px-2">
                                             {expr.words?.map((w, i) => (
@@ -186,25 +172,10 @@ export default function Home() {
                                                     key={i}
                                                     className="d-flex items-center gap-1.5"
                                                 >
-                                                    <span
-                                                        style={{
-                                                            fontSize: '11px',
-                                                            background: 'white',
-                                                            color: 'black',
-                                                        }}
-                                                        className="font-black px-2 py-1 rounded-md"
-                                                    >
+                                                    <span className="word-tag-primary">
                                                         {w.word.split(' ')[0]}
                                                     </span>
-                                                    <span
-                                                        style={{
-                                                            fontSize: '11px',
-                                                            background: '#FFF0F0',
-                                                            color: '#FF8A8A',
-                                                            border: '1px solid #FFECEC',
-                                                        }}
-                                                        className="font-bold px-2 py-1 rounded-md"
-                                                    >
+                                                    <span className="word-tag-secondary">
                                                         {w.mean}
                                                     </span>
                                                 </div>
@@ -213,17 +184,9 @@ export default function Home() {
                                     </div>
 
                                     {/* Footer Tip */}
-                                    <div className="w-full pt-10" style={{ marginTop: '20px' }}>
+                                    <div className="w-full pt-10 tip-container">
                                         {expr.tip && (
-                                            <div
-                                                style={{
-                                                    background: '#FFF9F9',
-                                                    padding: '20px',
-                                                    borderRadius: '24px',
-                                                    border: '1px solid #FFECEC',
-                                                }}
-                                                className="d-flex items-start gap-4 shadow-sm"
-                                            >
+                                            <div className="tip-box d-flex items-start gap-4 shadow-sm">
                                                 <span className="text-xl">💡</span>
                                                 <p className="m-0 text-[13px] text-gray-500 leading-relaxed font-bold">
                                                     {expr.tip}
@@ -242,24 +205,22 @@ export default function Home() {
                     <button
                         onClick={() => swiperRef.current?.slidePrev()}
                         disabled={activeIdx === 0}
-                        className="secondary-btn h-16 flex-1 px-4"
+                        className="secondary-btn h-16 flex-1 px-4 nav-btn-secondary-min"
                         style={{
                             opacity: activeIdx === 0 ? 0.2 : 1,
-                            minWidth: '120px',
                         }}
                     >
                         <ChevronLeft size={22} />
-                        <span style={{ fontSize: '16px' }}>이전으로</span>
+                        <span className="nav-btn-text">이전으로</span>
                     </button>
 
                     <button
                         onClick={() =>
                             isLastCard ? handleFinish() : swiperRef.current?.slideNext()
                         }
-                        className="primary-btn h-16 flex-[1.5] px-6"
-                        style={{ minWidth: '160px' }}
+                        className="primary-btn h-16 flex-[1.5] px-6 nav-btn-primary-min"
                     >
-                        <span style={{ fontSize: '17px' }}>
+                        <span className="nav-btn-text">
                             {isLastCard ? '정복 완료!' : '다음으로'}
                         </span>
                         <ChevronRight size={22} />
