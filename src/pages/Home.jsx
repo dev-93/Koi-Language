@@ -31,7 +31,7 @@ export default function Home() {
   const targetIcon = isKr ? '🇯🇵' : '🇰🇷';
   const targetGenderAvatar = userProfile.targetGender === 'M' ? '👨🏻‍💼' : '👩🏻‍💼';
 
-  const currentSituation = situations[0]; 
+  const currentSituation = situations[0];
   const completedSituationsCount = dailyProgress.cardsLearned.length;
   const targetSituationsCount = 5;
   const dailyProgressRatio = Math.min((completedSituationsCount / targetSituationsCount) * 100, 100);
@@ -84,21 +84,11 @@ export default function Home() {
         <div className="absolute -top-6 -right-6 w-24 h-24 bg-pink-100/30 rounded-full blur-2xl" />
         <div className="d-flex items-center gap-3 mb-5">
           <div className="w-10 h-10 bg-pink-100/30 rounded-xl d-flex items-center justify-center shrink-0">
-             <Star className="text-peach" size={20} fill="#FF8A8A" />
+            <Star className="text-peach" size={20} fill="#FF8A8A" />
           </div>
           <div>
-            <h2 className="m-0 text-lg font-black text-gray-800">현지인 데이트 실전 정복</h2>
-            <p className="m-0 text-xs text-gray-400 font-bold">마스터한 대화 포인트: {completedSituationsCount}개</p>
+            <h2 className="m-0 text-lg font-black text-gray-800">유연한 대화</h2>
           </div>
-        </div>
-        
-        <div style={{ height: '16px', background: 'rgba(0,0,0,0.03)', padding: '2px' }} className="w-full rounded-full overflow-hidden shadow-inner">
-          <motion.div 
-            className="h-full bg-peach rounded-full"
-            initial={{ width: 0 }}
-            animate={{ width: `${dailyProgressRatio}%` }}
-            transition={{ duration: 1, ease: "circOut" }}
-          />
         </div>
       </div>
 
@@ -114,7 +104,7 @@ export default function Home() {
         </div>
 
         {/* Card Section */}
-        <div className="w-full min-h-[460px] d-flex justify-center mb-12">
+        <div className="w-full min-h-[500px] d-flex justify-center mb-8">
           <Swiper
             effect={'cards'}
             grabCursor={true}
@@ -125,17 +115,18 @@ export default function Home() {
           >
             {expressions.map((expr, idx) => (
               <SwiperSlide key={idx} className="u-rounded-card overflow-hidden shadow-2xl">
-                <div className="card bg-white p-8 min-h-[440px] d-flex flex-col items-center justify-between relative u-rounded-card border-none">
+                <div className="card bg-white p-8 min-h-[480px] d-flex flex-col items-center justify-between relative u-rounded-card border-none">
                   {/* Like Button */}
-                  <button 
+                  <button
                     onClick={(e) => toggleLike(e, idx)}
-                    className="absolute top-6 right-6 z-10"
-                    style={{ padding: '8px' }}
+                    className="absolute top-5 right-5 z-20"
+                    style={{ padding: '4px' }}
                   >
-                    <Heart 
-                      size={26} 
-                      fill={likedCards.has(idx) ? "#FF8A8A" : "white"} 
-                      stroke={likedCards.has(idx) ? "#FF8A8A" : "#E0E0E0"} 
+                    <Heart
+                      size={28}
+                      fill={likedCards.has(idx) ? "#FF8A8A" : "white"}
+                      stroke={likedCards.has(idx) ? "#FF8A8A" : "#E5E7EB"}
+                      strokeWidth={2.5}
                     />
                   </button>
 
@@ -151,16 +142,16 @@ export default function Home() {
                       {isKr ? expr.kr : expr.jp}
                     </h3>
 
-                    <div style={{ width: '60%', height: '1px', background: '#FFF0F0', margin: '24px 0' }} />
+                    <div style={{ width: '60%', height: '1.5px', background: '#FFF0F0', margin: '15px 0' }} />
 
                     <div className="d-flex flex-wrap justify-center gap-2 px-2">
                       {expr.words?.map((w, i) => (
-                        <div key={i} className="d-flex items-center gap-1">
-                          <span style={{ fontSize: '11px', background: '#FFF0F0', color: '#FF8A8A', border: '1px solid #FFECEC' }} className="font-black px-2 py-1 rounded-md">
-                            [{w.word.split(' ')[0]}]
+                        <div key={i} className="d-flex items-center gap-1.5">
+                          <span style={{ fontSize: '11px', background: 'white', color: 'black' }} className="font-black px-2 py-1 rounded-md">
+                            {w.word.split(' ')[0]}
                           </span>
-                          <span style={{ fontSize: '11px', background: '#F9FAFB', color: '#9CA3AF', border: '1px solid #F3F4F6' }} className="font-bold px-2 py-1 rounded-md">
-                            [{w.mean}]
+                          <span style={{ fontSize: '11px', background: '#FFF0F0', color: '#FF8A8A', border: '1px solid #FFECEC' }} className="font-bold px-2 py-1 rounded-md">
+                            {w.mean}
                           </span>
                         </div>
                       ))}
@@ -168,7 +159,7 @@ export default function Home() {
                   </div>
 
                   {/* Footer Tip */}
-                  <div className="w-full pt-10">
+                  <div className="w-full pt-10" style={{ marginTop: '20px' }}>
                     {expr.tip && (
                       <div style={{ background: '#FFF9F9', padding: '20px', borderRadius: '24px', border: '1px solid #FFECEC' }} className="d-flex items-start gap-4 shadow-sm">
                         <span className="text-xl">💡</span>
@@ -186,11 +177,11 @@ export default function Home() {
 
         {/* Navigation Buttons Row - Explicitly Centered */}
         <div className="w-full d-flex justify-center gap-5 mt-4">
-          <button 
+          <button
             onClick={() => swiperRef.current?.slidePrev()}
             disabled={activeIdx === 0}
             className="secondary-btn h-16 flex-1 px-4"
-            style={{ 
+            style={{
               opacity: activeIdx === 0 ? 0.2 : 1,
               minWidth: '120px'
             }}
@@ -198,8 +189,8 @@ export default function Home() {
             <ChevronLeft size={22} />
             <span style={{ fontSize: '16px' }}>이전으로</span>
           </button>
-          
-          <button 
+
+          <button
             onClick={() => isLastCard ? handleFinish() : swiperRef.current?.slideNext()}
             className="primary-btn h-16 flex-[1.5] px-6"
             style={{ minWidth: '160px' }}

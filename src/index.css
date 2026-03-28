@@ -226,11 +226,12 @@ button {
   background: white;
   color: #757575;
   border-radius: 22px;
+  border: 1.5px solid #F1F1F1;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   transition: all 0.2s;
 }
