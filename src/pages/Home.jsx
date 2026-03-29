@@ -29,7 +29,6 @@ export default function Home() {
     const [selectedSitIdx, setSelectedSitIdx] = useState(0);
 
     const [activeIdx, setActiveIdx] = useState(0);
-    const [selectedLevel, setSelectedLevel] = useState('입문편');
     const [likedCards, setLikedCards] = useState(new Set());
 
     useEffect(() => {
@@ -50,30 +49,26 @@ export default function Home() {
     );
 
     const myPerspective = isKr ? 'kr_wants_jp' : 'jp_wants_kr';
-    const expressionsLevels = currentSituation.expressions?.[myPerspective] || { '입문편': [], '실전편': [], '고수편': [] };
+    const expressions = currentSituation.expressions?.[myPerspective] || [];
     
-    const isLearned = (lvl) => dailyProgress.cardsLearned.includes(`${currentSituation.id}_${lvl}`);
-    
-    const unlockStatus = {
-        '입문편': true,
-        '실전편': isLearned('입문편'),
-        '고수편': isLearned('실전편')
-    };
+    const isLearned = dailyProgress.cardsLearned.includes(currentSituation.id);
 
     // Auto-reset when situation changes
     useEffect(() => {
-        setSelectedLevel('입문편');
         setActiveIdx(0);
         if (swiperRef.current) swiperRef.current.slideTo(0);
     }, [currentSituation.id]);
 
-    const expressions = expressionsLevels[selectedLevel] || [];
     const totalCards = expressions.length;
     const isLastCard = activeIdx === totalCards - 1 && totalCards > 0;
+    const [isFinishing, setIsFinishing] = useState(false);
 
     const handleFinish = () => {
-        if (!isLearned(selectedLevel)) {
-            markCardLearned(`${currentSituation.id}_${selectedLevel}`);
+        if (isFinishing) return;
+        setIsFinishing(true);
+
+        if (!isLearned) {
+            markCardLearned(currentSituation.id);
         }
         confetti({
             particleCount: 150,
@@ -81,16 +76,10 @@ export default function Home() {
             origin: { y: 0.6 },
             colors: ['#FF8A8A', '#FFDFDA', '#DDE2FF'],
         });
+
         setTimeout(() => {
-            if (swiperRef.current) swiperRef.current.slideTo(0);
-            setActiveIdx(0);
-            
-            // Auto advance level if next level has content
-            if (selectedLevel === '입문편' && expressionsLevels['실전편']?.length > 0) {
-                setSelectedLevel('실전편');
-            } else if (selectedLevel === '실전편' && expressionsLevels['고수편']?.length > 0) {
-                setSelectedLevel('고수편');
-            }
+            setIsFinishing(false);
+            // Stays on the last card when completely finished
         }, 2000);
     };
 
@@ -158,37 +147,6 @@ export default function Home() {
 
             {/* Main Study Controller Container */}
             <div className="study-wrapper">
-                {/* Level Tabs */}
-                <div className="w-full d-flex gap-2 mb-4 px-2 mt-2">
-                    {['입문편', '실전편', '고수편'].map((lvl) => {
-                        const isUnlocked = unlockStatus[lvl];
-                        const isActive = selectedLevel === lvl;
-                        return (
-                            <button
-                                key={lvl}
-                                onClick={() => {
-                                    if (isUnlocked) {
-                                        setSelectedLevel(lvl);
-                                        setActiveIdx(0);
-                                        if (swiperRef.current) swiperRef.current.slideTo(0);
-                                    }
-                                }}
-                                disabled={!isUnlocked}
-                                className={`flex-[1] py-2.5 px-1 rounded-xl font-extrabold text-[12px] transition-all border d-flex items-center justify-center gap-1 ${
-                                    isActive 
-                                        ? 'bg-peach text-white border-peach shadow-md translate-y-[-2px]' 
-                                        : isUnlocked 
-                                            ? 'bg-white text-gray-700 border-pink-100 hover:bg-pink-50' 
-                                            : 'bg-gray-50 text-gray-400 border-transparent opacity-50 cursor-not-allowed'
-                                }`}
-                            >
-                                {lvl} 
-                                {isLearned(lvl) ? <span className="text-[10px]">✅</span> : (!isUnlocked && <span className="text-[10px]">🔒</span>)}
-                            </button>
-                        );
-                    })}
-                </div>
-
                 {/* Title & Page Indicator */}
                 <div className="w-full d-flex items-center justify-between mb-6 px-2">
                     <div className="d-flex items-center gap-2">
@@ -196,7 +154,6 @@ export default function Home() {
                         <h3 className="text-lg font-black m-0 text-gray-800">
                             {isKr ? currentSituation.title.kr : currentSituation.title.jp}
                         </h3>
-
                     </div>
                     <span className="text-peach font-black text-lg">
                         {totalCards > 0 ? `${activeIdx + 1} / ${totalCards}` : '0 / 0'}
@@ -282,10 +239,10 @@ export default function Home() {
                 <div className="w-full d-flex justify-center gap-5 mt-4">
                     <button
                         onClick={() => swiperRef.current?.slidePrev()}
-                        disabled={activeIdx === 0 || totalCards === 0}
+                        disabled={activeIdx === 0 || totalCards === 0 || isFinishing}
                         className="secondary-btn h-16 flex-1 px-4 nav-btn-secondary-min"
                         style={{
-                            opacity: activeIdx === 0 || totalCards === 0 ? 0.2 : 1,
+                            opacity: activeIdx === 0 || totalCards === 0 || isFinishing ? 0.2 : 1,
                         }}
                     >
                         <ChevronLeft size={22} />
@@ -294,16 +251,16 @@ export default function Home() {
 
                     <button
                         onClick={() => {
-                            if (totalCards === 0) return;
+                            if (totalCards === 0 || isFinishing) return;
                             isLastCard ? handleFinish() : swiperRef.current?.slideNext()
                         }}
-                        disabled={totalCards === 0}
+                        disabled={totalCards === 0 || isFinishing}
                         className={`h-16 flex-[1.5] px-6 nav-btn-primary-min ${isLastCard ? 'primary-btn' : 'btn-secondary'} rounded-2xl border-none font-black flex items-center justify-center gap-2`}
                         style={{
                             backgroundColor: isLastCard ? 'var(--primary-peach)' : 'white',
                             color: isLastCard ? 'white' : 'var(--text-dark)',
                             boxShadow: isLastCard ? '0 4px 10px rgba(255, 138, 138, 0.4)' : '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
-                            opacity: totalCards === 0 ? 0.2 : 1
+                            opacity: totalCards === 0 || isFinishing ? 0.2 : 1
                         }}
                     >
                         <span className="nav-btn-text">
