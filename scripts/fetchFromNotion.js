@@ -58,23 +58,36 @@ async function sync() {
                 return rel && rel.some(r => r.id === sitId);
             });
 
-            // Grop expressions by type
-            const kr_wants_jp = [];
-            const jp_wants_kr = [];
+            // Group expressions by type and level
+            const kr_wants_jp = { '입문편': [], '실전편': [], '고수편': [] };
+            const jp_wants_kr = { '입문편': [], '실전편': [], '고수편': [] };
 
             relatedExps.forEach(expPage => {
                 const expProps = expPage.properties;
                 const type = expProps.Type?.select?.name;
+                const level = expProps.Level?.select?.name || '입문편';
+                
+                // Parse Words: "word:mean, word:mean"
+                const wordsText = getText(expProps.Words || '');
+                const words = wordsText ? wordsText.split(',').map(item => {
+                    const [word, mean] = item.split(':').map(s => s.trim());
+                    return { word, mean };
+                }).filter(w => w.word && w.mean) : [];
+
                 const data = {
                     kr: getTitle(expProps.Title_KR),
                     jp: getText(expProps.Text_JP),
                     reading: getText(expProps.Reading || ''),
                     tip: getText(expProps.Tip || ''),
-                    // You can add more fields here if needed
+                    words: words // Restore the words field
                 };
 
-                if (type === 'kr_wants_jp') kr_wants_jp.push(data);
-                else if (type === 'jp_wants_kr') jp_wants_kr.push(data);
+                if (type === 'kr_wants_jp' && kr_wants_jp[level]) {
+                    kr_wants_jp[level].push(data);
+                }
+                else if (type === 'jp_wants_kr' && jp_wants_kr[level]) {
+                    jp_wants_kr[level].push(data);
+                }
             });
 
             return {

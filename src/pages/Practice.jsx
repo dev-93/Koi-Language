@@ -15,8 +15,7 @@ export default function Practice() {
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef(null);
 
-    const sitId = parseInt(id, 10);
-    const situation = situations.find((s) => s.id === sitId);
+    const situation = situations.find((s) => s.id === id);
     const isKr = userProfile.myNationality === 'KR';
 
     useEffect(() => {
