@@ -73,9 +73,9 @@ export default function Home() {
     };
 
     return (
-        <div className="min-h-screen p-6 pb-24 d-flex flex-col items-center bg-main-gradient w-full">
+        <div className="home-layout">
             {/* Header */}
-            <div className="w-full d-flex justify-between items-center mb-10 header-container">
+            <div className="header-wrapper">
                 <div>
                     <h1 className="title-cute m-0 text-3xl leading-none mb-1">Koi Language</h1>
                     <p className="m-0 uppercase tracking-widest pl-1 header-subtitle">
@@ -93,7 +93,7 @@ export default function Home() {
             </div>
 
             {/* Progress Card */}
-            <div className="w-full progress-card-container card relative overflow-hidden u-bg-white/80 u-backdrop-blur mb-12 p-6 u-rounded-card shadow-xl border-none">
+            <div className="progress-container">
                 <div className="absolute -top-6 -right-6 w-24 h-24 bg-pink-100/30 rounded-full blur-2xl" />
                 <div className="d-flex items-center gap-3 mb-5">
                     <div className="w-10 h-10 bg-pink-100/30 rounded-xl d-flex items-center justify-center shrink-0">
@@ -106,7 +106,7 @@ export default function Home() {
             </div>
 
             {/* Main Study Controller Container */}
-            <div className="w-full study-controller-container d-flex flex-col items-center">
+            <div className="study-wrapper">
                 {/* Title & Page Indicator */}
                 <div className="w-full d-flex items-center justify-between mb-6 px-2">
                     <div className="d-flex items-center gap-2">
@@ -121,7 +121,7 @@ export default function Home() {
                 </div>
 
                 {/* Card Section */}
-                <div className="w-full min-h-[500px] d-flex justify-center mb-8">
+                <div className="swiper-section">
                     <Swiper
                         effect={'cards'}
                         grabCursor={true}
@@ -135,7 +135,7 @@ export default function Home() {
                                 key={idx}
                                 className="u-rounded-card overflow-hidden shadow-2xl"
                             >
-                                <div className="card bg-white p-8 min-h-[480px] d-flex flex-col items-center justify-between relative u-rounded-card border-none">
+                                <div className="learn-card-main">
                                     {/* Like Button */}
                                     <button
                                         onClick={(e) => toggleLike(e, idx)}

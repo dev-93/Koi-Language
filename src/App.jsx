@@ -5,6 +5,8 @@ import LearnCard from './pages/LearnCard';
 import Practice from './pages/Practice';
 import useStore from './store';
 
+import { Analytics } from '@vercel/analytics/react';
+
 function App() {
     const userProfile = useStore((state) => state.userProfile);
 
@@ -22,6 +24,7 @@ function App() {
                     element={userProfile ? <Practice /> : <Navigate to="/" />}
                 />
             </Routes>
+            <Analytics />
         </BrowserRouter>
     );
 }
