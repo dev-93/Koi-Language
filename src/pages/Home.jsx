@@ -183,8 +183,11 @@ export default function Home() {
                                     {/* Footer Tip */}
                                     <div className="w-full tip-container">
                                         {expr.tip && (
-                                            <div className="tip-box d-flex items-start gap-4 shadow-sm">
-                                                <span className="text-xl">💡</span>
+                                            <div className="tip-box d-flex flex-col gap-2 shadow-sm">
+                                                <div className="d-flex items-center gap-2 mb-1">
+                                                    <span className="text-lg">💡</span>
+                                                    <span className="text-[11px] font-black text-peach tracking-tighter uppercase">Koi's Dating Tip</span>
+                                                </div>
                                                 <p className="m-0 text-[13px] text-gray-500 leading-relaxed font-bold">
                                                     {expr.tip}
                                                 </p>

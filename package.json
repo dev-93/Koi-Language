@@ -8,12 +8,15 @@
         "build": "vite build",
         "lint": "eslint .",
         "format": "prettier --write .",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "sync:notion": "node scripts/fetchFromNotion.js"
     },
     "dependencies": {
         "@google/genai": "^1.46.0",
+        "@notionhq/client": "^5.15.0",
         "@vercel/analytics": "^2.0.1",
         "canvas-confetti": "^1.9.4",
+        "dotenv": "^17.3.1",
         "framer-motion": "^12.38.0",
         "lucide-react": "^1.7.0",
         "react": "^19.2.4",
