@@ -3,8 +3,11 @@ import react from '@vitejs/plugin-react';
 import https from 'https';
 
 // --- Notion API Helper (Development Only) ---
-const SITUATION_DB_ID = '332eb93112d580e29e63f7b9463b653f';
-const EXPRESSIONS_DB_ID = '332eb93112d5811a81edeedec17049b7';
+const getNotionConfig = (env) => ({
+    token: env.NOTION_TOKEN,
+    sitDbId: env.VITE_NOTION_SITUATION_DB_ID,
+    exprDbId: env.VITE_NOTION_EXPRESSION_DB_ID,
+});
 
 const notionRequest = (method, path, body, token) =>
     new Promise((resolve, reject) => {
@@ -109,8 +112,8 @@ export default defineConfig(({ mode }) => {
                                 if (!token) throw new Error('NOTION_TOKEN is missing in .env');
 
                                 const [sitPages, exprPages] = await Promise.all([
-                                    queryAll(SITUATION_DB_ID, null, token),
-                                    queryAll(EXPRESSIONS_DB_ID, null, token),
+                                    queryAll(env.VITE_NOTION_SITUATION_DB_ID, null, token),
+                                    queryAll(env.VITE_NOTION_EXPRESSION_DB_ID, null, token),
                                 ]);
 
                                 const expressions = exprPages.map(parseExpression);

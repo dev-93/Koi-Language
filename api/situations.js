@@ -1,8 +1,8 @@
 import https from 'https';
 
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
-const SITUATION_DB_ID = '332eb93112d580e29e63f7b9463b653f';
-const EXPRESSIONS_DB_ID = '332eb93112d5811a81edeedec17049b7';
+const SITUATION_DB_ID = process.env.VITE_NOTION_SITUATION_DB_ID;
+const EXPRESSIONS_DB_ID = process.env.VITE_NOTION_EXPRESSION_DB_ID;
 
 const notionRequest = (method, path, body) =>
     new Promise((resolve, reject) => {

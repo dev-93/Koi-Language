@@ -1,3 +1,5 @@
+const MODELS = ['gemini-2.5-flash', 'gemini-2.5-flash-lite'];
+
 export const generateChatResponse = async (history, userProfile, situation) => {
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
@@ -19,33 +21,43 @@ export const generateChatResponse = async (history, userProfile, situation) => {
 3. 상대방(유저)의 ${targetLangCode} 문법이나 표현이 어색하다면, 답변 가장 마지막 줄에 "💡 Tip: [올바른 표현]" 형식으로 부드럽게 한글로(혹은 유저의 모국어로) 피드백해주세요.
 4. 절대 AI 봇처럼 말하지 말고 진짜 사람처럼 말하세요.`;
 
-    try {
-        const formattedHistory = history.map((h) => ({
-            role: h.role,
-            parts: [{ text: h.content }],
-        }));
+    const formattedHistory = history.map((h) => ({
+        role: h.role,
+        parts: [{ text: h.content }],
+    }));
 
-        // Insert system instruction at the beginning
-        const payload = {
-            systemInstruction: { parts: [{ text: systemInstruction }] },
-            contents: formattedHistory,
-        };
+    const payload = {
+        systemInstruction: { parts: [{ text: systemInstruction }] },
+        contents: formattedHistory,
+    };
 
-        const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
+    // Try models one by one
+    for (const model of MODELS) {
+        try {
+            console.log(`[Gemini] Attempting with model: ${model}`);
+            const response = await fetch(
+                `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                }
+            );
+
+            const data = await response.json();
+            if (data.error) {
+                console.warn(`[Gemini] Model ${model} failed:`, data.error.message);
+                continue; // Try next model
             }
-        );
 
-        const data = await response.json();
-        if (data.error) throw new Error(data.error.message);
-
-        return data.candidates[0].content.parts[0].text;
-    } catch (error) {
-        console.error('Gemini error:', error);
-        return '죄송합니다. 오류가 발생했습니다. (API Key 확인 필요)';
+            if (data.candidates && data.candidates[0].content.parts[0].text) {
+                return data.candidates[0].content.parts[0].text;
+            }
+        } catch (error) {
+            console.error(`[Gemini] Error with model ${model}:`, error);
+            continue; // Try next model
+        }
     }
+
+    return '죄송합니다. 모든 AI 모델 호출에 실패했습니다. (API Key 또는 서비스 상태 확인 필요)';
 };
