@@ -28,6 +28,41 @@ export default function Onboarding() {
         exit: { x: -50, opacity: 0 },
     };
 
+    const t = {
+        KR: {
+            step1Title: '반가워요!',
+            step1Sub: '당신은 누구인가요?',
+            nationKR: '한국인',
+            nationJP: '일본인',
+            next: '다음으로',
+            step2Title: '성별이 무엇인가요?',
+            step2Sub: '맞춤형 대화법을 제안할게요',
+            male: '남자',
+            female: '여자',
+            prev: '이전',
+            step3Title: '어떤 상대와 대화하나요?',
+            step3Sub: '설레는 첫 대화를 준비해봐요',
+            start: '시작하기 ✨',
+            prevFull: '이전으로',
+        },
+        JP: {
+            step1Title: 'はじめまして！',
+            step1Sub: 'お名前（国籍）を教えてください',
+            nationKR: '韓国人',
+            nationJP: '日本人',
+            next: '次へ',
+            step2Title: '性別は何ですか？',
+            step2Sub: 'あなたに合った表現を提案します',
+            male: '男性',
+            female: '女性',
+            prev: '戻る',
+            step3Title: 'どのような相手と会話しますか？',
+            step3Sub: 'ときめく初会話を準備しましょう',
+            start: '始める ✨',
+            prevFull: '戻る',
+        },
+    }[profile.myNationality || 'KR'];
+
     return (
         <div className="min-h-screen d-flex flex-col items-center justify-center p-8 overflow-hidden bg-main-gradient">
             <header className="mb-12 text-center">
@@ -60,25 +95,25 @@ export default function Onboarding() {
                         >
                             <div className="text-center">
                                 <h2 className="m-0 text-2xl font-black text-gray-800 mb-1">
-                                    반가워요!
+                                    {t.step1Title}
                                 </h2>
                                 <p className="m-0 text-sm text-gray-400 font-bold">
-                                    당신은 누구인가요?
+                                    {t.step1Sub}
                                 </p>
                             </div>
 
                             <div className="d-flex flex-col gap-3 w-full">
                                 <button
-                                    className={`onboarding-btn-option d-flex items-center justify-center gap-3 ${profile.myNationality === 'KR' ? 'bg-pink-gradient' : 'inactive-btn'}`}
+                                    className={`onboarding-btn-option d-flex items-center justify-center gap-3 ${profile.myNationality === 'KR' ? 'bg-pink-gradient text-white' : 'inactive-btn'}`}
                                     onClick={() => setProfile({ ...profile, myNationality: 'KR' })}
                                 >
-                                    <span className="text-2xl">🇰🇷</span> 한국인
+                                    <span className="text-2xl">🇰🇷</span> {t.nationKR}
                                 </button>
                                 <button
-                                    className={`onboarding-btn-option d-flex items-center justify-center gap-3 ${profile.myNationality === 'JP' ? 'bg-pink-gradient' : 'inactive-btn'}`}
+                                    className={`onboarding-btn-option d-flex items-center justify-center gap-3 ${profile.myNationality === 'JP' ? 'bg-pink-gradient text-white' : 'inactive-btn'}`}
                                     onClick={() => setProfile({ ...profile, myNationality: 'JP' })}
                                 >
-                                    <span className="text-2xl">🇯🇵</span> 일본인
+                                    <span className="text-2xl">🇯🇵</span> {t.nationJP}
                                 </button>
                             </div>
 
@@ -86,7 +121,7 @@ export default function Onboarding() {
                                 className="flex items-center gap-2 mt-4 text-pink-500 font-black text-lg border-none bg-transparent active:scale-95 transition-all"
                                 onClick={nextStep}
                             >
-                                다음으로 <ChevronRight size={20} />
+                                {t.next} <ChevronRight size={20} />
                             </button>
                         </motion.div>
                     )}
@@ -102,42 +137,42 @@ export default function Onboarding() {
                         >
                             <div className="text-center">
                                 <h2 className="m-0 text-2xl font-black text-gray-800 mb-1">
-                                    성별이 무엇인가요?
+                                    {t.step2Title}
                                 </h2>
                                 <p className="m-0 text-sm text-gray-400 font-bold">
-                                    맞춤형 대화법을 제안할게요
+                                    {t.step2Sub}
                                 </p>
                             </div>
 
                             <div className="d-flex gap-4 w-full">
                                 <button
-                                    className={`onboarding-gender-card d-flex flex-col gap-3 items-center justify-center ${profile.myGender === 'M' ? 'active' : 'inactive'}`}
+                                    className={`onboarding-gender-card d-flex flex-col gap-3 items-center justify-center ${profile.myGender === 'M' ? 'active shadow-lg shadow-pink-100' : 'inactive'}`}
                                     onClick={() => setProfile({ ...profile, myGender: 'M' })}
                                 >
                                     <span className="text-4xl">👨🏻‍💼</span>
-                                    남자
+                                    {t.male}
                                 </button>
                                 <button
-                                    className={`onboarding-gender-card d-flex flex-col gap-3 items-center justify-center ${profile.myGender === 'F' ? 'active' : 'inactive'}`}
+                                    className={`onboarding-gender-card d-flex flex-col gap-3 items-center justify-center ${profile.myGender === 'F' ? 'active shadow-lg shadow-pink-100' : 'inactive'}`}
                                     onClick={() => setProfile({ ...profile, myGender: 'F' })}
                                 >
                                     <span className="text-4xl">👩🏻‍💼</span>
-                                    여자
+                                    {t.female}
                                 </button>
                             </div>
 
                             <div className="d-flex justify-between w-full mt-4">
                                 <button
-                                    className="d-flex items-center gap-1 text-gray-400 font-bold border-none bg-transparent"
+                                    className="d-flex items-center gap-1 text-gray-400 font-bold border-none bg-transparent active:opacity-60"
                                     onClick={prevStep}
                                 >
-                                    <ChevronLeft size={18} /> 이전
+                                    <ChevronLeft size={18} /> {t.prev}
                                 </button>
                                 <button
-                                    className="d-flex items-center gap-1 text-peach font-black text-lg border-none bg-transparent"
+                                    className="d-flex items-center gap-1 text-peach font-black text-lg border-none bg-transparent active:opacity-60"
                                     onClick={nextStep}
                                 >
-                                    다음 <ChevronRight size={20} />
+                                    {t.next} <ChevronRight size={20} />
                                 </button>
                             </div>
                         </motion.div>
@@ -154,42 +189,42 @@ export default function Onboarding() {
                         >
                             <div className="text-center">
                                 <h2 className="m-0 text-2xl font-black text-gray-800 mb-1">
-                                    어떤 상대와 대화하나요?
+                                    {t.step3Title}
                                 </h2>
                                 <p className="m-0 text-sm text-gray-400 font-bold">
-                                    설레는 첫 대화를 준비해봐요
+                                    {t.step3Sub}
                                 </p>
                             </div>
 
                             <div className="d-flex gap-4 w-full">
                                 <button
-                                    className={`onboarding-gender-card d-flex flex-col gap-3 items-center justify-center ${profile.targetGender === 'M' ? 'active' : 'inactive'}`}
+                                    className={`onboarding-gender-card d-flex flex-col gap-3 items-center justify-center ${profile.targetGender === 'M' ? 'active shadow-lg shadow-pink-100' : 'inactive'}`}
                                     onClick={() => setProfile({ ...profile, targetGender: 'M' })}
                                 >
                                     <span className="text-4xl">👨🏻‍💼</span>
-                                    남자
+                                    {t.male}
                                 </button>
                                 <button
-                                    className={`onboarding-gender-card d-flex flex-col gap-3 items-center justify-center ${profile.targetGender === 'F' ? 'active' : 'inactive'}`}
+                                    className={`onboarding-gender-card d-flex flex-col gap-3 items-center justify-center ${profile.targetGender === 'F' ? 'active shadow-lg shadow-pink-100' : 'inactive'}`}
                                     onClick={() => setProfile({ ...profile, targetGender: 'F' })}
                                 >
                                     <span className="text-4xl">👩🏻‍💼</span>
-                                    여자
+                                    {t.female}
                                 </button>
                             </div>
 
                             <div className="d-flex flex-col gap-4 w-full mt-4">
                                 <button
-                                    className="w-full h-16 bg-pink-gradient rounded-[22px] border-none font-black text-xl shadow-lg shadow-pink-200 active:scale-95 transition-all"
+                                    className="w-full h-16 bg-pink-gradient text-white rounded-[22px] border-none font-black text-xl shadow-lg shadow-pink-200 active:scale-95 transition-all"
                                     onClick={handleComplete}
                                 >
-                                    시작하기 ✨
+                                    {t.start}
                                 </button>
                                 <button
-                                    className="d-flex items-center justify-center gap-1 text-gray-400 font-bold border-none bg-transparent"
+                                    className="d-flex items-center justify-center gap-1 text-gray-400 font-bold border-none bg-transparent active:opacity-60 py-2"
                                     onClick={prevStep}
                                 >
-                                    이전으로
+                                    <ChevronLeft size={18} /> {t.prevFull}
                                 </button>
                             </div>
                         </motion.div>
