@@ -5,6 +5,7 @@ import useStore from '../store';
 import useSituations from '../hooks/useSituations';
 import { ChevronLeft, ChevronRight, Heart, Home, CheckCircle2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import SituationScene from '../components/SituationScene';
 
 export default function LearnCard() {
     const { id } = useParams();
@@ -164,8 +165,11 @@ export default function LearnCard() {
                         </motion.button>
 
                         {/* Content */}
-                        <div className="flex-1 d-flex flex-col items-center justify-center gap-4 w-full pt-4">
-                            <h2 className="m-0 text-[32px] font-black text-center leading-tight text-gray-800">
+                        <div className="flex-1 d-flex flex-col items-center justify-center gap-4 w-full pt-2">
+                            {/* 상황 씬 일러스트 */}
+                            <SituationScene title={isKr ? situation.title.kr : situation.title.jp} />
+
+                            <h2 className="m-0 text-[28px] font-black text-center leading-tight text-gray-800">
                                 {isKr ? currentExpr.jp : currentExpr.kr}
                             </h2>
                             <p className="m-0 text-[18px] text-gray-400 font-bold tracking-wide">

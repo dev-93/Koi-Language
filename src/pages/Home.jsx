@@ -8,6 +8,7 @@ import {
     Settings
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import SituationScene from '../components/SituationScene';
 
 // Import Swiper React components and styles
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -191,8 +192,10 @@ export default function Home() {
                                     className="u-rounded-card overflow-hidden shadow-2xl"
                                 >
                                     <div className="learn-card-main">
+                                        {/* 상황 씬 일러스트 - 항상 KR 타이틀로 키워드 매핑 */}
+                                        <SituationScene title={currentSituation.title.kr} />
                                         {/* Content Area */}
-                                        <div className="flex-1 d-flex flex-col items-center justify-center gap-4 w-full pt-8">
+                                        <div className="flex-1 d-flex flex-col items-center justify-start gap-4 w-full pt-4">
                                             <h2 className="m-0 text-[30px] font-black text-center leading-tight text-gray-800">
                                                 {isKr ? expr.jp : expr.kr}
                                             </h2>
