@@ -1,9 +1,42 @@
+/* eslint-env node */
 import https from 'https';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
 const GEMINI_API_KEY = process.env.VITE_GEMINI_API_KEY;
-const SITUATION_DB_ID = '332eb93112d580e29e63f7b9463b653f';
-const EXPRESSIONS_DB_ID = '332eb93112d5811a81edeedec17049b7';
+const SITUATION_DB_ID = process.env.VITE_NOTION_SITUATION_DB_ID;
+const EXPRESSIONS_DB_ID = process.env.VITE_NOTION_EXPRESSION_DB_ID;
+const TG_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const TG_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+
+const sendTelegramMessage = (text) => 
+    new Promise((resolve) => {
+        if (!TG_TOKEN || !TG_CHAT_ID) return resolve(null);
+        const payload = JSON.stringify({ chat_id: TG_CHAT_ID, text, parse_mode: 'HTML' });
+        const req = https.request(
+            {
+                hostname: 'api.telegram.org',
+                path: `/bot${TG_TOKEN}/sendMessage`,
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(payload),
+                },
+            },
+            (res) => {
+                let data = '';
+                res.on('data', (d) => data += d);
+                res.on('end', () => resolve(data));
+            }
+        );
+        req.on('error', (e) => {
+            console.error('[Telegram] Error:', e);
+            resolve(null);
+        });
+        req.write(payload);
+        req.end();
+    });
 
 const notionRequest = (method, path, body) =>
     new Promise((resolve, reject) => {
@@ -45,7 +78,7 @@ const geminiRequest = (prompt) =>
             contents: [{ parts: [{ text: prompt }] }],
             generationConfig: { temperature: 0.8, maxOutputTokens: 2048 },
         });
-        const path = `/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+        const path = `/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
         const req = https.request(
             {
                 hostname: 'generativelanguage.googleapis.com',
@@ -114,7 +147,6 @@ export default async function handler(req, res) {
     }
 
     const targetDate = getTomorrowDate();
-
     const prompt = `
 당신은 한국인과 일본인의 연애/데이트 일본어 표현을 가르치는 언어 선생님입니다.
 내일(${targetDate}) 날짜에 맞는 새로운 데이트 상황과 표현을 JSON 형식으로 생성해주세요.
@@ -176,9 +208,28 @@ kr_wants_jp (한국인이 일본인에게 표현)은 2~3개, jp_wants_kr (일본
         await Promise.all(exprPromises);
 
         console.log(`[Cron] Created content for ${targetDate}`);
+        
+        // 텔레그램 알림 전송
+        await sendTelegramMessage(
+            `💌 <b>[Koi Language]</b>\n` +
+            `새로운 데이트 표현 업데이트 완료!\n\n` +
+            `📅 <b>학습 날짜:</b> ${targetDate}\n` +
+            `💖 <b>주제:</b> ${data.situation.title_kr}\n\n` +
+            `지금 바로 앱에서 확인해보세요!`
+        );
+
         return res.status(200).json({ success: true, date: targetDate, situation: data.situation.title_kr });
     } catch (err) {
         console.error('[Cron] Error:', err);
+        
+        // 에러 알림 전송
+        await sendTelegramMessage(
+            `❌ <b>[Koi Language]</b>\n` +
+            `노션 동기화 작업 실패!\n\n` +
+            `🕒 <b>시간:</b> ${new Date().toLocaleString()}\n` +
+            `⚠️ <b>에러:</b> ${err.message}`
+        );
+        
         return res.status(500).json({ error: 'Cron job failed', detail: err.message });
     }
 }
