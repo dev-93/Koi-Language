@@ -11,6 +11,7 @@ const useStore = create(
             },
 
             setUserProfile: (profile) => set({ userProfile: profile }),
+            resetUserProfile: () => set({ userProfile: null }),
 
             checkAndResetProgress: () => {
                 const state = get();

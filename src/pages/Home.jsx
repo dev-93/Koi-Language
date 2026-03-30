@@ -5,6 +5,7 @@ import {
     Sparkles,
     ChevronRight,
     ChevronLeft,
+    Settings
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -17,7 +18,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
 export default function Home() {
-    const { userProfile, dailyProgress, checkAndResetProgress, markCardLearned } = useStore();
+    const { userProfile, dailyProgress, checkAndResetProgress, markCardLearned, resetUserProfile } = useStore();
     const swiperRef = useRef(null);
     const { situations, loading, error } = useSituations();
 
@@ -103,13 +104,26 @@ export default function Home() {
                         Dating Expression Master
                     </p>
                 </div>
-                <div className="u-bg-white/80 u-backdrop-blur px-4 py-2 u-rounded-2xl shadow-sm border border-white d-flex items-center gap-2">
-                    <span className="text-xl">{myIcon}</span>
-                    <span className="header-divider" />
-                    <span className="text-xl">
-                        {targetIcon}
-                        {targetGenderAvatar}
-                    </span>
+                <div className="d-flex items-center gap-2">
+                    <div className="u-bg-white/80 u-backdrop-blur px-4 py-2 u-rounded-2xl shadow-sm border border-white d-flex items-center gap-2">
+                        <span className="text-xl">{myIcon}</span>
+                        <span className="header-divider" />
+                        <span className="text-xl">
+                            {targetIcon}
+                            {targetGenderAvatar}
+                        </span>
+                    </div>
+                    <button 
+                        onClick={() => {
+                            if (window.confirm('프로필을 다시 설정하시겠습니까? 설정된 학습 기록은 유지되지만, 내 정보와 상대방 설정이 초기화됩니다.')) {
+                                resetUserProfile();
+                            }
+                        }}
+                        className="u-bg-white/80 u-backdrop-blur p-2.5 u-rounded-2xl shadow-sm border border-white text-gray-400 hover:text-peach transition-colors"
+                        title="프로필 재설정"
+                    >
+                        <Settings size={20} />
+                    </button>
                 </div>
             </div>
 
