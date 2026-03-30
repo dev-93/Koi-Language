@@ -94,11 +94,13 @@ export default function Onboarding() {
                             className="card p-10 d-flex flex-col items-center gap-6"
                         >
                             <div className="text-center">
-                                <h2 className="m-0 text-2xl font-black text-gray-800 mb-1">
-                                    {t.step1Title}
+                                <h2 className="m-0 text-2xl font-black text-gray-800 mb-1 leading-tight">
+                                    반가워요! <br />
+                                    <span className="text-lg font-bold text-pink-400">はじめまして！</span>
                                 </h2>
-                                <p className="m-0 text-sm text-gray-400 font-bold">
-                                    {t.step1Sub}
+                                <p className="m-0 text-sm text-gray-400 font-bold mt-2">
+                                    당신은 누구인가요? <br />
+                                    あなたは誰ですか？
                                 </p>
                             </div>
 
@@ -107,13 +109,21 @@ export default function Onboarding() {
                                     className={`onboarding-btn-option d-flex items-center justify-center gap-3 ${profile.myNationality === 'KR' ? 'bg-pink-gradient text-white' : 'inactive-btn'}`}
                                     onClick={() => setProfile({ ...profile, myNationality: 'KR' })}
                                 >
-                                    <span className="text-2xl">🇰🇷</span> {t.nationKR}
+                                    <span className="text-2xl">🇰🇷</span> 
+                                    <div className="d-flex flex-col items-start leading-tight">
+                                        <span className="text-base font-black">한국인</span>
+                                        <span className="text-xs opacity-70">韓国人</span>
+                                    </div>
                                 </button>
                                 <button
                                     className={`onboarding-btn-option d-flex items-center justify-center gap-3 ${profile.myNationality === 'JP' ? 'bg-pink-gradient text-white' : 'inactive-btn'}`}
                                     onClick={() => setProfile({ ...profile, myNationality: 'JP' })}
                                 >
-                                    <span className="text-2xl">🇯🇵</span> {t.nationJP}
+                                    <span className="text-2xl">🇯🇵</span>
+                                    <div className="d-flex flex-col items-start leading-tight">
+                                        <span className="text-base font-black">일본인</span>
+                                        <span className="text-xs opacity-70">日本人</span>
+                                    </div>
                                 </button>
                             </div>
 
@@ -121,7 +131,7 @@ export default function Onboarding() {
                                 className="flex items-center gap-2 mt-4 text-pink-500 font-black text-lg border-none bg-transparent active:scale-95 transition-all"
                                 onClick={nextStep}
                             >
-                                {t.next} <ChevronRight size={20} />
+                                {profile.myNationality === 'JP' ? '次へ' : '다음으로'} <ChevronRight size={20} />
                             </button>
                         </motion.div>
                     )}
