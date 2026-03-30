@@ -1,13 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import useStore from '../store';
-import { situations } from '../data/situations';
+import useSituations from '../hooks/useSituations';
 import {
-    Star,
     Sparkles,
     ChevronRight,
     ChevronLeft,
-    Heart,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -21,15 +18,16 @@ import 'swiper/css/pagination';
 
 export default function Home() {
     const { userProfile, dailyProgress, checkAndResetProgress, markCardLearned } = useStore();
-    const navigate = useNavigate();
     const swiperRef = useRef(null);
+    const { situations, loading, error } = useSituations();
 
-    // Sort situations by date descending
-    const sortedSituations = [...situations].sort((a, b) => new Date(b.date) - new Date(a.date));
+    // 날짜 최신순 정렬 (API에서 이미 정렬되어 오지만 보장)
+    const sortedSituations = situations && situations.length > 0
+        ? [...situations].sort((a, b) => new Date(b.date) - new Date(a.date))
+        : [];
+
     const [selectedSitIdx, setSelectedSitIdx] = useState(0);
-
     const [activeIdx, setActiveIdx] = useState(0);
-    const [likedCards, setLikedCards] = useState(new Set());
 
     useEffect(() => {
         checkAndResetProgress();
@@ -41,30 +39,23 @@ export default function Home() {
     const targetGenderAvatar = userProfile.targetGender === 'M' ? '👨🏻‍💼' : '👩🏻‍💼';
 
     const currentSituation = sortedSituations[selectedSitIdx] || sortedSituations[0];
-    const completedSituationsCount = dailyProgress.cardsLearned.length;
-    const targetSituationsCount = 5;
-    const dailyProgressRatio = Math.min(
-        (completedSituationsCount / targetSituationsCount) * 100,
-        100
-    );
-
     const myPerspective = isKr ? 'kr_wants_jp' : 'jp_wants_kr';
-    const expressions = currentSituation.expressions?.[myPerspective] || [];
+    const expressions = currentSituation?.expressions?.[myPerspective] || [];
     
-    const isLearned = dailyProgress.cardsLearned.includes(currentSituation.id);
+    const isLearned = currentSituation ? dailyProgress.cardsLearned.includes(currentSituation.id) : false;
 
     // Auto-reset when situation changes
     useEffect(() => {
         setActiveIdx(0);
         if (swiperRef.current) swiperRef.current.slideTo(0);
-    }, [currentSituation.id]);
+    }, [currentSituation?.id]);
 
     const totalCards = expressions.length;
     const isLastCard = activeIdx === totalCards - 1 && totalCards > 0;
     const [isFinishing, setIsFinishing] = useState(false);
 
     const handleFinish = () => {
-        if (isFinishing) return;
+        if (isFinishing || !currentSituation) return;
         setIsFinishing(true);
 
         if (!isLearned) {
@@ -83,13 +74,24 @@ export default function Home() {
         }, 2000);
     };
 
-    const toggleLike = (e, idx) => {
-        e.stopPropagation();
-        const newLiked = new Set(likedCards);
-        if (newLiked.has(idx)) newLiked.delete(idx);
-        else newLiked.add(idx);
-        setLikedCards(newLiked);
-    };
+    if (loading) return (
+        <div className="home-layout justify-center">
+            <div className="w-full d-flex flex-col items-center justify-center gap-4">
+                <span className="text-4xl animate-bounce">💌</span>
+                <p className="m-0 font-black text-gray-400 text-[15px]">오늘의 표현을 불러오는 중...</p>
+            </div>
+        </div>
+    );
+
+    if (error) return (
+        <div className="home-layout justify-center">
+            <div className="w-full d-flex flex-col items-center justify-center gap-4 text-center">
+                <span className="text-4xl">😢</span>
+                <p className="m-0 font-black text-gray-400 text-[15px]">데이터를 불러오지 못했어요.</p>
+                <p className="m-0 text-sm text-gray-300 mt-2 px-6">{error}</p>
+            </div>
+        </div>
+    );
 
     return (
         <div className="home-layout">
@@ -110,8 +112,6 @@ export default function Home() {
                     </span>
                 </div>
             </div>
-
-
 
             {/* Date History Horizontal Scroll */}
             <div className="history-scroll-wrapper mb-6">
@@ -136,7 +136,7 @@ export default function Home() {
                                         {sitDate.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
                                     </span>
                                     <span className="text-sm font-black whitespace-nowrap">
-                                        {isToday ? '오늘의 표현' : sit.title.kr.split(' ')[0]}
+                                        {isToday ? '오늘의 표현' : sit.title?.kr?.split(' ')[0] || '표현'}
                                     </span>
                                 </div>
                             </button>
@@ -152,7 +152,7 @@ export default function Home() {
                     <div className="d-flex items-center gap-2">
                         <Sparkles className="text-peach" size={18} />
                         <h3 className="text-lg font-black m-0 text-gray-800">
-                            {isKr ? currentSituation.title.kr : currentSituation.title.jp}
+                            {currentSituation ? (isKr ? currentSituation.title.kr : currentSituation.title.jp) : '표현을 준비 중입니다'}
                         </h3>
                     </div>
                     <span className="text-peach font-black text-lg">
@@ -230,7 +230,7 @@ export default function Home() {
                 ) : (
                     <div className="w-full py-16 d-flex flex-col items-center justify-center text-center bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
                         <span className="text-4xl mb-3 opacity-50">🛠️</span>
-                        <h4 className="m-0 font-bold text-gray-500 text-[15px]">아직 이 레벨의 카드가 빈 칸이에요!</h4>
+                        <h4 className="m-0 font-bold text-gray-400 text-[15px]">아직 이 레벨의 카드가 빈 칸이에요!</h4>
                         <p className="m-0 mt-1 text-sm text-gray-400">노션에서 표현을 추가해주세요.</p>
                     </div>
                 )}

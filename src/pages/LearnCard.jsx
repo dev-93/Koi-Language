@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import useStore from '../store';
-import { situations } from '../data/situations';
+import useSituations from '../hooks/useSituations';
 import { ChevronLeft, ChevronRight, Heart, Home, CheckCircle2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -10,28 +10,39 @@ export default function LearnCard() {
     const { id } = useParams();
     const navigate = useNavigate();
     const { userProfile, markCardLearned } = useStore();
+    const { situations, loading } = useSituations();
     const [currentIndex, setCurrentIndex] = useState(0);
     const [likedCards, setLikedCards] = useState(new Set());
-    const [direction, setDirection] = useState(0); // -1 for left, 1 for right
+    const [direction, setDirection] = useState(0);
 
-    const sitId = parseInt(id, 10);
-    const situation = situations.find((s) => s.id === sitId);
-
-    if (!situation) return <div className="p-10 text-center">상황을 찾을 수 없습니다.</div>;
-
+    const situation = situations.find((s) => s.id === id);
     const isKr = userProfile.myNationality === 'KR';
     const myPerspective = isKr ? 'kr_wants_jp' : 'jp_wants_kr';
-    const expressions = situation.expressions[myPerspective];
-    const totalCards = expressions.length;
 
-    // Progress calculation: Based on how many cards are actually reviewed.
-    // Requirement says 0/5 should be empty. But usually we want to show 1st card as 0% or something.
-    // Let's make it: progress = (index) / total * 100. So 1st card (index 0) is 0%.
-    const progress = (currentIndex / totalCards) * 100;
+    if (loading) return (
+        <div className="d-flex flex-col h-screen items-center justify-center bg-main-gradient gap-4">
+            <span className="text-4xl animate-bounce">💌</span>
+            <p className="m-0 font-black text-gray-400 text-[15px]">표현 카드를 불러오는 중...</p>
+        </div>
+    );
+
+    if (!situation) return (
+        <div className="d-flex flex-col h-screen items-center justify-center bg-main-gradient gap-4">
+            <span className="text-4xl">😢</span>
+            <p className="m-0 font-black text-gray-400 text-[15px]">상황을 찾을 수 없습니다.</p>
+        </div>
+    );
+
+    const expressions = situation.expressions?.[myPerspective] ?? [];
+    const totalCards = expressions.length;
     const isLastCard = currentIndex === totalCards - 1;
 
-    if (!expressions || expressions.length === 0)
-        return <div className="p-10 text-center">표현 데이터가 없습니다.</div>;
+    if (expressions.length === 0) return (
+        <div className="d-flex flex-col h-screen items-center justify-center bg-main-gradient gap-4">
+            <span className="text-4xl">🛠️</span>
+            <p className="m-0 font-black text-gray-400 text-[15px]">표현 데이터가 없습니다.</p>
+        </div>
+    );
 
     const currentExpr = expressions[currentIndex];
 
@@ -40,15 +51,13 @@ export default function LearnCard() {
             setDirection(1);
             setCurrentIndex((prev) => prev + 1);
         } else {
-            // Completed!
-            markCardLearned(sitId);
+            markCardLearned(situation.id);
             confetti({
                 particleCount: 150,
                 spread: 70,
                 origin: { y: 0.6 },
                 colors: ['#FF8A8A', '#FFDFDA', '#DDE2FF'],
             });
-            // Show celebration for a bit then navigate
             setTimeout(() => navigate('/home'), 2000);
         }
     };
@@ -69,23 +78,9 @@ export default function LearnCard() {
     };
 
     const variants = {
-        enter: (direction) => ({
-            x: direction > 0 ? 300 : -300,
-            opacity: 0,
-            scale: 0.9,
-        }),
-        center: {
-            zIndex: 1,
-            x: 0,
-            opacity: 1,
-            scale: 1,
-        },
-        exit: (direction) => ({
-            zIndex: 0,
-            x: direction < 0 ? 300 : -300,
-            opacity: 0,
-            scale: 0.9,
-        }),
+        enter: (dir) => ({ x: dir > 0 ? 300 : -300, opacity: 0, scale: 0.9 }),
+        center: { zIndex: 1, x: 0, opacity: 1, scale: 1 },
+        exit: (dir) => ({ zIndex: 0, x: dir < 0 ? 300 : -300, opacity: 0, scale: 0.9 }),
     };
 
     return (
@@ -109,7 +104,7 @@ export default function LearnCard() {
                 </button>
             </div>
 
-            {/* Progress Bar Section */}
+            {/* Progress Bar */}
             <div className="mb-8">
                 <div className="d-flex justify-between items-center mb-2 px-1">
                     <span className="text-[10px] font-bold text-pink-400 uppercase tracking-wider">
@@ -147,10 +142,9 @@ export default function LearnCard() {
                         drag="x"
                         dragConstraints={{ left: 0, right: 0 }}
                         dragElastic={1}
-                        onDragEnd={(e, { offset, velocity }) => {
-                            const swipe = offset.x;
-                            if (swipe < -100) handleNext();
-                            else if (swipe > 100) handlePrev();
+                        onDragEnd={(e, { offset }) => {
+                            if (offset.x < -100) handleNext();
+                            else if (offset.x > 100) handlePrev();
                         }}
                         className="card w-full learn-card-container d-flex flex-col items-center justify-between relative cursor-grab active:cursor-grabbing transform-gpu"
                     >
@@ -169,7 +163,7 @@ export default function LearnCard() {
                             />
                         </motion.button>
 
-                        {/* Transcription & Translation */}
+                        {/* Content */}
                         <div className="flex-1 d-flex flex-col items-center justify-center gap-4 w-full pt-4">
                             <h2 className="m-0 text-[32px] font-black text-center leading-tight text-gray-800">
                                 {isKr ? currentExpr.jp : currentExpr.kr}
@@ -181,10 +175,8 @@ export default function LearnCard() {
                                 {isKr ? currentExpr.kr : currentExpr.jp}
                             </h3>
 
-                            {/* Divider */}
                             <div className="card-divider-wide" />
 
-                            {/* Word Chips */}
                             <div className="d-flex flex-wrap justify-center gap-2.5 px-2">
                                 {currentExpr.words?.map((w, i) => (
                                     <motion.div
@@ -194,16 +186,14 @@ export default function LearnCard() {
                                         key={i}
                                         className="d-flex items-center gap-1.5"
                                     >
-                                        <span className="word-tag-primary">
-                                            {w.word.split(' ')[0]}
-                                        </span>
+                                        <span className="word-tag-primary">{w.word}</span>
                                         <span className="word-tag-secondary">{w.mean}</span>
                                     </motion.div>
                                 ))}
                             </div>
                         </div>
 
-                        {/* Tip at Bottom */}
+                        {/* Tip */}
                         <div className="w-full pt-8">
                             {currentExpr.tip && (
                                 <div className="tip-box d-flex items-start gap-3">
@@ -218,25 +208,21 @@ export default function LearnCard() {
                 </AnimatePresence>
             </div>
 
-            {/* Indicators and Navigation */}
+            {/* Navigation */}
             <div className="mt-8 mb-4 d-flex flex-col items-center gap-6">
                 <div className="px-4 py-1.5 bg-white rounded-full shadow-sm border border-gray-100 text-[13px] font-black text-gray-300 tracking-widest">
                     <span className="text-[#FF8A8A]">{currentIndex + 1}</span> / {totalCards}
                 </div>
-
                 <div className="flex items-center gap-4 w-full">
                     <button
                         onClick={handlePrev}
                         disabled={currentIndex === 0}
                         className={`flex-1 h-16 rounded-[22px] border-none font-bold transition-all shadow-sm ${
-                            currentIndex === 0
-                                ? 'bg-gray-100 text-gray-300'
-                                : 'bg-white text-gray-600 active:scale-95'
+                            currentIndex === 0 ? 'bg-gray-100 text-gray-300' : 'bg-white text-gray-600 active:scale-95'
                         }`}
                     >
                         PREV
                     </button>
-
                     <button
                         onClick={handleNext}
                         className={`flex-[2] h-16 rounded-[22px] border-none font-black transition-all shadow-lg flex items-center justify-center gap-2 text-white ${
@@ -245,15 +231,7 @@ export default function LearnCard() {
                                 : 'bg-[#FF8A8A] active:scale-95'
                         }`}
                     >
-                        {isLastCard ? (
-                            <>
-                                FINISH <CheckCircle2 size={22} />
-                            </>
-                        ) : (
-                            <>
-                                NEXT <ChevronRight size={22} />
-                            </>
-                        )}
+                        {isLastCard ? <><span>FINISH</span> <CheckCircle2 size={22} /></> : <><span>NEXT</span> <ChevronRight size={22} /></>}
                     </button>
                 </div>
             </div>

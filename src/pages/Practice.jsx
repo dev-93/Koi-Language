@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Send, Sparkles, Home } from 'lucide-react';
 import useStore from '../store';
-import { situations } from '../data/situations';
+import useSituations from '../hooks/useSituations';
 import { generateChatResponse } from '../utils/gemini';
 import { motion } from 'framer-motion';
 
@@ -10,6 +10,7 @@ export default function Practice() {
     const { id } = useParams();
     const navigate = useNavigate();
     const { userProfile } = useStore();
+    const { situations, loading } = useSituations();
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -19,7 +20,7 @@ export default function Practice() {
     const isKr = userProfile.myNationality === 'KR';
 
     useEffect(() => {
-        if (messages.length === 0) {
+        if (situation && messages.length === 0) {
             setMessages([
                 {
                     id: 1,
@@ -28,7 +29,7 @@ export default function Practice() {
                 },
             ]);
         }
-    }, [messages.length, situation, isKr]);
+    }, [situation, messages.length, isKr]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -48,37 +49,35 @@ export default function Practice() {
                 role: m.role,
                 content: m.content,
             }));
-
             const replyText = await generateChatResponse(historyForApi, userProfile, situation);
-
-            setMessages((prev) => [
-                ...prev,
-                {
-                    id: Date.now() + 1,
-                    role: 'model',
-                    content: replyText,
-                },
-            ]);
+            setMessages((prev) => [...prev, { id: Date.now() + 1, role: 'model', content: replyText }]);
         } catch (error) {
             console.error(error);
             setMessages((prev) => [
                 ...prev,
-                {
-                    id: Date.now() + 1,
-                    role: 'model',
-                    content: '죄송해요, 응답을 받아오는데 실패했어요. 다시 말씀해주세요!',
-                },
+                { id: Date.now() + 1, role: 'model', content: '죄송해요, 응답을 받아오는데 실패했어요. 다시 말씀해주세요!' },
             ]);
         } finally {
             setIsLoading(false);
         }
     };
 
-    if (!situation) return <div className="p-10 text-center">상황을 찾을 수 없습니다.</div>;
+    if (loading) return (
+        <div className="d-flex flex-col h-screen items-center justify-center bg-main-gradient gap-4">
+            <span className="text-4xl animate-bounce">💌</span>
+            <p className="m-0 font-black text-gray-400 text-[15px]">데이터를 불러오는 중...</p>
+        </div>
+    );
+
+    if (!situation) return (
+        <div className="d-flex flex-col h-screen items-center justify-center bg-main-gradient gap-4">
+            <span className="text-4xl">😢</span>
+            <p className="m-0 font-black text-gray-400 text-[15px]">상황을 찾을 수 없습니다.</p>
+        </div>
+    );
 
     return (
         <div className="d-flex flex-col h-screen bg-main-gradient">
-            {/* Header */}
             {/* Header */}
             <div className="chat-header d-flex items-center justify-between">
                 <div className="d-flex items-center gap-3">
@@ -107,17 +106,12 @@ export default function Practice() {
 
             {/* Chat Area */}
             <div className="chat-container">
-                {messages.map((msg, idx) => {
+                {messages.map((msg) => {
                     const isUser = msg.role === 'user';
                     const text = msg.content;
                     const tipIndex = text.indexOf('💡 Tip:');
-                    let mainText = text;
-                    let tipText = '';
-
-                    if (tipIndex !== -1) {
-                        mainText = text.substring(0, tipIndex).trim();
-                        tipText = text.substring(tipIndex);
-                    }
+                    const mainText = tipIndex !== -1 ? text.substring(0, tipIndex).trim() : text;
+                    const tipText = tipIndex !== -1 ? text.substring(tipIndex) : '';
 
                     return (
                         <motion.div
@@ -127,12 +121,12 @@ export default function Practice() {
                             className={`d-flex w-full ${isUser ? 'justify-end' : 'justify-start'}`}
                         >
                             <div className={`chat-bubble ${isUser ? 'user' : 'ai'}`}>
-                                <div className="text-[15px] font-bold leading-relaxed">
-                                    {mainText}
-                                </div>
+                                <div className="text-[15px] font-bold leading-relaxed">{mainText}</div>
                                 {tipText && (
                                     <div
-                                        className={`mt-3 pt-3 border-t text-[12px] font-bold leading-relaxed ${isUser ? 'border-white/20 text-white/80' : 'border-gray-100 text-peach'}`}
+                                        className={`mt-3 pt-3 border-t text-[12px] font-bold leading-relaxed ${
+                                            isUser ? 'border-white/20 text-white/80' : 'border-gray-100 text-peach'
+                                        }`}
                                     >
                                         {tipText}
                                     </div>
@@ -144,18 +138,13 @@ export default function Practice() {
                 {isLoading && (
                     <div className="flex w-full justify-start">
                         <div className="bg-white border border-pink-50 rounded-[20px] rounded-bl-none px-5 py-4 flex items-center gap-2 shadow-sm">
-                            <div
-                                className="w-2 h-2 bg-pink-300 rounded-full animate-bounce"
-                                style={{ animationDelay: '0ms' }}
-                            />
-                            <div
-                                className="w-2 h-2 bg-pink-300 rounded-full animate-bounce"
-                                style={{ animationDelay: '200ms' }}
-                            />
-                            <div
-                                className="w-2 h-2 bg-pink-300 rounded-full animate-bounce"
-                                style={{ animationDelay: '400ms' }}
-                            />
+                            {[0, 200, 400].map((delay) => (
+                                <div
+                                    key={delay}
+                                    className="w-2 h-2 bg-pink-300 rounded-full animate-bounce"
+                                    style={{ animationDelay: `${delay}ms` }}
+                                />
+                            ))}
                         </div>
                     </div>
                 )}
