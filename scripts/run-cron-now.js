@@ -49,12 +49,10 @@ const httpRequest = (options, body) =>
 
 // ── Gemini ───────────────────────────────────────────────
 const geminiRequest = async (prompt) => {
-    // 기존 api/cron.js와 동일한 방식으로 요청
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
     const { status, body } = await httpRequest(
         {
             hostname: 'generativelanguage.googleapis.com',
-            path: `/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
+            path: `/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
             method: 'POST',
         },
         { contents: [{ parts: [{ text: prompt }] }] }
@@ -95,12 +93,34 @@ const notionPost = async (path, body) => {
         연애/데이트 일본어 학습을 위한 JSON 형식의 콘텐츠를 생성해주세요.
         반드시 JSON 파일만 마크다운 없이 반환하세요.
         {
-          "situation": { "title_kr": "상황 제목", "title_jp": "일본어 제목", "desc_kr": "설명", "desc_jp": "일본어 설명" },
+          "situation": { 
+             "title_kr": "상황 제목", 
+             "title_jp": "일본어 제목", 
+             "desc_kr": "설명 (2~3문장)", 
+             "desc_jp": "일본어 설명 (2~3문장)" 
+          },
           "expressions": {
-            "kr_wants_jp": [{ "kr": "한", "jp": "일", "reading": "발음", "tip": "팁", "words": [] }],
-            "jp_wants_kr": [{ "kr": "한", "jp": "일", "reading": "발음", "tip": "", "words": [] }]
+            "kr_wants_jp": [
+              { 
+                "kr": "한국어 표현", 
+                "jp": "일본어 표현", 
+                "reading": "일본어 한국어 발음 표기", 
+                "tip": "데이트 팁", 
+                "words": [{ "word": "단어", "mean": "뜻" }] 
+              }
+            ],
+            "jp_wants_kr": [
+              { 
+                "kr": "한국어 표현", 
+                "jp": "일본어 표현", 
+                "reading": "발음", 
+                "tip": "", 
+                "words": [] 
+              }
+            ]
           }
         }
+        주의: 'words' 배열의 각 요소는 반드시 'word'와 'mean' 필수 키를 포함해야 합니다.
         `;
 
         console.log('🤖 Gemini에게 물어보는 중...');
@@ -129,6 +149,9 @@ const notionPost = async (path, body) => {
 
         console.log(`✍️ 표현 ${exprList.length}개 Notion에 추가 중...`);
         for (const expr of exprList) {
+            // words 데이터 검증 (word가 없는 요소 필터링)
+            const safeWords = (expr.words || []).filter(w => w && w.word);
+
             await notionPost('/v1/pages', {
                 parent: { database_id: EXPRESSIONS_DB_ID },
                 properties: {
@@ -136,7 +159,7 @@ const notionPost = async (path, body) => {
                     Text_JP: { rich_text: [{ text: { content: expr.jp } }] },
                     Reading: { rich_text: [{ text: { content: expr.reading } }] },
                     Tip: { rich_text: [{ text: { content: expr.tip || '' } }] },
-                    Words: { rich_text: [{ text: { content: JSON.stringify(expr.words || []) } }] },
+                    Words: { rich_text: [{ text: { content: JSON.stringify(safeWords) } }] },
                     Type: { select: { name: expr.type } },
                     Situation: { relation: [{ id: sitPage.id }] },
                     Date: { date: { start: targetDate } },

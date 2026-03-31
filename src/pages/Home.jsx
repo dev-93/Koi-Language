@@ -151,7 +151,7 @@ export default function Home() {
                                         {sitDate.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
                                     </span>
                                     <span className="text-sm font-black whitespace-nowrap">
-                                        {isToday ? '오늘의 표현' : sit.title?.kr?.split(' ')[0] || '표현'}
+                                        {isToday ? '오늘의 표현' : sit.title?.kr?.split?.(' ')?.[0] || '표현'}
                                     </span>
                                 </div>
                             </button>
@@ -215,7 +215,7 @@ export default function Home() {
                                                         className="d-flex items-center gap-1.5"
                                                     >
                                                         <span className="word-tag-primary">
-                                                            {w.word.split(' ')[0]}
+                                                            {w.word?.split?.(' ')?.[0] || w.word || '단어'}
                                                         </span>
                                                         <span className="word-tag-secondary">
                                                             {w.mean}

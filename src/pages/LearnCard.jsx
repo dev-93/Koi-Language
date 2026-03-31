@@ -190,7 +190,7 @@ export default function LearnCard() {
                                         key={i}
                                         className="d-flex items-center gap-1.5"
                                     >
-                                        <span className="word-tag-primary">{w.word}</span>
+                                        <span className="word-tag-primary">{w.word || '단어'}</span>
                                         <span className="word-tag-secondary">{w.mean}</span>
                                     </motion.div>
                                 ))}
