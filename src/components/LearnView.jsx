@@ -64,21 +64,27 @@ export default function LearnView({ situation, initialExpressions = [] }) {
     return (
         <div className="home-layout pb-24 relative overflow-hidden bg-white">
             {/* Header / Nav */}
-            <div className="w-full max-w-[420px] d-flex items-center justify-between py-6 px-2 mb-4 bg-white/80 backdrop-blur sticky top-0 z-20">
-                <button onClick={() => router.push('/')} className="p-3 u-rounded-full hover:bg-gray-100 border-none bg-transparent cursor-pointer transition-all">
+            <div className="w-full max-w-[420px] d-flex items-center justify-center py-6 px-4 mb-2 bg-white/80 backdrop-blur sticky top-0 z-20 relative">
+                <button 
+                    onClick={() => router.push('/')} 
+                    className="absolute left-4 p-3 u-rounded-full hover:bg-gray-100 border-none bg-transparent cursor-pointer transition-all"
+                >
                     <ChevronLeft size={24} className="text-gray-800" />
                 </button>
-                <div className="d-flex flex-col items-center">
+                <div className="d-flex flex-col items-center px-12 overflow-hidden w-full">
                     <span className="text-[10px] font-black text-peach tracking-widest mb-1 uppercase">SITUATION</span>
-                    <h1 className="m-0 text-[14px] font-black text-gray-800 max-w-[200px] truncate text-center">
+                    <h1 
+                        className="m-0 text-[15px] font-black text-gray-800 text-center w-full"
+                        style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                    >
                         {situation.title.kr}
                     </h1>
                 </div>
                 <button 
                     onClick={() => setIsKr(!isKr)}
-                    className="u-bg-white\/80 u-shadow-md border-none p-3 u-rounded-full px-5 font-black text-[12px] text-peach hover:shadow-lg transition-all cursor-pointer bg-white"
+                    className="absolute right-4 u-bg-white\/80 u-shadow-md border-none px-4 py-2 u-rounded-full font-black text-[12px] text-peach hover:shadow-lg transition-all cursor-pointer bg-white"
                 >
-                    {isKr ? 'KR 🇰🇷' : 'JP 🇯🇵'}
+                    {isKr ? 'KR🇰🇷' : 'JP🇯🇵'}
                 </button>
             </div>
 
@@ -132,7 +138,10 @@ export default function LearnView({ situation, initialExpressions = [] }) {
 
                             return (
                                 <SwiperSlide key={expr.id || idx}>
-                                    <div className={`learn-card-main u-shadow-xl transition-all duration-300 ${currentIndex === idx ? 'scale-100 opacity-100' : 'scale-95 opacity-50'}`}>
+                                    <div 
+                                        className={`learn-card-main u-shadow-xl transition-all duration-300 ${currentIndex === idx ? 'scale-100 opacity-100' : 'scale-95 opacity-50'}`}
+                                        style={{ minHeight: 'auto', paddingBottom: '1.5rem' }}
+                                    >
                                         {/* 상황 씬 일러스트 */}
                                         <SituationScene title={situation.title.kr} date={situation.date} />
 
@@ -156,8 +165,7 @@ export default function LearnView({ situation, initialExpressions = [] }) {
 
                                             <div className="card-divider-wide opacity-30"></div>
 
-                                            {/* 단어장 태그 리스트 */}
-                                            <div className="d-flex flex-wrap justify-center gap-2 mt-4 px-4">
+                                            <div className="d-flex flex-wrap justify-center gap-2 mt-4 px-4 pb-2">
                                                 {wordList.map((word, wIdx) => (
                                                     <div key={wIdx} className="d-flex items-center u-rounded-lg overflow-hidden border border-peach/10 shadow-sm">
                                                         <span className="bg-gray-100 px-3 py-1.5 text-[13px] font-bold text-gray-600 border-r border-peach/10">
@@ -176,9 +184,9 @@ export default function LearnView({ situation, initialExpressions = [] }) {
                         })}
                     </Swiper>
 
-                    {/* Tip Section (이전 UI 스타일) */}
+                    {/* Tip Section */}
                     {currentExpr?.tip && (
-                        <div className="px-8 mt-10 animate-in fade-in slide-in-from-bottom-2 duration-700">
+                        <div className="px-8 mt-5 animate-in fade-in slide-in-from-bottom-2 duration-700">
                             <div className="tip-box-standard u-shadow-sm border border-peach/10 bg-peach/5 p-6 u-rounded-2xl">
                                 <div className="d-flex items-center gap-2 mb-2">
                                     <Sparkles size={16} className="text-peach" />
@@ -198,9 +206,13 @@ export default function LearnView({ situation, initialExpressions = [] }) {
                 <div className="w-full max-w-[420px] d-flex px-2" style={{ gap: '1rem' }}>
                     <button 
                         onClick={() => swiper?.slidePrev()}
-                        className={`flex-1 py-5 u-rounded-card border-none font-black text-[16px] transition-all cursor-pointer d-flex items-center justify-center gap-2 ${
-                            currentIndex === 0 ? 'bg-gray-100 text-gray-300' : 'bg-white text-gray-600 u-shadow-md border border-gray-100'
-                        }`}
+                        className="flex-1 py-5 u-rounded-card font-black text-[16px] transition-all cursor-pointer d-flex items-center justify-center gap-2"
+                        style={{
+                            background: currentIndex === 0 ? 'transparent' : 'white',
+                            border: currentIndex === 0 ? '2px solid #e5e7eb' : '2px solid #ff8a8a',
+                            color: currentIndex === 0 ? '#9ca3af' : '#ff8a8a',
+                            opacity: currentIndex === 0 ? 0.6 : 1
+                        }}
                         disabled={currentIndex === 0}
                     >
                         <ChevronLeft size={22} />
