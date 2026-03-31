@@ -68,7 +68,7 @@ export default function HomeView({ initialSituations = [] }) {
                         <Search size={22} className="text-gray-400" />
                     </button>
                     <button 
-                        onClick={() => router.push('/onboarding')}
+                        onClick={() => alert('프로필 설정 기능은 준비 중입니다. 💘\n(온보딩 데이터는 로컬 스토리지에 있습니다)')}
                         className="p-2 u-shadow-md u-rounded-full u-bg-white\/80 u-backdrop-blur border-none hover:bg-white hover:scale-110 active:scale-95 cursor-pointer transition-all"
                     >
                         <UserCircle size={22} className="text-gray-400 hover:text-peach" />
@@ -77,26 +77,26 @@ export default function HomeView({ initialSituations = [] }) {
             </div>
 
             {/* Main Tabs */}
-            <div className="u-bg-white\/80 u-backdrop-blur u-shadow-lg u-rounded-3xl p-1-5 w-full max-w-[420px] d-flex mb-10">
+            <div className="u-bg-white\/80 u-backdrop-blur u-shadow-lg u-rounded-3xl p-2 w-full max-w-[420px] d-flex mb-10" style={{ gap: '0.5rem' }}>
                 <button 
                     onClick={() => setTab('today')}
-                    className={`flex-1 py-3 px-6 u-rounded-2xl font-black text-[15px] border-none transition-all cursor-pointer ${
-                        tab === 'today' ? 'bg-peach text-white u-shadow-md' : 'bg-transparent text-gray-400'
+                    className={`flex-1 py-4 px-4 u-rounded-2xl font-black text-[16px] border-none transition-all cursor-pointer ${
+                        tab === 'today' ? 'bg-peach text-white u-shadow-md' : 'bg-transparent text-gray-400 hover:bg-white/50'
                     }`}
                 >
                     <div className="d-flex items-center justify-center gap-2">
-                        <Heart size={16} fill={tab === 'today' ? "white" : "none"} />
+                        <Heart size={18} fill={tab === 'today' ? "white" : "none"} />
                         <span>오늘의 표현</span>
                     </div>
                 </button>
                 <button 
                     onClick={() => setTab('archive')}
-                    className={`flex-1 py-3 px-6 u-rounded-2xl font-black text-[15px] border-none transition-all cursor-pointer ${
-                        tab === 'archive' ? 'bg-peach text-white u-shadow-md' : 'bg-transparent text-gray-400'
+                    className={`flex-1 py-4 px-4 u-rounded-2xl font-black text-[16px] border-none transition-all cursor-pointer ${
+                        tab === 'archive' ? 'bg-peach text-white u-shadow-md' : 'bg-transparent text-gray-400 hover:bg-white/50'
                     }`}
                 >
                     <div className="d-flex items-center justify-center gap-2">
-                        <BookMarked size={16} fill={tab === 'archive' ? "white" : "none"} />
+                        <BookMarked size={18} fill={tab === 'archive' ? "white" : "none"} />
                         <span>지난 학습</span>
                     </div>
                 </button>
@@ -148,13 +148,14 @@ export default function HomeView({ initialSituations = [] }) {
                         />
                     </div>
 
-                    <div className="d-flex flex-col gap-6 max-h-[500px] overflow-y-auto pb-6 custom-scrollbar">
+                    <div className="d-flex flex-col max-h-[500px] overflow-y-auto pb-6 custom-scrollbar" style={{ gap: '1.5rem' }}>
                         {archiveSituations.length > 0 ? (
                             archiveSituations.map(situation => (
                                 <div 
                                     key={situation.id}
                                     onClick={() => handleLearnStart(situation.id)}
-                                    className="u-bg-white\/90 u-backdrop-blur u-shadow-xl u-rounded-[24px] p-7 d-flex items-center justify-between hover:translate-y-[-2px] hover:bg-peach\/5 transition-all cursor-pointer border border-white/50 group"
+                                    className="u-bg-white\/90 u-backdrop-blur u-shadow-md hover:u-shadow-xl u-rounded-3xl p-6 d-flex items-center justify-between hover:translate-y-[-4px] hover:bg-peach-light transition-all cursor-pointer border group"
+                                    style={{ borderColor: 'rgba(255,138,138,0.1)' }}
                                 >
                                     <div className="d-flex flex-col gap-3">
                                         <div className="d-flex items-center gap-2">
