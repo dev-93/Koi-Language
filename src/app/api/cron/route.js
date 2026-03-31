@@ -1,151 +1,185 @@
 import { NextResponse } from 'next/server';
 
-/**
- * 전역 설정 및 헬퍼 함수
- */
-const notionToken = process.env.NOTION_TOKEN;
-const situationDbId = process.env.VITE_NOTION_SITUATION_DB_ID || process.env.NOTION_SITUATION_DB_ID;
-const expressionDbId = process.env.VITE_NOTION_EXPRESSION_DB_ID || process.env.NOTION_EXPRESSION_DB_ID;
-const geminiApiKey = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
-const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
-const telegramChatId = process.env.TELEGRAM_CHAT_ID;
+const NOTION_TOKEN = process.env.NOTION_TOKEN;
+const SITUATION_DB_ID = process.env.VITE_NOTION_SITUATION_DB_ID || process.env.NOTION_SITUATION_DB_ID;
+const EXPRESSIONS_DB_ID = process.env.VITE_NOTION_EXPRESSION_DB_ID || process.env.NOTION_EXPRESSION_DB_ID;
+const GEMINI_API_KEY = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
-const httpRequest = async (options, body) => {
-    return new Promise((resolve, reject) => {
-        const http = require('https');
-        const req = http.request(options, (res) => {
-            let data = '';
-            res.on('data', (chunk) => data += chunk);
-            res.on('end', () => {
-                try {
-                    resolve({
-                        status: res.statusCode,
-                        body: data ? JSON.parse(data) : {}
-                    });
-                } catch (e) {
-                    resolve({ status: res.statusCode, body: data });
-                }
-            });
-        });
-        req.on('error', (e) => reject(e));
-        if (body) req.write(typeof body === 'string' ? body : JSON.stringify(body));
-        req.end();
+const sendTelegramMessage = async (text) => {
+    if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) return null;
+    const payload = JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text, parse_mode: 'HTML' });
+    
+    const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload
     });
+    return response.json();
 };
 
-/**
- * Next.js API Route Handler - GET (Cron)
- */
+const notionRequest = async (method, path, body) => {
+    const payload = body ? JSON.stringify(body) : null;
+    const response = await fetch(`https://api.notion.com${path}`, {
+        method,
+        headers: {
+            Authorization: `Bearer ${NOTION_TOKEN}`,
+            'Notion-Version': '2022-06-28',
+            'Content-Type': 'application/json',
+        },
+        body: payload
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw data;
+    return data;
+};
+
+const geminiRequest = async (prompt) => {
+    const payload = JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.8, maxOutputTokens: 2048 },
+    });
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+    
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload
+    });
+    return response.json();
+};
+
+const getTomorrowDate = () => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split('T')[0];
+};
+
+const createSituationPage = (data, date) =>
+    notionRequest('POST', '/v1/pages', {
+        parent: { database_id: SITUATION_DB_ID },
+        properties: {
+            Title_KR: { title: [{ text: { content: data.title_kr } }] },
+            Title_JP: { rich_text: [{ text: { content: data.title_jp } }] },
+            Desc_KR: { rich_text: [{ text: { content: data.desc_kr } }] },
+            Desc_JP: { rich_text: [{ text: { content: data.desc_jp } }] },
+            Date: { date: { start: date } },
+        },
+    });
+
+const createExpressionPage = (expr, type, situationId, date) =>
+    notionRequest('POST', '/v1/pages', {
+        parent: { database_id: EXPRESSIONS_DB_ID },
+        properties: {
+            Title_KR: { title: [{ text: { content: expr.kr } }] },
+            Text_JP: { rich_text: [{ text: { content: expr.jp } }] },
+            Reading: { rich_text: [{ text: { content: expr.reading || expr.pronunciation || '' } }] },
+            Tip: { rich_text: [{ text: { content: expr.tip ?? '' } }] },
+            Words: { rich_text: [{ text: { content: JSON.stringify(expr.words ?? []) } }] },
+            Type: { select: { name: type } },
+            Situation: { relation: [{ id: situationId }] },
+            Date: { date: { start: date } },
+        },
+    });
+
 export async function GET(request) {
-    try {
-        // 1. 보안 검증 (CRON_SECRET)
-        const authHeader = request.headers.get('authorization');
-        if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+    // 1. 보안 검증 (CRON_SECRET)
+    const authHeader = request.headers.get('authorization');
+    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-        if (!notionToken || !geminiApiKey) {
-            return NextResponse.json({ error: 'Missing configuration' }, { status: 500 });
-        }
+    if (!NOTION_TOKEN || !GEMINI_API_KEY) {
+        return NextResponse.json({ error: 'Missing configuration' }, { status: 500 });
+    }
 
-        // 2. Gemini AI에게 오늘의 표현 요청
-        const today = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
-        const prompt = `당신은 일본어 전문 강사입니다. 오늘은 ${today}입니다.
-오늘의 연애 상황과 5개의 관련 표현을 JSON으로 생성해 주세요.
-반드시 아래 형식을 엄수하세요:
+    const targetDate = getTomorrowDate();
+    const prompt = `
+당신은 한국인과 일본인의 연애/데이트 일본어 표현을 가르치는 언어 선생님입니다.
+내일(${targetDate}) 날짜에 맞는 새로운 데이트 상황과 표현을 JSON 형식으로 생성해주세요.
+
+반드시 다음 JSON 형식으로만 응답하세요. 마크다운 코드 블록 없이 순수 JSON만:
 {
-  "situation": { "title_kr": "상황 제목", "title_jp": "일본어 제목", "desc_kr": "설명", "desc_jp": "일본어 설명" },
-  "words": [
-    { "word": "표현(일본어)", "mean": "뜻(한국어)", "pron": "독음(한국어)", "tip": "연애 팁" }
-  ]
+  "situation": {
+    "title_kr": "상황 제목 (한국어, 예: 영화 같이 보자고 하기)",
+    "title_jp": "상황 제목 (일본어)",
+    "desc_kr": "상황 설명 (한국어, 2~3문장, 재미있고 공감가는 내용)",
+    "desc_jp": "상황 설명 (일본어)"
+  },
+  "expressions": {
+    "kr_wants_jp": [
+      {
+        "kr": "한국어 표현",
+        "jp": "일본어 표현",
+        "reading": "일본어 한국어 발음 표기",
+        "tip": "데이트 팁 (재치있게, 1~2문장)",
+        "words": [
+          { "word": "일본어단어", "mean": "뜻" }
+        ]
+      }
+    ],
+    "jp_wants_kr": [
+      {
+        "kr": "한국어 표현",
+        "jp": "일본어 표현",
+        "reading": "한국어 로마자 발음 표기",
+        "tip": "팁 내용",
+        "words": [
+          { "word": "한국어단어", "mean": "뜻" }
+        ]
+      }
+    ]
+  }
 }
-중요: 상황 제목에 '벚꽃', '카페', '연락처', '야간', '공원', '식사' 등 특정 이미지 키워드를 포함하면 더 좋습니다.`;
 
-        const geminiRes = await httpRequest({
-            hostname: 'generativelanguage.googleapis.com',
-            path: `/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`,
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        }, {
-            contents: [{ parts: [{ text: prompt }] }]
-        });
+*주의: 'words' 배열의 각 요소는 반드시 'word'와 'mean'이라는 두 개의 키를 가진 객체여야 합니다.*
+*참고: 일본어 발음(reading)은 한국인이 읽기 편하게 한국어 발음으로 적어주세요.*
 
-        if (geminiRes.status !== 200) throw new Error('Gemini API Error');
+kr_wants_jp (한국인이 일본인에게 표현)은 2~3개, jp_wants_kr (일본인이 한국인에게 표현)은 2~3개 생성하세요. 이미 사용된 주제들과 겹치지 않는 창의적인 데이트 상황을 만들어주세요.
+`;
 
-        const contentText = geminiRes.body.candidates?.[0]?.content?.parts?.[0]?.text;
-        const cleanJson = contentText.replace(/```json|```/g, '').trim();
-        const data = JSON.parse(cleanJson);
+    try {
+        const geminiRes = await geminiRequest(prompt);
+        const rawText = geminiRes.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
 
-        // 3. 데이터 검증 및 필터링
-        if (!data.situation || !data.words || data.words.length === 0) {
-            throw new Error('Invalid AI response structure');
-        }
+        // JSON 파싱 (마크다운 코드 블록 처리)
+        const jsonMatch = rawText.match(/```json\n?([\s\S]*?)\n?```/) || rawText.match(/({[\s\S]*})/);
+        const jsonText = jsonMatch ? jsonMatch[1] : rawText;
+        const data = JSON.parse(jsonText.trim());
+
+        // 노션에 Situation 먼저 생성
+        const sitPage = await createSituationPage(data.situation, targetDate);
+        const sitId = sitPage.id;
+
+        // 표현들 병렬 생성
+        const exprPromises = [
+            ...data.expressions.kr_wants_jp.map((e) => createExpressionPage(e, 'kr_wants_jp', sitId, targetDate)),
+            ...data.expressions.jp_wants_kr.map((e) => createExpressionPage(e, 'jp_wants_kr', sitId, targetDate)),
+        ];
+        await Promise.all(exprPromises);
+
+        // 텔레그램 알림 전송
+        await sendTelegramMessage(
+            `💌 <b>[Koi Language]</b>\n` +
+            `새로운 데이트 표현 업데이트 완료!\n\n` +
+            `📅 <b>학습 날짜:</b> ${targetDate}\n` +
+            `💖 <b>주제:</b> ${data.situation.title_kr}\n\n` +
+            `지금 바로 앱에서 확인해보세요!`
+        );
+
+        return NextResponse.json({ success: true, date: targetDate, situation: data.situation.title_kr });
+    } catch (err) {
+        console.error('Cron job failed:', err);
         
-        const validWords = data.words.filter(w => w.word && w.mean);
-
-        // 4. 노션 상황 DB 등록
-        const situationDate = new Date().toISOString().split('T')[0];
-        const nationRes = await httpRequest({
-            hostname: 'api.notion.com',
-            path: '/v1/pages',
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${notionToken}`,
-                'Notion-Version': '2022-06-28',
-                'Content-Type': 'application/json'
-            }
-        }, {
-            parent: { database_id: situationDbId },
-            properties: {
-                Title_KR: { title: [{ text: { content: data.situation.title_kr } }] },
-                Title_JP: { rich_text: [{ text: { content: data.situation.title_jp } }] },
-                Desc_KR: { rich_text: [{ text: { content: data.situation.desc_kr } }] },
-                Desc_JP: { rich_text: [{ text: { content: data.situation.desc_jp } }] },
-                Date: { date: { start: situationDate } }
-            }
-        });
-
-        if (nationRes.status !== 200) throw new Error(`Notion DB Error: ${nationRes.status}`);
-        const situationId = nationRes.body.id;
-
-        // 5. 노션 표현 DB 등록
-        for (const item of validWords) {
-            await httpRequest({
-                hostname: 'api.notion.com',
-                path: '/v1/pages',
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${notionToken}`,
-                    'Notion-Version': '2022-06-28',
-                    'Content-Type': 'application/json'
-                }
-            }, {
-                parent: { database_id: expressionDbId },
-                properties: {
-                    KR: { title: [{ text: { content: item.mean } }] },
-                    JP: { rich_text: [{ text: { content: item.word } }] },
-                    Pronunciation: { rich_text: [{ text: { content: item.pron || '' } }] },
-                    Tip: { rich_text: [{ text: { content: item.tip || '' } }] },
-                    Situation: { relation: [{ id: situationId }] }
-                }
-            });
-        }
-
-        // 6. 텔레그램 알림 발송 (선택)
-        if (telegramBotToken && telegramChatId) {
-            const message = `🌸 오늘의 코이 언어 생성 완료!\n📍 상황: ${data.situation.title_kr}\n📚 단어: ${validWords.length}개 저장됨`;
-            await httpRequest({
-                hostname: 'api.telegram.org',
-                path: `/bot${telegramBotToken}/sendMessage`,
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            }, { chat_id: telegramChatId, text: message });
-        }
-
-        return NextResponse.json({ success: true, situation: data.situation.title_kr });
-
-    } catch (error) {
-        console.error('Cron Job Failed:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        await sendTelegramMessage(
+            `❌ <b>[Koi Language]</b>\n` +
+            `노션 동기화 작업 실패!\n\n` +
+            `🕒 <b>시간:</b> ${new Date().toLocaleString()}\n` +
+            `⚠️ <b>에러:</b> ${err.message}`
+        );
+        
+        return NextResponse.json({ error: 'Cron job failed', detail: err.message }, { status: 500 });
     }
 }

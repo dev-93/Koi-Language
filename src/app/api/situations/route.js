@@ -1,42 +1,28 @@
-import https from 'https';
+import { NextResponse } from 'next/server';
 
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
-const SITUATION_DB_ID = process.env.VITE_NOTION_SITUATION_DB_ID;
-const EXPRESSIONS_DB_ID = process.env.VITE_NOTION_EXPRESSION_DB_ID;
+const SITUATION_DB_ID = process.env.VITE_NOTION_SITUATION_DB_ID || process.env.NOTION_SITUATION_DB_ID;
+const EXPRESSIONS_DB_ID = process.env.VITE_NOTION_EXPRESSION_DB_ID || process.env.NOTION_EXPRESSION_DB_ID;
 
-const notionRequest = (method, path, body) =>
-    new Promise((resolve, reject) => {
-        const payload = body ? JSON.stringify(body) : null;
-        const req = https.request(
-            {
-                hostname: 'api.notion.com',
-                path,
-                method,
-                headers: {
-                    Authorization: `Bearer ${NOTION_TOKEN}`,
-                    'Notion-Version': '2022-06-28',
-                    'Content-Type': 'application/json',
-                    ...(payload && { 'Content-Length': Buffer.byteLength(payload) }),
-                },
-            },
-            (res) => {
-                let data = '';
-                res.on('data', (chunk) => (data += chunk));
-                res.on('end', () => {
-                    try {
-                        const parsed = JSON.parse(data);
-                        if (res.statusCode >= 400) reject(parsed);
-                        else resolve(parsed);
-                    } catch (e) {
-                        reject(e);
-                    }
-                });
-            }
-        );
-        req.on('error', reject);
-        if (payload) req.write(payload);
-        req.end();
+const notionRequest = async (method, path, body) => {
+    const payload = body ? JSON.stringify(body) : null;
+    const response = await fetch(`https://api.notion.com${path}`, {
+        method,
+        headers: {
+            Authorization: `Bearer ${NOTION_TOKEN}`,
+            'Notion-Version': '2022-06-28',
+            'Content-Type': 'application/json',
+        },
+        body: payload,
+        next: { revalidate: 3600 } // Cache for 1 hour
     });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw error;
+    }
+    return response.json();
+};
 
 const getRichText = (prop) => prop?.rich_text?.[0]?.plain_text ?? '';
 const getTitle = (prop) => prop?.title?.[0]?.plain_text ?? '';
@@ -67,9 +53,9 @@ const parseExpression = (page) => {
     }
     return {
         id: page.id,
-        kr: getTitle(page.properties['Title_KR']),
-        jp: getRichText(page.properties['Text_JP']),
-        reading: getRichText(page.properties['Reading']),
+        kr: getTitle(page.properties['Title_KR']) || getTitle(page.properties['KR']),
+        jp: getRichText(page.properties['Text_JP']) || getRichText(page.properties['JP']),
+        reading: getRichText(page.properties['Reading']) || getRichText(page.properties['Pronunciation']),
         tip: getRichText(page.properties['Tip']),
         type: getSelect(page.properties['Type']),
         situationIds: getRelationIds(page.properties['Situation']),
@@ -89,12 +75,10 @@ const queryAll = async (dbId, filter) => {
     return results;
 };
 
-export default async function handler(req, res) {
-    // CORS
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    if (req.method === 'OPTIONS') return res.status(200).end();
-    if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+export async function GET() {
+    if (!NOTION_TOKEN || !SITUATION_DB_ID) {
+        return NextResponse.json({ error: 'Missing configuration' }, { status: 500 });
+    }
 
     try {
         const [sitPages, exprPages] = await Promise.all([
@@ -119,10 +103,13 @@ export default async function handler(req, res) {
             .filter((s) => s.date)
             .sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
-        return res.status(200).json({ situations });
+        return NextResponse.json({ situations }, {
+            headers: {
+                'Cache-Control': 's-maxage=3600, stale-while-revalidate'
+            }
+        });
     } catch (err) {
         console.error('Notion fetch error:', err);
-        return res.status(500).json({ error: 'Failed to fetch from Notion', detail: err.message });
+        return NextResponse.json({ error: 'Failed to fetch from Notion', detail: err.message }, { status: 500 });
     }
 }
