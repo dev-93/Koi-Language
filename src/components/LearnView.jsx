@@ -142,8 +142,8 @@ export default function LearnView({ situation, initialExpressions = [] }) {
                                                 {(isKr ? expr.jp : expr.kr).replace(/[\u0000-\u001F\u007F-\u009F\uFFFD]/g, "")}
                                             </h2>
 
-                                            {/* 발음 (독음) - 이전 UI 스타일 복구 */}
-                                            {expr.pron && (
+                                            {/* 발음 (독음) - JP모드일때는 노션에 로마자 데이터가 없어서 임시로 숨김 */}
+                                            {expr.pron && isKr && (
                                                 <p className="m-0 text-[18px] font-medium text-gray-600 text-center mt-2">
                                                     {expr.pron.replace(/[\u0000-\u001F\u007F-\u009F\uFFFD]/g, "")}
                                                 </p>
@@ -195,11 +195,11 @@ export default function LearnView({ situation, initialExpressions = [] }) {
 
             {/* Bottom Nav Controller */}
             <div className="fixed bottom-0 left-0 right-0 p-8 pt-4 pb-12 bg-white/90 backdrop-blur d-flex justify-center z-30">
-                <div className="w-full max-w-[420px] d-flex gap-4">
+                <div className="w-full max-w-[420px] d-flex px-2" style={{ gap: '1rem' }}>
                     <button 
                         onClick={() => swiper?.slidePrev()}
-                        className={`flex-1 py-5 u-rounded-card border-none font-black text-[15px] transition-all cursor-pointer d-flex items-center justify-center gap-2 ${
-                            currentIndex === 0 ? 'bg-gray-100 text-gray-300' : 'bg-gray-200 text-gray-600 u-shadow-md'
+                        className={`flex-1 py-5 u-rounded-card border-none font-black text-[16px] transition-all cursor-pointer d-flex items-center justify-center gap-2 ${
+                            currentIndex === 0 ? 'bg-gray-100 text-gray-300' : 'bg-white text-gray-600 u-shadow-md border border-gray-100'
                         }`}
                         disabled={currentIndex === 0}
                     >
@@ -208,7 +208,7 @@ export default function LearnView({ situation, initialExpressions = [] }) {
                     </button>
                     <button 
                         onClick={currentIndex === expressions.length - 1 ? handleFinish : () => swiper?.slideNext()}
-                        className="flex-[1.5] py-5 u-rounded-card bg-peach text-white border-none font-black text-[15px] u-shadow-lg d-flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+                        className="flex-[1.5] py-5 u-rounded-card bg-peach text-white border-none font-black text-[16px] u-shadow-lg d-flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
                     >
                         {currentIndex === expressions.length - 1 ? (
                             <><span>FINISH</span> <CheckCircle2 size={22} /></>
