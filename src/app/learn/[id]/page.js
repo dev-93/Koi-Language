@@ -1,14 +1,14 @@
 import { getSituations, getExpressions } from '@/lib/notion';
 import LearnView from '@/components/LearnView';
 
+// ISR: 매 24시간마다 캐시 재생성
+export const revalidate = 86400;
+
 export default async function LearnPage({ params }) {
     const { id } = await params;
     
-    // 1. 서버에서 모든 상황 리스트 가져오기 (현재 상황 정보를 찾기 위해)
     const situations = await getSituations();
     const situation = situations.find(s => s.id === id);
-    
-    // 2. 해당 상황에 속한 모든 학습 표현들 가져오기
     const expressions = await getExpressions(id);
 
     if (!situation) {
