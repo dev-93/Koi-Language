@@ -23,6 +23,24 @@ export default function OnboardingView() {
         nationality: 'KR', // KR, JP
         gender: 'M' // M, F
     });
+    const [isUpdate, setIsUpdate] = useState(false);
+
+    // 기존 데이터 불러오기
+    useEffect(() => {
+        const nationality = localStorage.getItem('user_nationality');
+        const gender = localStorage.getItem('user_gender');
+        const complete = localStorage.getItem('onboarding_complete');
+
+        if (nationality || gender) {
+            setFormData({
+                nationality: nationality || 'KR',
+                gender: gender || 'M'
+            });
+        }
+        if (complete === 'true') {
+            setIsUpdate(true);
+        }
+    }, []);
 
     const handleNext = () => {
         if (step < 3) setStep(step + 1);
@@ -154,7 +172,7 @@ export default function OnboardingView() {
                     onClick={handleNext}
                     className="btn btn-primary u-rounded-full py-5 u-shadow-xl text-[18px] font-black d-flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98]"
                 >
-                    <span>{step === 3 ? "코이 시작하기" : "다음 단계로"}</span>
+                    <span>{step === 3 ? (isUpdate ? "프로필 수정 완료" : "코이 시작하기") : "다음 단계로"}</span>
                     <ArrowRight size={22} strokeWidth={3} />
                 </button>
                 <p className="m-0 text-center text-[12px] font-bold text-gray-300 mt-6 tracking-wide">

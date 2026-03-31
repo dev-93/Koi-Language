@@ -67,8 +67,11 @@ export default function HomeView({ initialSituations = [] }) {
                     <button className="p-2 u-shadow-md u-rounded-full u-bg-white\/80 u-backdrop-blur border-none hover:bg-white cursor-pointer transition-all">
                         <Search size={22} className="text-gray-400" />
                     </button>
-                    <button className="p-2 u-shadow-md u-rounded-full u-bg-white\/80 u-backdrop-blur border-none hover:bg-white cursor-pointer transition-all">
-                        <UserCircle size={22} className="text-gray-400" />
+                    <button 
+                        onClick={() => router.push('/onboarding')}
+                        className="p-2 u-shadow-md u-rounded-full u-bg-white\/80 u-backdrop-blur border-none hover:bg-white hover:scale-110 active:scale-95 cursor-pointer transition-all"
+                    >
+                        <UserCircle size={22} className="text-gray-400 hover:text-peach" />
                     </button>
                 </div>
             </div>
@@ -133,39 +136,39 @@ export default function HomeView({ initialSituations = [] }) {
                 </div>
             ) : (
                 /* Archive Section */
-                <div className="w-full max-w-[420px] d-flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <div className="u-bg-white\/80 u-backdrop-blur u-shadow-md u-rounded-2xl p-4 flex items-center gap-3">
-                        <Search size={18} className="text-gray-400" />
+                <div className="w-full max-w-[420px] d-flex flex-col gap-5 animate-in fade-in slide-in-from-bottom-4 duration-500 px-1">
+                    <div className="u-bg-white\/80 u-backdrop-blur u-shadow-md u-rounded-2xl p-5 flex items-center gap-3 mb-2">
+                        <Search size={20} className="text-gray-400" />
                         <input 
                             type="text" 
                             placeholder="공부했던 표현들을 검색해 보세요" 
-                            className="p-0 border-none bg-transparent font-bold text-[14px] text-gray-600 focus:outline-none"
+                            className="p-0 border-none bg-transparent font-bold text-[15px] text-gray-600 focus:outline-none w-full"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
 
-                    <div className="d-flex flex-col gap-4 max-h-[500px] overflow-y-auto px-1 py-2">
+                    <div className="d-flex flex-col gap-6 max-h-[500px] overflow-y-auto pb-6 custom-scrollbar">
                         {archiveSituations.length > 0 ? (
                             archiveSituations.map(situation => (
                                 <div 
                                     key={situation.id}
                                     onClick={() => handleLearnStart(situation.id)}
-                                    className="u-bg-white\/80 u-backdrop-blur u-shadow-md u-rounded-2xl p-5 d-flex items-center justify-between hover:translate-x-1 transition-all cursor-pointer border-none bg-white"
+                                    className="u-bg-white\/90 u-backdrop-blur u-shadow-xl u-rounded-[24px] p-7 d-flex items-center justify-between hover:translate-y-[-2px] hover:bg-peach\/5 transition-all cursor-pointer border border-white/50 group"
                                 >
-                                    <div className="d-flex flex-col gap-1">
+                                    <div className="d-flex flex-col gap-3">
                                         <div className="d-flex items-center gap-2">
-                                            <Calendar size={12} className="text-peach" />
-                                            <span className="text-[11px] font-black text-peach tracking-tighter">
+                                            <Calendar size={13} className="text-peach opacity-60" />
+                                            <span className="text-[12px] font-black text-peach tracking-widest uppercase opacity-70">
                                                 {situation.date?.replace(/-/g, '.')}
                                             </span>
                                         </div>
-                                        <h3 className="m-0 text-[18px] font-black text-gray-800 leading-tight">
+                                        <h3 className="m-0 text-[20px] font-black text-gray-800 leading-tight group-hover:text-peach transition-colors">
                                             {situation.title.kr}
                                         </h3>
                                     </div>
-                                    <div className="w-10 h-10 u-rounded-full bg-peach-light d-flex items-center justify-center text-peach">
-                                        <ChevronRight size={20} />
+                                    <div className="w-12 h-12 u-rounded-2xl bg-peach-light d-flex items-center justify-center text-peach opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <ArrowRight size={22} />
                                     </div>
                                 </div>
                             ))
