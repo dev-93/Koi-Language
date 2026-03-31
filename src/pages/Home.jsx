@@ -193,7 +193,7 @@ export default function Home() {
                                 >
                                     <div className="learn-card-main">
                                         {/* 상황 씬 일러스트 - 항상 KR 타이틀로 키워드 매핑 */}
-                                        <SituationScene title={currentSituation.title.kr} />
+                                        <SituationScene title={currentSituation.title.kr} date={currentSituation.date} />
                                         {/* Content Area */}
                                         <div className="flex-1 d-flex flex-col items-center justify-start gap-4 w-full pt-4">
                                             <h2 className="m-0 text-[30px] font-black text-center leading-tight text-gray-800">

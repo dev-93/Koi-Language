@@ -167,7 +167,7 @@ export default function LearnCard() {
                         {/* Content */}
                         <div className="flex-1 d-flex flex-col items-center justify-center gap-4 w-full pt-2">
                             {/* 상황 씬 일러스트 */}
-                            <SituationScene title={isKr ? situation.title.kr : situation.title.jp} />
+                            <SituationScene title={isKr ? situation.title.kr : situation.title.jp} date={situation.date} />
 
                             <h2 className="m-0 text-[28px] font-black text-center leading-tight text-gray-800">
                                 {isKr ? currentExpr.jp : currentExpr.kr}
