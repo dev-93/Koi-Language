@@ -10,15 +10,15 @@ async function run() {
         const res = await fetch(`https://api.notion.com/v1/databases/${DB_ID}`, {
             method: 'PATCH',
             headers: {
-                'Authorization': `Bearer ${NOTION_TOKEN}`,
+                Authorization: `Bearer ${NOTION_TOKEN}`,
                 'Notion-Version': '2022-06-28',
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
             },
             body: JSON.stringify({
                 properties: {
-                    Words: { rich_text: {} }
-                }
-            })
+                    Words: { rich_text: {} },
+                },
+            }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || 'Error');

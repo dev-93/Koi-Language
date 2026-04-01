@@ -2,7 +2,8 @@ import '@/app/globals.css';
 
 export const metadata = {
     title: 'Koi Language - 연애 일본어 마스터',
-    description: '매일 새로운 일본어 데이트 표현과 팁을 학습하세요. 한일 커플을 위한 최고의 언어 파트너.',
+    description:
+        '매일 새로운 일본어 데이트 표현과 팁을 학습하세요. 한일 커플을 위한 최고의 언어 파트너.',
     openGraph: {
         title: 'Koi Language',
         description: '매일 새로운 일본어 데이트 표현과 실전 팁',
@@ -42,9 +43,7 @@ export default function RootLayout({ children }) {
             </head>
             <body className="antialiased">
                 {/* 기존 Vite 프로젝트의 #root 스타일을 유지하기 위해 id="root" 부여 */}
-                <div id="root">
-                    {children}
-                </div>
+                <div id="root">{children}</div>
             </body>
         </html>
     );

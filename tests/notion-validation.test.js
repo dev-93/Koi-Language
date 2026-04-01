@@ -53,7 +53,7 @@ async function validate() {
     try {
         const [sitRes, exprRes] = await Promise.all([
             notionRequest('POST', `/v1/databases/${SIT_DB_ID}/query`, {}),
-            notionRequest('POST', `/v1/databases/${EXPR_DB_ID}/query`, {})
+            notionRequest('POST', `/v1/databases/${EXPR_DB_ID}/query`, {}),
         ]);
 
         const situations = sitRes.results;
@@ -64,11 +64,11 @@ async function validate() {
 
         let errorCount = 0;
 
-        situations.forEach(sit => {
+        situations.forEach((sit) => {
             const title = sit.properties.Title_KR.title[0]?.plain_text || '제목 없음';
             const date = sit.properties.Date.date?.start;
-            const relatedExprs = expressions.filter(ex => 
-                ex.properties.Situation.relation.some(rel => rel.id === sit.id)
+            const relatedExprs = expressions.filter((ex) =>
+                ex.properties.Situation.relation.some((rel) => rel.id === sit.id)
             );
 
             console.log(`[상황: ${title}]`);
@@ -77,22 +77,30 @@ async function validate() {
                 errorCount++;
             }
 
-            const krCount = relatedExprs.filter(ex => ex.properties.Type.select?.name === 'kr_wants_jp').length;
-            const jpCount = relatedExprs.filter(ex => ex.properties.Type.select?.name === 'jp_wants_kr').length;
+            const krCount = relatedExprs.filter(
+                (ex) => ex.properties.Type.select?.name === 'kr_wants_jp'
+            ).length;
+            const jpCount = relatedExprs.filter(
+                (ex) => ex.properties.Type.select?.name === 'jp_wants_kr'
+            ).length;
 
             if (krCount === 0 || jpCount === 0) {
-                console.warn(`  ⚠️ [Warn] 관점 불균형 (한국인용: ${krCount}, 일본인용: ${jpCount}) - 둘 다 있어야 합니다.`);
+                console.warn(
+                    `  ⚠️ [Warn] 관점 불균형 (한국인용: ${krCount}, 일본인용: ${jpCount}) - 둘 다 있어야 합니다.`
+                );
                 errorCount++;
             }
 
-            relatedExprs.forEach(ex => {
+            relatedExprs.forEach((ex) => {
                 const exTitle = ex.properties.Title_KR.title[0]?.plain_text;
                 const exLevel = ex.properties.Level.select?.name;
                 const exWords = ex.properties.Words.rich_text[0]?.plain_text;
                 const exDate = ex.properties.Date.date?.start;
 
                 if (!exLevel || !exWords || !exDate) {
-                    console.error(`  ❌ [Error] 표현(${exTitle}): 필수 필드 누락 (Level: ${exLevel || '없음'}, Words: ${exWords ? '있음' : '없음'}, Date: ${exDate || '없음'})`);
+                    console.error(
+                        `  ❌ [Error] 표현(${exTitle}): 필수 필드 누락 (Level: ${exLevel || '없음'}, Words: ${exWords ? '있음' : '없음'}, Date: ${exDate || '없음'})`
+                    );
                     errorCount++;
                 }
             });
@@ -101,10 +109,11 @@ async function validate() {
         if (errorCount === 0) {
             console.log('\n✅ 모든 데이터가 완벽하게 준비되었습니다! 배포하셔도 좋습니다.');
         } else {
-            console.log(`\n❌ 총 ${errorCount}개의 데이터 결함이 발견되었습니다. 수정을 권장합니다.`);
+            console.log(
+                `\n❌ 총 ${errorCount}개의 데이터 결함이 발견되었습니다. 수정을 권장합니다.`
+            );
             process.exit(1);
         }
-
     } catch (err) {
         console.error('검사 중 오류 발생:', err);
         process.exit(1);

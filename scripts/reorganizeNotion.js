@@ -11,10 +11,10 @@ async function notionFetch(endpoint, method = 'GET', body = null) {
     const options = {
         method,
         headers: {
-            'Authorization': `Bearer ${NOTION_TOKEN}`,
+            Authorization: `Bearer ${NOTION_TOKEN}`,
             'Notion-Version': '2022-06-28',
-            'Content-Type': 'application/json'
-        }
+            'Content-Type': 'application/json',
+        },
     };
     if (body) options.body = JSON.stringify(body);
     const res = await fetch(`https://api.notion.com/v1/${endpoint}`, options);
@@ -41,18 +41,18 @@ async function run() {
                     select: {
                         options: [
                             { name: 'kr_wants_jp', color: 'blue' },
-                            { name: 'jp_wants_kr', color: 'pink' }
-                        ]
-                    }
+                            { name: 'jp_wants_kr', color: 'pink' },
+                        ],
+                    },
                 },
                 Situation: {
                     relation: {
                         database_id: SITUATIONS_DB_ID,
-                        single_property: {} // Fixed
-                    }
+                        single_property: {}, // Fixed
+                    },
                 },
-                Date: { date: {} }
-            }
+                Date: { date: {} },
+            },
         });
 
         const EXPRESSIONS_DB_ID = expressionsDb.id;
@@ -65,10 +65,10 @@ async function run() {
 
         // 3. Migrate Situations and Expressions
         const today = new Date().toISOString().split('T')[0];
-        
+
         for (const sit of situations) {
             console.log(`🎬 Migrating Situation: ${sit.title.kr}...`);
-            
+
             const sitPage = await notionFetch('pages', 'POST', {
                 parent: { database_id: SITUATIONS_DB_ID },
                 properties: {
@@ -76,8 +76,8 @@ async function run() {
                     Title_JP: { rich_text: [{ text: { content: sit.title.jp || '' } }] },
                     Desc_KR: { rich_text: [{ text: { content: sit.desc.kr || '' } }] },
                     Desc_JP: { rich_text: [{ text: { content: sit.desc.jp || '' } }] },
-                    Date: { date: { start: today } }
-                }
+                    Date: { date: { start: today } },
+                },
             });
 
             const sitPageId = sitPage.id;
@@ -96,8 +96,8 @@ async function run() {
                         Tip: { rich_text: [{ text: { content: exp.tip || '' } }] },
                         Type: { select: { name: 'kr_wants_jp' } },
                         Situation: { relation: [{ id: sitPageId }] },
-                        Date: { date: { start: today } }
-                    }
+                        Date: { date: { start: today } },
+                    },
                 });
             }
 
@@ -111,8 +111,8 @@ async function run() {
                         Tip: { rich_text: [{ text: { content: exp.tip || '' } }] },
                         Type: { select: { name: 'jp_wants_kr' } },
                         Situation: { relation: [{ id: sitPageId }] },
-                        Date: { date: { start: today } }
-                    }
+                        Date: { date: { start: today } },
+                    },
                 });
             }
         }
@@ -120,7 +120,6 @@ async function run() {
         console.log('\n✨ ALL DATA REORGANIZED!');
         console.log(`SITUATIONS_DB_ID=${SITUATIONS_DB_ID}`);
         console.log(`EXPRESSIONS_DB_ID=${EXPRESSIONS_DB_ID}`);
-
     } catch (e) {
         console.error('❌ Error:', e.message);
     }

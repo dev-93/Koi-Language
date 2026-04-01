@@ -1,6 +1,7 @@
 const notionToken = process.env.NOTION_TOKEN;
 const situationDbId = process.env.VITE_NOTION_SITUATION_DB_ID || process.env.NOTION_SITUATION_DB_ID;
-const expressionDbId = process.env.VITE_NOTION_EXPRESSION_DB_ID || process.env.NOTION_EXPRESSION_DB_ID;
+const expressionDbId =
+    process.env.VITE_NOTION_EXPRESSION_DB_ID || process.env.NOTION_EXPRESSION_DB_ID;
 
 const httpRequest = async (options, body) => {
     return new Promise((resolve, reject) => {
@@ -13,7 +14,7 @@ const httpRequest = async (options, body) => {
                 try {
                     resolve({
                         status: res.statusCode,
-                        body: data ? JSON.parse(data) : {}
+                        body: data ? JSON.parse(data) : {},
                     });
                 } catch (e) {
                     resolve({ status: res.statusCode, body: data });
@@ -32,43 +33,49 @@ const httpRequest = async (options, body) => {
  */
 export const getSituations = async () => {
     if (!notionToken || !situationDbId) {
-        console.error('Missing Notion Configuration', { notionToken: !!notionToken, situationDbId: !!situationDbId });
+        console.error('Missing Notion Configuration', {
+            notionToken: !!notionToken,
+            situationDbId: !!situationDbId,
+        });
         return [];
     }
 
     try {
-        const response = await httpRequest({
-            hostname: 'api.notion.com',
-            path: `/v1/databases/${situationDbId}/query`,
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${notionToken}`,
-                'Notion-Version': '2022-06-28',
-                'Content-Type': 'application/json'
+        const response = await httpRequest(
+            {
+                hostname: 'api.notion.com',
+                path: `/v1/databases/${situationDbId}/query`,
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${notionToken}`,
+                    'Notion-Version': '2022-06-28',
+                    'Content-Type': 'application/json',
+                },
+            },
+            {
+                sorts: [{ property: 'Date', direction: 'descending' }],
+                page_size: 30,
             }
-        }, {
-            sorts: [{ property: 'Date', direction: 'descending' }],
-            page_size: 30
-        });
+        );
 
         if (response.status !== 200) {
             console.error('Notion API Error', response.body);
             return [];
         }
 
-        return response.body.results.map(page => {
+        return response.body.results.map((page) => {
             const props = page.properties;
             return {
                 id: page.id,
                 date: props.Date?.date?.start || '',
                 title: {
                     kr: props.Title_KR?.title?.[0]?.plain_text || '',
-                    jp: props.Title_JP?.rich_text?.[0]?.plain_text || ''
+                    jp: props.Title_JP?.rich_text?.[0]?.plain_text || '',
                 },
                 desc: {
                     kr: props.Desc_KR?.rich_text?.[0]?.plain_text || '',
-                    jp: props.Desc_JP?.rich_text?.[0]?.plain_text || ''
-                }
+                    jp: props.Desc_JP?.rich_text?.[0]?.plain_text || '',
+                },
             };
         });
     } catch (error) {
@@ -79,59 +86,70 @@ export const getSituations = async () => {
 
 /**
  * 노션 오늘의 표현(Expression) 데이터 조회
- * @param {string} situationId 
+ * @param {string} situationId
  * @returns {Promise<Array>}
  */
 export const getExpressions = async (situationId) => {
     if (!notionToken || !expressionDbId) return [];
 
     try {
-        const response = await httpRequest({
-            hostname: 'api.notion.com',
-            path: `/v1/databases/${expressionDbId}/query`,
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${notionToken}`,
-                'Notion-Version': '2022-06-28',
-                'Content-Type': 'application/json'
+        const response = await httpRequest(
+            {
+                hostname: 'api.notion.com',
+                path: `/v1/databases/${expressionDbId}/query`,
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${notionToken}`,
+                    'Notion-Version': '2022-06-28',
+                    'Content-Type': 'application/json',
+                },
+            },
+            {
+                filter: {
+                    property: 'Situation',
+                    relation: { contains: situationId },
+                },
             }
-        }, {
-            filter: {
-                property: 'Situation',
-                relation: { contains: situationId }
-            }
-        });
+        );
 
         if (response.status !== 200) return [];
 
-        return response.body.results.map(page => {
+        return response.body.results.map((page) => {
             const props = page.properties;
             // 노션의 'Name' 또는 'Title' 성격의 첫 컬럼을 한국어(kr)로 사용
             // 타이틀 속성(한국어 뜻) 찾기 보강
             let krText = '';
-            const titleProp = Object.values(props).find(p => p.type === 'title');
+            const titleProp = Object.values(props).find((p) => p.type === 'title');
             if (titleProp && titleProp.title?.[0]) {
                 krText = titleProp.title[0].plain_text;
             } else {
-                krText = props.Name?.title?.[0]?.plain_text || 
-                         props.KR?.title?.[0]?.plain_text || 
-                         props.Title?.title?.[0]?.plain_text || '';
+                krText =
+                    props.Name?.title?.[0]?.plain_text ||
+                    props.KR?.title?.[0]?.plain_text ||
+                    props.Title?.title?.[0]?.plain_text ||
+                    '';
             }
-            
+
             // 발음(Pronunciation) 찾기 보강
-            const pronProp = Object.entries(props).find(([key, val]) => 
-                ['Pronunciation', '발음', 'Pron', 'Reading'].some(name => key.includes(name)) && val.rich_text
+            const pronProp = Object.entries(props).find(
+                ([key, val]) =>
+                    ['Pronunciation', '발음', 'Pron', 'Reading'].some((name) =>
+                        key.includes(name)
+                    ) && val.rich_text
             );
             const pronText = pronProp?.[1]?.rich_text?.[0]?.plain_text || '';
 
             return {
                 id: page.id,
                 kr: krText,
-                jp: props.Text_JP?.rich_text?.[0]?.plain_text || props.JP?.rich_text?.[0]?.plain_text || '',
+                jp:
+                    props.Text_JP?.rich_text?.[0]?.plain_text ||
+                    props.JP?.rich_text?.[0]?.plain_text ||
+                    '',
                 pron: pronText,
                 tip: props.Tip?.rich_text?.[0]?.plain_text || '',
                 type: props.Type?.select?.name || props.Type?.multi_select?.[0]?.name || '',
-                words: props.Words?.rich_text?.[0]?.plain_text || '' // JSON 형태의 문자열
+                words: props.Words?.rich_text?.[0]?.plain_text || '', // JSON 형태의 문자열
             };
         });
     } catch (error) {

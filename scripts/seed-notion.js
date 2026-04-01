@@ -56,10 +56,24 @@ const seed = async () => {
             Title_KR: { title: [{ text: { content: '취미 물어보기' } }] },
             Title_JP: { rich_text: [{ text: { content: '趣味を聞く' } }] },
             Desc_KR: {
-                rich_text: [{ text: { content: '공통의 관심사를 찾아 대화를 이어가 보세요. 취미 이야기는 자연스럽게 친해지는 최고의 방법이에요! 🎨' } }],
+                rich_text: [
+                    {
+                        text: {
+                            content:
+                                '공통의 관심사를 찾아 대화를 이어가 보세요. 취미 이야기는 자연스럽게 친해지는 최고의 방법이에요! 🎨',
+                        },
+                    },
+                ],
             },
             Desc_JP: {
-                rich_text: [{ text: { content: '共通の関心事を見つけて会話を繋げましょう。趣味の話は自然に仲良くなれる最高の方法です！🎨' } }],
+                rich_text: [
+                    {
+                        text: {
+                            content:
+                                '共通の関心事を見つけて会話を繋げましょう。趣味の話は自然に仲良くなれる最高の方法です！🎨',
+                        },
+                    },
+                ],
             },
             Date: { date: { start: date } },
         },

@@ -9,10 +9,10 @@ async function notionFetch(endpoint, method = 'GET', body = null) {
     const options = {
         method,
         headers: {
-            'Authorization': `Bearer ${NOTION_TOKEN}`,
+            Authorization: `Bearer ${NOTION_TOKEN}`,
             'Notion-Version': '2022-06-28',
-            'Content-Type': 'application/json'
-        }
+            'Content-Type': 'application/json',
+        },
     };
     if (body) options.body = JSON.stringify(body);
     const res = await fetch(`https://api.notion.com/v1/${endpoint}`, options);
@@ -44,7 +44,7 @@ async function run() {
                 console.log(`🗑️ Deleting "칭찬하기" Situation and its expressions...`);
                 // Archive linked expressions
                 const expQuery = await notionFetch(`databases/${EXPRESSIONS_DB_ID}/query`, 'POST', {
-                    filter: { property: 'Situation', relation: { contains: sit.id } }
+                    filter: { property: 'Situation', relation: { contains: sit.id } },
                 });
                 for (const exp of expQuery.results) await notionFetch(`blocks/${exp.id}`, 'DELETE');
                 // Archive Situation
@@ -55,7 +55,7 @@ async function run() {
             if (newDate) {
                 console.log(`📅 Updating "${title}" date to ${newDate}...`);
                 await notionFetch(`pages/${sit.id}`, 'PATCH', {
-                    properties: { Date: { date: { start: newDate } } }
+                    properties: { Date: { date: { start: newDate } } },
                 });
             }
         }

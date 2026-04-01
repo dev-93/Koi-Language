@@ -42,26 +42,26 @@ const notionRequest = (method, path, body) =>
 async function fixMissingFields() {
     try {
         console.log('Fixing identified data defects...');
-        
+
         // Find "카톡이나 인스타 하세요?" pages
         const query = await notionRequest('POST', `/v1/databases/${EXPR_DB_ID}/query`, {
             filter: {
                 property: 'Title_KR',
-                title: { contains: '카톡이나 인스타 하세요?' }
-            }
+                title: { contains: '카톡이나 인스타 하세요?' },
+            },
         });
 
         for (const page of query.results) {
             console.log(`Updating page: ${page.id}`);
             const words = [
-                {word: '카톡(カカオ)', mean: '카카오톡(KakaoTalk)'},
-                {word: '인스타', mean: '인스타그램(Instagram)'},
-                {word: 'やってますか', mean: '하고 있나요?'}
+                { word: '카톡(カカオ)', mean: '카카오톡(KakaoTalk)' },
+                { word: '인스타', mean: '인스타그램(Instagram)' },
+                { word: 'やってますか', mean: '하고 있나요?' },
             ];
             await notionRequest('PATCH', `/v1/pages/${page.id}`, {
                 properties: {
-                    Words: { rich_text: [{ text: { content: JSON.stringify(words) } }] }
-                }
+                    Words: { rich_text: [{ text: { content: JSON.stringify(words) } }] },
+                },
             });
         }
         console.log('Defects fixed! Running final validation...');

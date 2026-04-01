@@ -48,8 +48,8 @@ async function findAndFixCreated() {
         const query = await notionRequest('POST', `/v1/databases/${EXPR_DB_ID}/query`, {
             filter: {
                 property: 'Situation',
-                relation: { contains: SIT_ID }
-            }
+                relation: { contains: SIT_ID },
+            },
         });
 
         // 1. 기존 데이터(kr_wants_jp)에 Date, Level, Words 채우기
@@ -57,16 +57,28 @@ async function findAndFixCreated() {
         for (const page of query.results) {
             const title = page.properties.Title_KR.title[0].plain_text;
             let words = [];
-            if (title.includes('벚꽃')) words = [{word: '桜(さくら)', mean: '벚꽃'}, {word: '綺麗(きれい)', mean: '예쁘다, 깨끗하다'}];
-            if (title.includes('사진')) words = [{word: '一緒(いっしょ)に', mean: '같이'}, {word: '写真(しゃしん)', mean: '사진'}];
-            if (title.includes('내년')) words = [{word: '来年(らいねん)', mean: '내년'}, {word: '来(く)る', mean: '오다'}];
+            if (title.includes('벚꽃'))
+                words = [
+                    { word: '桜(さくら)', mean: '벚꽃' },
+                    { word: '綺麗(きれい)', mean: '예쁘다, 깨끗하다' },
+                ];
+            if (title.includes('사진'))
+                words = [
+                    { word: '一緒(いっしょ)に', mean: '같이' },
+                    { word: '写真(しゃしん)', mean: '사진' },
+                ];
+            if (title.includes('내년'))
+                words = [
+                    { word: '来年(らいねん)', mean: '내년' },
+                    { word: '来(く)る', mean: '오다' },
+                ];
 
             await notionRequest('PATCH', `/v1/pages/${page.id}`, {
                 properties: {
                     Date: { date: { start: DATE } },
                     Level: { select: { name: LEVEL } },
-                    Words: { rich_text: [{ text: { content: JSON.stringify(words) } }] }
-                }
+                    Words: { rich_text: [{ text: { content: JSON.stringify(words) } }] },
+                },
             });
         }
 
@@ -79,7 +91,10 @@ async function findAndFixCreated() {
                 reading: 'beoskkoc-i jeongmal yeppeuneyo.',
                 tip: '',
                 type: 'jp_wants_kr',
-                words: [{word: '桜(さくら)', mean: '벚꽃'}, {word: '綺麗(きれい)', mean: '예쁘다, 깨끗하다'}]
+                words: [
+                    { word: '桜(さくら)', mean: '벚꽃' },
+                    { word: '綺麗(きれい)', mean: '예쁘다, 깨끗하다' },
+                ],
             },
             {
                 kr: '우리 사진 찍을까요?',
@@ -87,7 +102,10 @@ async function findAndFixCreated() {
                 reading: 'uri sajin jjik-eulkkayo?',
                 tip: '',
                 type: 'jp_wants_kr',
-                words: [{word: '一緒(いっしょ)에', mean: '같이'}, {word: '写真(しゃしん)', mean: '사진'}]
+                words: [
+                    { word: '一緒(いっしょ)에', mean: '같이' },
+                    { word: '写真(しゃしん)', mean: '사진' },
+                ],
             },
             {
                 kr: '내년에도 같이 오고 싶어요.',
@@ -95,8 +113,11 @@ async function findAndFixCreated() {
                 reading: 'naenyeonedo gachi ogo sip-eoyo.',
                 tip: '',
                 type: 'jp_wants_kr',
-                words: [{word: '来年(らいねん)', mean: '내년'}, {word: '来(く)る', mean: '오다'}]
-            }
+                words: [
+                    { word: '来年(らいねん)', mean: '내년' },
+                    { word: '来(く)る', mean: '오다' },
+                ],
+            },
         ];
 
         for (const ex of jpExprs) {
@@ -111,8 +132,8 @@ async function findAndFixCreated() {
                     Date: { date: { start: DATE } },
                     Level: { select: { name: LEVEL } },
                     Situation: { relation: [{ id: SIT_ID }] },
-                    Words: { rich_text: [{ text: { content: JSON.stringify(ex.words) } }] }
-                }
+                    Words: { rich_text: [{ text: { content: JSON.stringify(ex.words) } }] },
+                },
             });
         }
         console.log('All updates and new entries completed!');

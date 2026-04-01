@@ -2,21 +2,21 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-    Calendar, 
-    BookOpen, 
-    Heart, 
-    MessageCircle, 
-    ChevronRight, 
-    CheckCircle2, 
-    Clock, 
-    Coffee, 
+import {
+    Calendar,
+    BookOpen,
+    Heart,
+    MessageCircle,
+    ChevronRight,
+    CheckCircle2,
+    Clock,
+    Coffee,
     Search,
     BookMarked,
     HelpCircle,
     UserCircle,
     Settings,
-    ArrowRight
+    ArrowRight,
 } from 'lucide-react';
 import SituationScene from './SituationScene';
 
@@ -42,14 +42,14 @@ export default function HomeView({ initialSituations = [] }) {
     }, [initialSituations]);
 
     const todayDate = new Date().toISOString().split('T')[0];
-    
+
     // 오늘의 표현 찾기 (가장 최근 데이터 하나)
     const currentSituation = situations[0];
-    
+
     // 이전에 공부했던 내역들 (아카이브)
-    const archiveSituations = situations.slice(1).filter(s => 
-        s.title.kr.includes(searchQuery) || s.title.jp.includes(searchQuery)
-    );
+    const archiveSituations = situations
+        .slice(1)
+        .filter((s) => s.title.kr.includes(searchQuery) || s.title.jp.includes(searchQuery));
 
     const handleLearnStart = (situationId) => {
         router.push(`/learn/${situationId}`);
@@ -61,14 +61,20 @@ export default function HomeView({ initialSituations = [] }) {
             <div className="header-wrapper">
                 <div className="d-flex flex-col gap-1">
                     <p className="header-subtitle">KOI LANGUAGE</p>
-                    <h1 className="title-cute m-0 text-left" style={{ fontSize: '1.8rem' }}>恋のランゲージ</h1>
+                    <h1 className="title-cute m-0 text-left" style={{ fontSize: '1.8rem' }}>
+                        恋のランゲージ
+                    </h1>
                 </div>
                 <div className="d-flex items-center gap-4">
                     <button className="p-2 u-shadow-md u-rounded-full u-bg-white\/80 u-backdrop-blur border-none hover:bg-white cursor-pointer transition-all">
                         <Search size={22} className="text-gray-400" />
                     </button>
-                    <button 
-                        onClick={() => alert('프로필 설정 기능은 준비 중입니다. 💘\n(온보딩 데이터는 로컬 스토리지에 있습니다)')}
+                    <button
+                        onClick={() =>
+                            alert(
+                                '프로필 설정 기능은 준비 중입니다. 💘\n(온보딩 데이터는 로컬 스토리지에 있습니다)'
+                            )
+                        }
                         className="p-2 u-shadow-md u-rounded-full u-bg-white\/80 u-backdrop-blur border-none hover:bg-white hover:scale-110 active:scale-95 cursor-pointer transition-all"
                     >
                         <UserCircle size={22} className="text-gray-400 hover:text-peach" />
@@ -77,26 +83,33 @@ export default function HomeView({ initialSituations = [] }) {
             </div>
 
             {/* Main Tabs */}
-            <div className="u-bg-white\/80 u-backdrop-blur u-shadow-lg u-rounded-3xl p-2 w-full max-w-[420px] d-flex mb-10" style={{ gap: '0.5rem' }}>
-                <button 
+            <div
+                className="u-bg-white\/80 u-backdrop-blur u-shadow-lg u-rounded-3xl p-2 w-full max-w-[420px] d-flex mb-10"
+                style={{ gap: '0.5rem' }}
+            >
+                <button
                     onClick={() => setTab('today')}
                     className={`flex-1 py-4 px-4 u-rounded-2xl font-black text-[16px] border-none transition-all cursor-pointer ${
-                        tab === 'today' ? 'bg-peach text-white u-shadow-md' : 'bg-transparent text-gray-400 hover:bg-white/50'
+                        tab === 'today'
+                            ? 'bg-peach text-white u-shadow-md'
+                            : 'bg-transparent text-gray-400 hover:bg-white/50'
                     }`}
                 >
                     <div className="d-flex items-center justify-center gap-2">
-                        <Heart size={18} fill={tab === 'today' ? "white" : "none"} />
+                        <Heart size={18} fill={tab === 'today' ? 'white' : 'none'} />
                         <span>오늘의 표현</span>
                     </div>
                 </button>
-                <button 
+                <button
                     onClick={() => setTab('archive')}
                     className={`flex-1 py-4 px-4 u-rounded-2xl font-black text-[16px] border-none transition-all cursor-pointer ${
-                        tab === 'archive' ? 'bg-peach text-white u-shadow-md' : 'bg-transparent text-gray-400 hover:bg-white/50'
+                        tab === 'archive'
+                            ? 'bg-peach text-white u-shadow-md'
+                            : 'bg-transparent text-gray-400 hover:bg-white/50'
                     }`}
                 >
                     <div className="d-flex items-center justify-center gap-2">
-                        <BookMarked size={18} fill={tab === 'archive' ? "white" : "none"} />
+                        <BookMarked size={18} fill={tab === 'archive' ? 'white' : 'none'} />
                         <span>지난 학습</span>
                     </div>
                 </button>
@@ -107,13 +120,16 @@ export default function HomeView({ initialSituations = [] }) {
                 /* Today Section */
                 <div className="w-full max-w-[420px] d-flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                     {currentSituation ? (
-                        <div 
+                        <div
                             className="learn-card-main u-shadow-xl hover:translate-y-[-4px] transition-transform cursor-pointer"
                             onClick={() => handleLearnStart(currentSituation.id)}
                         >
                             {/* 상황 씬 */}
-                            <SituationScene title={currentSituation.title.kr} date={currentSituation.date} />
-                            
+                            <SituationScene
+                                title={currentSituation.title.kr}
+                                date={currentSituation.date}
+                            />
+
                             <div className="flex-1 d-flex flex-col items-center justify-start gap-4 w-full pt-4">
                                 <h2 className="m-0 text-[30px] font-black text-center leading-tight text-gray-800">
                                     {currentSituation.title.kr}
@@ -130,7 +146,9 @@ export default function HomeView({ initialSituations = [] }) {
                         </div>
                     ) : (
                         <div className="learn-card-main u-shadow-xl justify-center items-center h-[480px]">
-                            <p className="m-0 font-black text-gray-400 text-[15px]">데이터를 불러오지 못했어요.</p>
+                            <p className="m-0 font-black text-gray-400 text-[15px]">
+                                데이터를 불러오지 못했어요.
+                            </p>
                         </div>
                     )}
                 </div>
@@ -139,19 +157,22 @@ export default function HomeView({ initialSituations = [] }) {
                 <div className="w-full max-w-[420px] d-flex flex-col gap-5 animate-in fade-in slide-in-from-bottom-4 duration-500 px-1">
                     <div className="u-bg-white\/80 u-backdrop-blur u-shadow-md u-rounded-2xl p-5 flex items-center gap-3 mb-2">
                         <Search size={20} className="text-gray-400" />
-                        <input 
-                            type="text" 
-                            placeholder="공부했던 표현들을 검색해 보세요" 
+                        <input
+                            type="text"
+                            placeholder="공부했던 표현들을 검색해 보세요"
                             className="p-0 border-none bg-transparent font-bold text-[15px] text-gray-600 focus:outline-none w-full"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
 
-                    <div className="d-flex flex-col max-h-[500px] overflow-y-auto pb-6 custom-scrollbar" style={{ gap: '1.5rem' }}>
+                    <div
+                        className="d-flex flex-col max-h-[500px] overflow-y-auto pb-6 custom-scrollbar"
+                        style={{ gap: '1.5rem' }}
+                    >
                         {archiveSituations.length > 0 ? (
-                            archiveSituations.map(situation => (
-                                <div 
+                            archiveSituations.map((situation) => (
+                                <div
                                     key={situation.id}
                                     onClick={() => handleLearnStart(situation.id)}
                                     className="u-bg-white\/90 u-backdrop-blur u-shadow-md hover:u-shadow-xl u-rounded-3xl p-6 d-flex items-center justify-between hover:translate-y-[-4px] hover:bg-peach-light transition-all cursor-pointer border group"
@@ -184,31 +205,41 @@ export default function HomeView({ initialSituations = [] }) {
 
             {/* Fixed Bottom Navigation (Optional) */}
             <div className="fixed bottom-8 left-1/2 translate-x-[-50%] w-[90%] max-w-[380px] u-bg-white\/90 u-backdrop-blur u-shadow-xl u-rounded-full p-2 d-flex items-center justify-around z-50 border border-white/50">
-                <button 
+                <button
                     onClick={() => setTab('today')}
                     className={`p-4 u-rounded-full transition-all ${tab === 'today' ? 'bg-peach text-white shadow-lg' : 'text-gray-300'}`}
                 >
-                    <Heart size={24} fill={tab === 'today' ? "white" : "none"} />
+                    <Heart size={24} fill={tab === 'today' ? 'white' : 'none'} />
                 </button>
                 <div className="w-px h-6 bg-gray-100" />
-                <button 
+                <button
                     onClick={() => setTab('archive')}
                     className={`p-4 u-rounded-full transition-all ${tab === 'archive' ? 'bg-peach text-white shadow-lg' : 'text-gray-300'}`}
                 >
-                    <BookOpen size={24} fill={tab === 'archive' ? "white" : "none"} />
+                    <BookOpen size={24} fill={tab === 'archive' ? 'white' : 'none'} />
                 </button>
                 <div className="w-px h-6 bg-gray-100" />
                 <button className="p-4 u-rounded-full text-gray-300">
                     <Settings size={24} />
                 </button>
             </div>
-            
+
             <style jsx>{`
-                .bg-peach-light { background-color: #fff0f0; }
-                .animate-in { animation: animateIn 0.5s ease-out; }
+                .bg-peach-light {
+                    background-color: #fff0f0;
+                }
+                .animate-in {
+                    animation: animateIn 0.5s ease-out;
+                }
                 @keyframes animateIn {
-                    from { opacity: 0; transform: translateY(10px); }
-                    to { opacity: 1; transform: translateY(0); }
+                    from {
+                        opacity: 0;
+                        transform: translateY(10px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
                 }
             `}</style>
         </div>

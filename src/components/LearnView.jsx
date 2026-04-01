@@ -4,18 +4,18 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
-import { 
-    ChevronLeft, 
-    ChevronRight, 
-    Volume2, 
-    CheckCircle2, 
+import {
+    ChevronLeft,
+    ChevronRight,
+    Volume2,
+    CheckCircle2,
     Home,
     AlertCircle,
     Info,
     MessageCircle,
     Play,
     Heart,
-    Sparkles
+    Sparkles,
 } from 'lucide-react';
 import SituationScene from './SituationScene';
 
@@ -27,12 +27,13 @@ export default function LearnView({ situation, initialExpressions = [] }) {
     const [expressions, setExpressions] = useState([]);
 
     useEffect(() => {
-        const nationality = typeof window !== 'undefined' ? (localStorage.getItem('user_nationality') || 'KR') : 'KR';
-        
+        const nationality =
+            typeof window !== 'undefined' ? localStorage.getItem('user_nationality') || 'KR' : 'KR';
+
         // 1. 국적 필터링 (KR -> kr_wants_jp 등)
         const targetType = nationality === 'KR' ? 'kr_wants_jp' : 'jp_wants_kr';
-        const filtered = (initialExpressions || []).filter(expr => expr.type === targetType);
-        
+        const filtered = (initialExpressions || []).filter((expr) => expr.type === targetType);
+
         // 2. 만약 필터링 결과가 하나도 없으면 (과거 데이터일 수도 있음) 원본 모두 노출
         const finalData = filtered.length > 0 ? filtered : initialExpressions;
         setExpressions(finalData);
@@ -65,22 +66,28 @@ export default function LearnView({ situation, initialExpressions = [] }) {
         <div className="home-layout pb-24 relative overflow-hidden bg-white">
             {/* Header / Nav */}
             <div className="w-full max-w-[420px] d-flex items-center justify-center py-6 px-4 mb-2 bg-white/80 backdrop-blur sticky top-0 z-20 relative">
-                <button 
-                    onClick={() => router.push('/')} 
+                <button
+                    onClick={() => router.push('/')}
                     className="absolute left-4 p-3 u-rounded-full hover:bg-gray-100 border-none bg-transparent cursor-pointer transition-all"
                 >
                     <ChevronLeft size={24} className="text-gray-800" />
                 </button>
                 <div className="d-flex flex-col items-center px-12 overflow-hidden w-full">
-                    <span className="text-[10px] font-black text-peach tracking-widest mb-1 uppercase">SITUATION</span>
-                    <h1 
+                    <span className="text-[10px] font-black text-peach tracking-widest mb-1 uppercase">
+                        SITUATION
+                    </span>
+                    <h1
                         className="m-0 text-[15px] font-black text-gray-800 text-center w-full"
-                        style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                        style={{
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                        }}
                     >
                         {situation.title.kr}
                     </h1>
                 </div>
-                <button 
+                <button
                     onClick={() => setIsKr(!isKr)}
                     className="absolute right-4 u-bg-white\/80 u-shadow-md border-none px-4 py-2 u-rounded-full font-black text-[12px] text-peach hover:shadow-lg transition-all cursor-pointer bg-white"
                 >
@@ -91,17 +98,16 @@ export default function LearnView({ situation, initialExpressions = [] }) {
             {/* Progress Bar */}
             <div className="w-full max-w-[420px] px-8 mb-10">
                 <div className="progress-bar-container">
-                    <div 
-                        className="progress-bar-fill-gradient" 
+                    <div
+                        className="progress-bar-fill-gradient"
                         style={{ width: `${((currentIndex + 1) / expressions.length) * 100}%` }}
                     ></div>
                 </div>
                 <div className="d-flex justify-between items-center mt-4">
-                    <span className="text-[12px] font-black text-gray-300">
-                        PROGRESS
-                    </span>
+                    <span className="text-[12px] font-black text-gray-300">PROGRESS</span>
                     <span className="text-[12px] font-black text-peach italic">
-                        {currentIndex + 1} <span className="text-gray-300">/</span> {expressions.length}
+                        {currentIndex + 1} <span className="text-gray-300">/</span>{' '}
+                        {expressions.length}
                     </span>
                 </div>
             </div>
@@ -126,48 +132,63 @@ export default function LearnView({ situation, initialExpressions = [] }) {
                                     wordList = JSON.parse(rawWords);
                                 } else if (rawWords.trim()) {
                                     // "단어: 뜻, 단어2: 뜻2" 또는 줄바꿈 형태 지원
-                                    const pairs = rawWords.split(/,|\n/).filter(p => p.trim());
-                                    wordList = pairs.map(p => {
-                                        const [jpPart, krPart] = p.split(':').map(s => s.trim());
+                                    const pairs = rawWords.split(/,|\n/).filter((p) => p.trim());
+                                    wordList = pairs.map((p) => {
+                                        const [jpPart, krPart] = p.split(':').map((s) => s.trim());
                                         return { jp: jpPart, kr: krPart || '' };
                                     });
                                 }
                             } catch (e) {
-                                console.warn("Word parsing fallback:", e);
+                                console.warn('Word parsing fallback:', e);
                             }
 
                             return (
                                 <SwiperSlide key={expr.id || idx}>
-                                    <div 
+                                    <div
                                         className={`learn-card-main u-shadow-xl transition-all duration-300 ${currentIndex === idx ? 'scale-100 opacity-100' : 'scale-95 opacity-50'}`}
                                         style={{ minHeight: 'auto', paddingBottom: '1.5rem' }}
                                     >
                                         {/* 상황 씬 일러스트 */}
-                                        <SituationScene title={situation.title.kr} date={situation.date} />
+                                        <SituationScene
+                                            title={situation.title.kr}
+                                            date={situation.date}
+                                        />
 
                                         <div className="flex-1 d-flex flex-col items-center justify-center gap-2 w-full pt-6">
                                             {/* 일본어 메인 */}
                                             <h2 className="m-0 text-[32px] font-black text-center leading-tight text-gray-800 tracking-tight">
-                                                {(isKr ? expr.jp : expr.kr).replace(/[\u0000-\u001F\u007F-\u009F\uFFFD]/g, "")}
+                                                {(isKr ? expr.jp : expr.kr).replace(
+                                                    /[\u0000-\u001F\u007F-\u009F\uFFFD]/g,
+                                                    ''
+                                                )}
                                             </h2>
 
                                             {/* 발음 (독음) - JP모드일때는 노션에 로마자 데이터가 없어서 임시로 숨김 */}
                                             {expr.pron && isKr && (
                                                 <p className="m-0 text-[18px] font-medium text-gray-600 text-center mt-2">
-                                                    {expr.pron.replace(/[\u0000-\u001F\u007F-\u009F\uFFFD]/g, "")}
+                                                    {expr.pron.replace(
+                                                        /[\u0000-\u001F\u007F-\u009F\uFFFD]/g,
+                                                        ''
+                                                    )}
                                                 </p>
                                             )}
 
                                             {/* 한국어 뜻 (핑크 강조) */}
                                             <p className="m-0 text-[24px] font-black text-peach text-center mt-4 mb-2">
-                                                {(isKr ? expr.kr : expr.jp).replace(/[\u0000-\u001F\u007F-\u009F\uFFFD]/g, "")}
+                                                {(isKr ? expr.kr : expr.jp).replace(
+                                                    /[\u0000-\u001F\u007F-\u009F\uFFFD]/g,
+                                                    ''
+                                                )}
                                             </p>
 
                                             <div className="card-divider-wide opacity-30"></div>
 
                                             <div className="d-flex flex-wrap justify-center gap-2 mt-4 px-4 pb-2">
                                                 {wordList.map((word, wIdx) => (
-                                                    <div key={wIdx} className="d-flex items-center u-rounded-lg overflow-hidden border border-peach/10 shadow-sm">
+                                                    <div
+                                                        key={wIdx}
+                                                        className="d-flex items-center u-rounded-lg overflow-hidden border border-peach/10 shadow-sm"
+                                                    >
                                                         <span className="bg-gray-100 px-3 py-1.5 text-[13px] font-bold text-gray-600 border-r border-peach/10">
                                                             {word.jp}
                                                         </span>
@@ -190,7 +211,9 @@ export default function LearnView({ situation, initialExpressions = [] }) {
                             <div className="tip-box-standard u-shadow-sm border border-peach/10 bg-peach/5 p-6 u-rounded-2xl">
                                 <div className="d-flex items-center gap-2 mb-2">
                                     <Sparkles size={16} className="text-peach" />
-                                    <span className="text-[12px] font-black text-peach tracking-widest uppercase">Koi's Dating Tip</span>
+                                    <span className="text-[12px] font-black text-peach tracking-widest uppercase">
+                                        Koi's Dating Tip
+                                    </span>
                                 </div>
                                 <p className="m-0 text-[15px] font-bold text-gray-700 leading-relaxed">
                                     {currentExpr.tip}
@@ -204,39 +227,57 @@ export default function LearnView({ situation, initialExpressions = [] }) {
             {/* Bottom Nav Controller */}
             <div className="fixed bottom-0 left-0 right-0 p-8 pt-4 pb-12 bg-white/90 backdrop-blur d-flex justify-center z-30">
                 <div className="w-full max-w-[420px] d-flex px-2" style={{ gap: '1rem' }}>
-                    <button 
+                    <button
                         onClick={() => swiper?.slidePrev()}
                         className="flex-1 py-5 u-rounded-card font-black text-[16px] transition-all cursor-pointer d-flex items-center justify-center gap-2"
                         style={{
                             background: currentIndex === 0 ? 'transparent' : 'white',
                             border: currentIndex === 0 ? '2px solid #e5e7eb' : '2px solid #ff8a8a',
                             color: currentIndex === 0 ? '#9ca3af' : '#ff8a8a',
-                            opacity: currentIndex === 0 ? 0.6 : 1
+                            opacity: currentIndex === 0 ? 0.6 : 1,
                         }}
                         disabled={currentIndex === 0}
                     >
                         <ChevronLeft size={22} />
                         <span>PREV</span>
                     </button>
-                    <button 
-                        onClick={currentIndex === expressions.length - 1 ? handleFinish : () => swiper?.slideNext()}
+                    <button
+                        onClick={
+                            currentIndex === expressions.length - 1
+                                ? handleFinish
+                                : () => swiper?.slideNext()
+                        }
                         className="flex-[1.5] py-5 u-rounded-card bg-peach text-white border-none font-black text-[16px] u-shadow-lg d-flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
                     >
                         {currentIndex === expressions.length - 1 ? (
-                            <><span>FINISH</span> <CheckCircle2 size={22} /></>
+                            <>
+                                <span>FINISH</span> <CheckCircle2 size={22} />
+                            </>
                         ) : (
-                            <><span>NEXT</span> <ChevronRight size={22} /></>
+                            <>
+                                <span>NEXT</span> <ChevronRight size={22} />
+                            </>
                         )}
                     </button>
                 </div>
             </div>
 
             <style jsx>{`
-                .bg-peach-light { background-color: #fff0f0; }
-                .animate-in { animation: animateIn 0.5s ease-out; }
+                .bg-peach-light {
+                    background-color: #fff0f0;
+                }
+                .animate-in {
+                    animation: animateIn 0.5s ease-out;
+                }
                 @keyframes animateIn {
-                    from { opacity: 0; transform: translateY(10px); }
-                    to { opacity: 1; transform: translateY(0); }
+                    from {
+                        opacity: 0;
+                        transform: translateY(10px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
                 }
             `}</style>
         </div>

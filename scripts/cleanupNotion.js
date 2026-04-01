@@ -16,7 +16,7 @@ async function cleanup() {
     for (const result of search.results) {
         const id = result.id.replace(/-/g, '');
         const title = result.title?.[0]?.plain_text || 'Untitled';
-        
+
         if (id !== SITUATIONS_DB_ID && id !== EXPRESSIONS_DB_ID) {
             console.log(`🗑️ Deleting duplicate/old database: ${title} (${id})...`);
             try {
@@ -26,7 +26,9 @@ async function cleanup() {
                 console.error(`❌ Failed to delete ${title}:`, e.message);
             }
         } else {
-            console.log(`✨ Keeping active database: ${id === SITUATIONS_DB_ID ? 'Situations' : 'Expressions'}`);
+            console.log(
+                `✨ Keeping active database: ${id === SITUATIONS_DB_ID ? 'Situations' : 'Expressions'}`
+            );
         }
     }
     console.log('✨ Cleanup finished!');

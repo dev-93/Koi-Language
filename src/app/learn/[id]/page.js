@@ -6,9 +6,9 @@ export const revalidate = 86400;
 
 export default async function LearnPage({ params }) {
     const { id } = await params;
-    
+
     const situations = await getSituations();
-    const situation = situations.find(s => s.id === id);
+    const situation = situations.find((s) => s.id === id);
     const expressions = await getExpressions(id);
 
     if (!situation) {
@@ -21,10 +21,7 @@ export default async function LearnPage({ params }) {
 
     return (
         <main>
-            <LearnView 
-                situation={situation} 
-                initialExpressions={expressions} 
-            />
+            <LearnView situation={situation} initialExpressions={expressions} />
         </main>
     );
 }

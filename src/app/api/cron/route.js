@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
-const SITUATION_DB_ID = process.env.VITE_NOTION_SITUATION_DB_ID || process.env.NOTION_SITUATION_DB_ID;
-const EXPRESSIONS_DB_ID = process.env.VITE_NOTION_EXPRESSION_DB_ID || process.env.NOTION_EXPRESSION_DB_ID;
+const SITUATION_DB_ID =
+    process.env.VITE_NOTION_SITUATION_DB_ID || process.env.NOTION_SITUATION_DB_ID;
+const EXPRESSIONS_DB_ID =
+    process.env.VITE_NOTION_EXPRESSION_DB_ID || process.env.NOTION_EXPRESSION_DB_ID;
 const GEMINI_API_KEY = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
@@ -10,11 +12,11 @@ const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 const sendTelegramMessage = async (text) => {
     if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) return null;
     const payload = JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text, parse_mode: 'HTML' });
-    
+
     const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: payload
+        body: payload,
     });
     return response.json();
 };
@@ -28,7 +30,7 @@ const notionRequest = async (method, path, body) => {
             'Notion-Version': '2022-06-28',
             'Content-Type': 'application/json',
         },
-        body: payload
+        body: payload,
     });
 
     const data = await response.json();
@@ -39,22 +41,22 @@ const notionRequest = async (method, path, body) => {
 const geminiRequest = async (prompt) => {
     const payload = JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { 
-            temperature: 0.9, 
+        generationConfig: {
+            temperature: 0.9,
             maxOutputTokens: 2048,
             topP: 0.95,
-            topK: 40
+            topK: 40,
         },
     });
     // 최신 모델인 gemini-2.5-flash 사용 (scripts/run-cron-now.js와 동일하게 변경)
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-    
+
     const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: payload
+        body: payload,
     });
-    
+
     const data = await response.json();
     if (data.error) {
         throw new Error(`Gemini API Error: ${data.error.message} (${data.error.code})`);
@@ -65,7 +67,7 @@ const geminiRequest = async (prompt) => {
 const getTomorrowDate = () => {
     // 서버 시간(UTC) 기준이 아닌 KST(UTC+9) 기준으로 내일 날짜 계산
     const now = new Date();
-    const kstNow = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+    const kstNow = new Date(now.getTime() + 9 * 60 * 60 * 1000);
     kstNow.setDate(kstNow.getDate() + 1);
     return kstNow.toISOString().split('T')[0];
 };
@@ -88,7 +90,9 @@ const createExpressionPage = (expr, type, situationId, date) =>
         properties: {
             Title_KR: { title: [{ text: { content: expr.kr || '' } }] },
             Text_JP: { rich_text: [{ text: { content: expr.jp || '' } }] },
-            Reading: { rich_text: [{ text: { content: expr.reading || expr.pronunciation || '' } }] },
+            Reading: {
+                rich_text: [{ text: { content: expr.reading || expr.pronunciation || '' } }],
+            },
             Tip: { rich_text: [{ text: { content: expr.tip ?? '' } }] },
             Words: { rich_text: [{ text: { content: JSON.stringify(expr.words ?? []) } }] },
             Type: { select: { name: type } },
@@ -164,9 +168,10 @@ kr_wants_jp (한국인이 일본인에게 표현)은 2~3개, jp_wants_kr (일본
         }
 
         // JSON 파싱 (마크다운 코드 블록 처리 및 유연한 추출)
-        const jsonMatch = rawText.match(/```json\n?([\s\S]*?)\n?```/) || rawText.match(/({[\s\S]*})/);
+        const jsonMatch =
+            rawText.match(/```json\n?([\s\S]*?)\n?```/) || rawText.match(/({[\s\S]*})/);
         const jsonText = jsonMatch ? jsonMatch[1] : rawText;
-        
+
         let data;
         try {
             data = JSON.parse(jsonText.trim());
@@ -185,10 +190,14 @@ kr_wants_jp (한국인이 일본인에게 표현)은 2~3개, jp_wants_kr (일본
 
         // 표현들 병렬 생성
         const exprPromises = [
-            ...(data.expressions.kr_wants_jp || []).map((e) => createExpressionPage(e, 'kr_wants_jp', sitId, targetDate)),
-            ...(data.expressions.jp_wants_kr || []).map((e) => createExpressionPage(e, 'jp_wants_kr', sitId, targetDate)),
+            ...(data.expressions.kr_wants_jp || []).map((e) =>
+                createExpressionPage(e, 'kr_wants_jp', sitId, targetDate)
+            ),
+            ...(data.expressions.jp_wants_kr || []).map((e) =>
+                createExpressionPage(e, 'jp_wants_kr', sitId, targetDate)
+            ),
         ];
-        
+
         if (exprPromises.length > 0) {
             await Promise.all(exprPromises);
         }
@@ -196,25 +205,32 @@ kr_wants_jp (한국인이 일본인에게 표현)은 2~3개, jp_wants_kr (일본
         // 텔레그램 알림 전송
         await sendTelegramMessage(
             `💌 <b>[Koi Language]</b>\n` +
-            `새로운 데이트 표현 업데이트 완료!\n\n` +
-            `📅 <b>학습 날짜:</b> ${targetDate}\n` +
-            `💖 <b>주제:</b> ${data.situation.title_kr}\n\n` +
-            `지금 바로 앱에서 확인해보세요!`
+                `새로운 데이트 표현 업데이트 완료!\n\n` +
+                `📅 <b>학습 날짜:</b> ${targetDate}\n` +
+                `💖 <b>주제:</b> ${data.situation.title_kr}\n\n` +
+                `지금 바로 앱에서 확인해보세요!`
         );
 
-        return NextResponse.json({ success: true, date: targetDate, situation: data.situation.title_kr });
+        return NextResponse.json({
+            success: true,
+            date: targetDate,
+            situation: data.situation.title_kr,
+        });
     } catch (err) {
         console.error('Cron job failed:', err);
-        
+
         const errorMessage = err instanceof Error ? err.message : String(err);
-        
+
         await sendTelegramMessage(
             `❌ <b>[Koi Language]</b>\n` +
-            `노션 동기화 작업 실패!\n\n` +
-            `🕒 <b>시간:</b> ${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}\n` +
-            `⚠️ <b>에러:</b> ${errorMessage}`
+                `노션 동기화 작업 실패!\n\n` +
+                `🕒 <b>시간:</b> ${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}\n` +
+                `⚠️ <b>에러:</b> ${errorMessage}`
         );
-        
-        return NextResponse.json({ error: 'Cron job failed', detail: errorMessage }, { status: 500 });
+
+        return NextResponse.json(
+            { error: 'Cron job failed', detail: errorMessage },
+            { status: 500 }
+        );
     }
 }

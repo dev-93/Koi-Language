@@ -61,7 +61,7 @@ const geminiRequest = async (prompt) => {
     if (status >= 400) {
         throw new Error(`Gemini API Error (${status}): ${body}`);
     }
-    
+
     const parsed = JSON.parse(body);
     return parsed.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
 };
@@ -143,14 +143,14 @@ const notionPost = async (path, body) => {
 
         // 표현 데이터 합쳐서 처리
         const exprList = [
-            ...data.expressions.kr_wants_jp.map(e => ({ ...e, type: 'kr_wants_jp' })),
-            ...data.expressions.jp_wants_kr.map(e => ({ ...e, type: 'jp_wants_kr' }))
+            ...data.expressions.kr_wants_jp.map((e) => ({ ...e, type: 'kr_wants_jp' })),
+            ...data.expressions.jp_wants_kr.map((e) => ({ ...e, type: 'jp_wants_kr' })),
         ];
 
         console.log(`✍️ 표현 ${exprList.length}개 Notion에 추가 중...`);
         for (const expr of exprList) {
             // words 데이터 검증 (word가 없는 요소 필터링)
-            const safeWords = (expr.words || []).filter(w => w && w.word);
+            const safeWords = (expr.words || []).filter((w) => w && w.word);
 
             await notionPost('/v1/pages', {
                 parent: { database_id: EXPRESSIONS_DB_ID },
@@ -163,7 +163,7 @@ const notionPost = async (path, body) => {
                     Type: { select: { name: expr.type } },
                     Situation: { relation: [{ id: sitPage.id }] },
                     Date: { date: { start: targetDate } },
-                }
+                },
             });
         }
 

@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
-const SITUATION_DB_ID = process.env.VITE_NOTION_SITUATION_DB_ID || process.env.NOTION_SITUATION_DB_ID;
-const EXPRESSIONS_DB_ID = process.env.VITE_NOTION_EXPRESSION_DB_ID || process.env.NOTION_EXPRESSION_DB_ID;
+const SITUATION_DB_ID =
+    process.env.VITE_NOTION_SITUATION_DB_ID || process.env.NOTION_SITUATION_DB_ID;
+const EXPRESSIONS_DB_ID =
+    process.env.VITE_NOTION_EXPRESSION_DB_ID || process.env.NOTION_EXPRESSION_DB_ID;
 
 const notionRequest = async (method, path, body) => {
     const payload = body ? JSON.stringify(body) : null;
@@ -14,7 +16,7 @@ const notionRequest = async (method, path, body) => {
             'Content-Type': 'application/json',
         },
         body: payload,
-        next: { revalidate: 3600 } // Cache for 1 hour
+        next: { revalidate: 3600 }, // Cache for 1 hour
     });
 
     if (!response.ok) {
@@ -55,7 +57,9 @@ const parseExpression = (page) => {
         id: page.id,
         kr: getTitle(page.properties['Title_KR']) || getTitle(page.properties['KR']),
         jp: getRichText(page.properties['Text_JP']) || getRichText(page.properties['JP']),
-        reading: getRichText(page.properties['Reading']) || getRichText(page.properties['Pronunciation']),
+        reading:
+            getRichText(page.properties['Reading']) ||
+            getRichText(page.properties['Pronunciation']),
         tip: getRichText(page.properties['Tip']),
         type: getSelect(page.properties['Type']),
         situationIds: getRelationIds(page.properties['Situation']),
@@ -67,7 +71,11 @@ const queryAll = async (dbId, filter) => {
     const results = [];
     let cursor = undefined;
     do {
-        const body = { page_size: 100, ...(filter && { filter }), ...(cursor && { start_cursor: cursor }) };
+        const body = {
+            page_size: 100,
+            ...(filter && { filter }),
+            ...(cursor && { start_cursor: cursor }),
+        };
         const res = await notionRequest('POST', `/v1/databases/${dbId}/query`, body);
         results.push(...res.results);
         cursor = res.has_more ? res.next_cursor : undefined;
@@ -103,13 +111,19 @@ export async function GET() {
             .filter((s) => s.date)
             .sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        return NextResponse.json({ situations }, {
-            headers: {
-                'Cache-Control': 's-maxage=3600, stale-while-revalidate'
+        return NextResponse.json(
+            { situations },
+            {
+                headers: {
+                    'Cache-Control': 's-maxage=3600, stale-while-revalidate',
+                },
             }
-        });
+        );
     } catch (err) {
         console.error('Notion fetch error:', err);
-        return NextResponse.json({ error: 'Failed to fetch from Notion', detail: err.message }, { status: 500 });
+        return NextResponse.json(
+            { error: 'Failed to fetch from Notion', detail: err.message },
+            { status: 500 }
+        );
     }
 }

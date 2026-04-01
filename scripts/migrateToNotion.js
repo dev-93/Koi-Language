@@ -10,10 +10,10 @@ async function notionFetch(endpoint, method = 'GET', body = null) {
     const options = {
         method,
         headers: {
-            'Authorization': `Bearer ${NOTION_TOKEN}`,
+            Authorization: `Bearer ${NOTION_TOKEN}`,
             'Notion-Version': '2022-06-28',
-            'Content-Type': 'application/json'
-        }
+            'Content-Type': 'application/json',
+        },
     };
     if (body) options.body = JSON.stringify(body);
     const res = await fetch(`https://api.notion.com/v1/${endpoint}`, options);
@@ -29,11 +29,13 @@ async function migrateAndCleanup() {
         // 1. Cleanup: Search all items matching "Koi" and archive
         const searchRes = await notionFetch('search', 'POST', {
             query: 'Koi',
-            filter: { property: 'object', value: 'database' }
+            filter: { property: 'object', value: 'database' },
         });
 
         for (const db of searchRes.results) {
-            console.log(`🗑️ Archiving old database: ${db.title[0]?.plain_text || 'Untitled'} (${db.id})...`);
+            console.log(
+                `🗑️ Archiving old database: ${db.title[0]?.plain_text || 'Untitled'} (${db.id})...`
+            );
             try {
                 await notionFetch(`blocks/${db.id}`, 'DELETE');
             } catch (e) {
@@ -52,8 +54,10 @@ async function migrateAndCleanup() {
                     Title_JP: { rich_text: [{ text: { content: sit.title.jp || '' } }] },
                     Desc_KR: { rich_text: [{ text: { content: sit.desc.kr || '' } }] },
                     Desc_JP: { rich_text: [{ text: { content: sit.desc.jp || '' } }] },
-                    Expressions_JSON: { rich_text: [{ text: { content: JSON.stringify(sit.expressions) } }] }
-                }
+                    Expressions_JSON: {
+                        rich_text: [{ text: { content: JSON.stringify(sit.expressions) } }],
+                    },
+                },
             });
         }
 
