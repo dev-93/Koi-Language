@@ -1,5 +1,21 @@
 import React from 'react';
 
+/**
+ * =========================================================================
+ * 🎨 [Koi Language UI 전용 이미지 생성 프롬프트 템플릿]
+ * 다음번에도 기존 이미지들과 100% 동일한 "귀엽고 포근한 파스텔톤 플랫 일러스트"
+ * 스타일을 유지하고 싶다면, 아래의 영문 프롬프트를 AI(저에게 요청하시거나 미드저니 등)에게 그대로 이용하세요.
+ * =========================================================================
+ *
+ * [프롬프트 양식]
+ * A cute heartwarming flat vector illustration of a lovely Korean couple {상황 영어로 입력: 예 - sitting and eating popcorn together at a movie theater}, soft pastel colors, minimalist background, UI illustration style, clean simple outlines, flat shading, dribbble style, light purple and soft pink tones, 16:9 aspect ratio, horizontal landscape format
+ *
+ * [주의 사항]
+ * 제가 1:1 모델로 이미지를 뽑아드렸던 세팅 그대로입니다.
+ * 위 프롬프트는 16:9 로 화면에 채워질(object-fit:cover) 때 위아래가 잘려도
+ * 인물만 딱 예쁘게 돋보이도록 설계되어 있습니다!
+ */
+
 const SCENE_MAP = {
     // 1순위: 매우 특징적이고 구체적인 상황들 (가장 겹치기 어려운 단어들)
     cherry_blossom: {
