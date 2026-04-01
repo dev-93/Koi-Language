@@ -7,6 +7,8 @@ import 'swiper/css';
 import {
     ChevronLeft,
     ChevronRight,
+    ArrowLeft,
+    ArrowRight,
     Volume2,
     CheckCircle2,
     Home,
@@ -65,62 +67,43 @@ export default function LearnView({ situation, initialExpressions = [] }) {
     return (
         <div className="home-layout pb-24 relative overflow-hidden bg-white">
             {/* Header / Nav */}
-            <div className="w-full max-w-[420px] d-flex items-center justify-center py-6 px-4 mb-2 bg-white/80 backdrop-blur sticky top-0 z-20 relative">
+            <header className="w-full max-w-[480px] h-20 d-flex items-center justify-between px-6 bg-white/90 backdrop-blur u-backdrop-blur sticky top-0 z-40 border-b border-gray-100">
                 <button
                     onClick={() => router.push('/')}
-                    className="absolute left-4 p-3 u-rounded-full hover:bg-gray-100 border-none bg-transparent cursor-pointer transition-all"
+                    className="p-3 u-rounded-full hover:bg-gray-50 border-none bg-transparent cursor-pointer transition-all active:scale-90 flex items-center gap-1"
                 >
                     <ChevronLeft size={24} className="text-gray-800" />
+                    <span className="text-[12px] font-bold text-gray-500 hidden sm:inline">
+                        BACK
+                    </span>
                 </button>
-                <div className="d-flex flex-col items-center px-12 overflow-hidden w-full">
-                    <span className="text-[10px] font-black text-peach tracking-widest mb-1 uppercase">
+
+                <div className="flex-1 d-flex flex-col items-center justify-center overflow-hidden px-2">
+                    <span className="text-[10px] font-black text-peach tracking-widest mb-0.5 uppercase opacity-80">
                         SITUATION
                     </span>
-                    <h1
-                        className="m-0 text-[15px] font-black text-gray-800 text-center w-full"
-                        style={{
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                        }}
-                    >
-                        {situation.title.kr}
+                    <h1 className="m-0 text-[16px] font-black text-gray-800 text-center w-full truncate">
+                        {isKr ? situation.title.kr : situation.title.jp}
                     </h1>
                 </div>
+
                 <button
                     onClick={() => setIsKr(!isKr)}
-                    className="absolute right-4 u-bg-white\/80 u-shadow-md border-none px-4 py-2 u-rounded-full font-black text-[12px] text-peach hover:shadow-lg transition-all cursor-pointer bg-white"
+                    className="px-4 py-2 u-shadow-sm border-2 border-peach/20 u-rounded-full font-black text-[12px] text-peach hover:bg-peach/5 transition-all cursor-pointer bg-white whitespace-nowrap active:scale-95"
                 >
                     {isKr ? 'KR🇰🇷' : 'JP🇯🇵'}
                 </button>
-            </div>
-
-            {/* Progress Bar */}
-            <div className="w-full max-w-[420px] px-8 mb-10">
-                <div className="progress-bar-container">
-                    <div
-                        className="progress-bar-fill-gradient"
-                        style={{ width: `${((currentIndex + 1) / expressions.length) * 100}%` }}
-                    ></div>
-                </div>
-                <div className="d-flex justify-between items-center mt-4">
-                    <span className="text-[12px] font-black text-gray-300">PROGRESS</span>
-                    <span className="text-[12px] font-black text-peach italic">
-                        {currentIndex + 1} <span className="text-gray-300">/</span>{' '}
-                        {expressions.length}
-                    </span>
-                </div>
-            </div>
+            </header>
 
             {/* Main Learning Content (Swiper) */}
-            <div className="w-full d-flex flex-col items-center flex-1">
+            <div className="w-full d-flex flex-col items-center flex-1 pt-6">
                 <div className="w-full max-w-[420px] h-full">
                     <Swiper
                         onSwiper={setSwiper}
                         onSlideChange={(s) => setCurrentIndex(s.activeIndex)}
-                        className="w-full"
-                        spaceBetween={20}
-                        slidesPerView={1.1}
+                        className="w-full overflow-visible"
+                        spaceBetween={16}
+                        slidesPerView={1.05}
                         centeredSlides={true}
                     >
                         {expressions.map((expr, idx) => {
@@ -145,8 +128,8 @@ export default function LearnView({ situation, initialExpressions = [] }) {
                             return (
                                 <SwiperSlide key={expr.id || idx}>
                                     <div
-                                        className={`learn-card-main u-shadow-xl transition-all duration-300 ${currentIndex === idx ? 'scale-100 opacity-100' : 'scale-95 opacity-50'}`}
-                                        style={{ minHeight: 'auto', paddingBottom: '1.5rem' }}
+                                        className={`learn-card-main u-shadow-xl transition-all duration-500 border border-peach/5 ${currentIndex === idx ? 'scale-100 opacity-100' : 'scale-[0.92] opacity-40 blur-[1px]'}`}
+                                        style={{ minHeight: 'auto', paddingBottom: '2rem' }}
                                     >
                                         {/* 상황 씬 일러스트 */}
                                         <SituationScene
@@ -154,46 +137,48 @@ export default function LearnView({ situation, initialExpressions = [] }) {
                                             date={situation.date}
                                         />
 
-                                        <div className="flex-1 d-flex flex-col items-center justify-center gap-2 w-full pt-6">
-                                            {/* 일본어 메인 */}
-                                            <h2 className="m-0 text-[32px] font-black text-center leading-tight text-gray-800 tracking-tight">
+                                        <div className="flex-1 d-flex flex-col items-center justify-center gap-3 w-full pt-8">
+                                            {/* 메인 표현 */}
+                                            <h2 className="m-0 text-[32px] font-black text-center leading-tight text-gray-800 tracking-tight px-2">
                                                 {(isKr ? expr.jp : expr.kr).replace(
                                                     /[\u0000-\u001F\u007F-\u009F\uFFFD]/g,
                                                     ''
                                                 )}
                                             </h2>
 
-                                            {/* 발음 (독음) - JP모드일때는 노션에 로마자 데이터가 없어서 임시로 숨김 */}
-                                            {expr.pron && isKr && (
-                                                <p className="m-0 text-[18px] font-medium text-gray-600 text-center mt-2">
-                                                    {expr.pron.replace(
+                                            {/* 발음 (독음) */}
+                                            {(expr.reading || expr.pron) && isKr && (
+                                                <p className="m-0 text-[18px] font-bold text-gray-400 text-center mt-1">
+                                                    {(expr.reading || expr.pron).replace(
                                                         /[\u0000-\u001F\u007F-\u009F\uFFFD]/g,
                                                         ''
                                                     )}
                                                 </p>
                                             )}
 
-                                            {/* 한국어 뜻 (핑크 강조) */}
-                                            <p className="m-0 text-[24px] font-black text-peach text-center mt-4 mb-2">
-                                                {(isKr ? expr.kr : expr.jp).replace(
-                                                    /[\u0000-\u001F\u007F-\u009F\uFFFD]/g,
-                                                    ''
-                                                )}
-                                            </p>
+                                            {/* 해석 표현 (핑크 강조) */}
+                                            <div className="mt-4 px-6 py-2 u-rounded-xl bg-peach/5">
+                                                <p className="m-0 text-[22px] font-black text-peach text-center">
+                                                    {(isKr ? expr.kr : expr.jp).replace(
+                                                        /[\u0000-\u001F\u007F-\u009F\uFFFD]/g,
+                                                        ''
+                                                    )}
+                                                </p>
+                                            </div>
 
-                                            <div className="card-divider-wide opacity-30"></div>
+                                            <div className="card-divider-wide opacity-20 my-6"></div>
 
-                                            <div className="d-flex flex-wrap justify-center gap-2 mt-4 px-4 pb-2">
+                                            <div className="d-flex flex-wrap justify-center gap-2 px-4 pb-2">
                                                 {wordList.map((word, wIdx) => (
                                                     <div
                                                         key={wIdx}
-                                                        className="d-flex items-center u-rounded-lg overflow-hidden border border-peach/10 shadow-sm"
+                                                        className="d-flex items-center u-rounded-xl overflow-hidden border border-peach/10 shadow-sm"
                                                     >
-                                                        <span className="bg-gray-100 px-3 py-1.5 text-[13px] font-bold text-gray-600 border-r border-peach/10">
-                                                            {word.jp}
+                                                        <span className="bg-gray-50 px-3 py-2 text-[13px] font-bold text-gray-600 border-r border-peach/5">
+                                                            {word.jp || word.word}
                                                         </span>
-                                                        <span className="bg-peach/5 px-3 py-1.5 text-[13px] font-bold text-peach">
-                                                            {word.kr}
+                                                        <span className="bg-white px-3 py-2 text-[13px] font-bold text-peach">
+                                                            {word.kr || word.mean}
                                                         </span>
                                                     </div>
                                                 ))}
@@ -207,15 +192,17 @@ export default function LearnView({ situation, initialExpressions = [] }) {
 
                     {/* Tip Section */}
                     {currentExpr?.tip && (
-                        <div className="px-8 mt-5 animate-in fade-in slide-in-from-bottom-2 duration-700">
-                            <div className="tip-box-standard u-shadow-sm border border-peach/10 bg-peach/5 p-6 u-rounded-2xl">
-                                <div className="d-flex items-center gap-2 mb-2">
-                                    <Sparkles size={16} className="text-peach" />
-                                    <span className="text-[12px] font-black text-peach tracking-widest uppercase">
+                        <div className="px-8 mt-6 mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            <div className="tip-box-standard u-shadow-md border border-peach/10 bg-gradient-to-br from-white to-peach/5 p-6 u-rounded-3xl">
+                                <div className="d-flex items-center gap-2 mb-3">
+                                    <div className="p-1.5 u-bg-white\/80 u-rounded-full shadow-sm">
+                                        <Sparkles size={18} className="text-peach" />
+                                    </div>
+                                    <span className="text-[13px] font-black text-peach tracking-widest uppercase">
                                         Koi's Dating Tip
                                     </span>
                                 </div>
-                                <p className="m-0 text-[15px] font-bold text-gray-700 leading-relaxed">
+                                <p className="m-0 text-[15px] font-bold text-gray-600 leading-relaxed">
                                     {currentExpr.tip}
                                 </p>
                             </div>
@@ -225,20 +212,31 @@ export default function LearnView({ situation, initialExpressions = [] }) {
             </div>
 
             {/* Bottom Nav Controller */}
-            <div className="fixed bottom-0 left-0 right-0 p-8 pt-4 pb-12 bg-white/90 backdrop-blur d-flex justify-center z-30">
-                <div className="w-full max-w-[420px] d-flex px-2" style={{ gap: '1rem' }}>
+            <div
+                className="fixed left-0 right-0 bg-white/95 backdrop-blur-md d-flex flex-col items-center z-50 border-t border-gray-50"
+                style={{ bottom: 0, paddingBottom: '24px', paddingTop: '16px' }}
+            >
+                <div className="text-center mb-4 text-[13px] font-black text-gray-500 tracking-widest">
+                    PROGRESS {currentIndex + 1} &nbsp;/&nbsp; {expressions.length}
+                </div>
+
+                <div className="w-full max-w-[420px] d-flex justify-between px-6">
                     <button
                         onClick={() => swiper?.slidePrev()}
-                        className="flex-1 py-5 u-rounded-card font-black text-[16px] transition-all cursor-pointer d-flex items-center justify-center gap-2"
+                        className="font-black transition-all cursor-pointer d-flex items-center justify-center gap-2 active:scale-95"
                         style={{
-                            background: currentIndex === 0 ? 'transparent' : 'white',
-                            border: currentIndex === 0 ? '2px solid #e5e7eb' : '2px solid #ff8a8a',
-                            color: currentIndex === 0 ? '#9ca3af' : '#ff8a8a',
-                            opacity: currentIndex === 0 ? 0.6 : 1,
+                            width: '45%',
+                            padding: '14px',
+                            borderRadius: '50px',
+                            background: 'transparent',
+                            border: '1.5px solid #d4537e',
+                            color: '#d4537e',
+                            fontSize: '15px',
+                            opacity: currentIndex === 0 ? 0.35 : 1,
                         }}
                         disabled={currentIndex === 0}
                     >
-                        <ChevronLeft size={22} />
+                        <ArrowLeft size={18} />
                         <span>PREV</span>
                     </button>
                     <button
@@ -247,15 +245,26 @@ export default function LearnView({ situation, initialExpressions = [] }) {
                                 ? handleFinish
                                 : () => swiper?.slideNext()
                         }
-                        className="flex-[1.5] py-5 u-rounded-card bg-peach text-white border-none font-black text-[16px] u-shadow-lg d-flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+                        className="font-black u-shadow-md d-flex items-center justify-center gap-2 hover:brightness-105 active:scale-95 transition-all cursor-pointer"
+                        style={{
+                            width: '45%',
+                            padding: '14px',
+                            borderRadius: '50px',
+                            backgroundColor: '#d4537e',
+                            color: 'white',
+                            border: '1.5px solid transparent',
+                            fontSize: '15px',
+                        }}
                     >
                         {currentIndex === expressions.length - 1 ? (
                             <>
-                                <span>FINISH</span> <CheckCircle2 size={22} />
+                                <span className="tracking-tight">FINISH</span>
+                                <CheckCircle2 size={18} />
                             </>
                         ) : (
                             <>
-                                <span>NEXT</span> <ChevronRight size={22} />
+                                <span>NEXT</span>
+                                <ArrowRight size={18} />
                             </>
                         )}
                     </button>
