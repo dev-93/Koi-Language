@@ -104,7 +104,7 @@ const notionPost = async (path, body) => {
               { 
                 "kr": "한국어 표현", 
                 "jp": "일본어 표현", 
-                "reading": "일본어 한국어 발음 표기", 
+                "reading": "일본어 문장의 한국어 한글 발음 (예: '마타 오아이시타이데스')", 
                 "tip": "데이트 팁", 
                 "words": [{ "word": "단어", "mean": "뜻" }] 
               }
@@ -113,7 +113,7 @@ const notionPost = async (path, body) => {
               { 
                 "kr": "한국어 표현", 
                 "jp": "일본어 표현", 
-                "reading": "발음", 
+                "reading": "일본어 문장의 한국어 한글 발음 (예: '마타 오아이시타이데스')", 
                 "tip": "", 
                 "words": [] 
               }
@@ -121,6 +121,7 @@ const notionPost = async (path, body) => {
           }
         }
         주의: 'words' 배열의 각 요소는 반드시 'word'와 'mean' 필수 키를 포함해야 합니다.
+        중요: 일본어 발음(reading)은 반드시 '한국어(한글)'로만 적어주세요. 히라가나나 카타카나는 절대 사용하지 마세요.
         `;
 
         console.log('🤖 Gemini에게 물어보는 중...');
