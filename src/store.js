@@ -5,6 +5,7 @@ const useStore = create(
     persist(
         (set, get) => ({
             userProfile: null, // { myNationality: 'KR'|'JP', myGender: 'M'|'F', targetGender: 'M'|'F', name: string }
+            currentTab: 'today', // 'today' | 'archive' | 'settings'
             dailyProgress: {
                 date: new Date().toDateString(),
                 cardsLearned: [], // Array of situation IDs
@@ -13,6 +14,7 @@ const useStore = create(
 
             setUserProfile: (profile) => set({ userProfile: profile }),
             resetUserProfile: () => set({ userProfile: null }),
+            setCurrentTab: (tab) => set({ currentTab: tab }),
 
             checkAndResetProgress: () => {
                 const state = get();
