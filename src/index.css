@@ -564,12 +564,10 @@ textarea:focus {
 /* Card Specifics */
 .learn-card-main {
     background: white;
-    padding: 2rem;
-    min-height: 480px;
+    padding: 2.5rem 2rem;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: space-between;
     position: relative;
     border-radius: 28px;
     border: none;

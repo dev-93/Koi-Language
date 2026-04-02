@@ -55,7 +55,13 @@ const geminiRequest = async (prompt) => {
             path: `/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
             method: 'POST',
         },
-        { contents: [{ parts: [{ text: prompt }] }] }
+        {
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+                temperature: 0.7,
+                response_mime_type: 'application/json',
+            },
+        }
     );
 
     if (status >= 400) {

@@ -96,13 +96,13 @@ export default function LearnView({ situation, initialExpressions = [] }) {
             </header>
 
             {/* Main Learning Content (Swiper) */}
-            <div className="w-full d-flex flex-col items-center flex-1 pt-6">
-                <div className="w-full max-w-[420px] h-full">
+            <div className="w-full d-flex flex-col items-center pt-4">
+                <div className="w-full max-w-[420px]">
                     <Swiper
                         onSwiper={setSwiper}
                         onSlideChange={(s) => setCurrentIndex(s.activeIndex)}
                         className="w-full overflow-visible"
-                        spaceBetween={16}
+                        spaceBetween={14}
                         slidesPerView={1.05}
                         centeredSlides={true}
                     >
@@ -129,7 +129,6 @@ export default function LearnView({ situation, initialExpressions = [] }) {
                                 <SwiperSlide key={expr.id || idx}>
                                     <div
                                         className={`learn-card-main u-shadow-xl transition-all duration-500 border border-peach/5 ${currentIndex === idx ? 'scale-100 opacity-100' : 'scale-[0.92] opacity-40 blur-[1px]'}`}
-                                        style={{ minHeight: 'auto', paddingBottom: '2rem' }}
                                     >
                                         {/* 상황 씬 일러스트 */}
                                         <SituationScene
@@ -137,7 +136,7 @@ export default function LearnView({ situation, initialExpressions = [] }) {
                                             date={situation.date}
                                         />
 
-                                        <div className="flex-1 d-flex flex-col items-center justify-center gap-3 w-full pt-8">
+                                        <div className="flex-1 d-flex flex-col items-center justify-center gap-2 w-full pt-6">
                                             {/* 메인 표현 */}
                                             <h2 className="m-0 text-[32px] font-black text-center leading-tight text-gray-800 tracking-tight px-2">
                                                 {(isKr ? expr.jp : expr.kr).replace(
@@ -192,7 +191,7 @@ export default function LearnView({ situation, initialExpressions = [] }) {
 
                     {/* Tip Section */}
                     {currentExpr?.tip && (
-                        <div className="px-8 mt-6 mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                        <div className="px-8 mt-1 mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
                             <div className="tip-box-standard u-shadow-md border border-peach/10 bg-gradient-to-br from-white to-peach/5 p-6 u-rounded-3xl">
                                 <div className="d-flex items-center gap-2 mb-3">
                                     <div className="p-1.5 u-bg-white\/80 u-rounded-full shadow-sm">

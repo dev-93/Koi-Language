@@ -42,10 +42,11 @@ const geminiRequest = async (prompt) => {
     const payload = JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
-            temperature: 0.9,
+            temperature: 0.7,
             maxOutputTokens: 2048,
             topP: 0.95,
             topK: 40,
+            response_mime_type: 'application/json',
         },
     });
     // 최신 모델인 gemini-2.5-flash 사용 (scripts/run-cron-now.js와 동일하게 변경)
