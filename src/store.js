@@ -9,6 +9,7 @@ const useStore = create(
                 date: new Date().toDateString(),
                 cardsLearned: [], // Array of situation IDs
             },
+            recentKeywords: [], // 최근 학습한 상황의 키워드 (중복 방지용)
 
             setUserProfile: (profile) => set({ userProfile: profile }),
             resetUserProfile: () => set({ userProfile: null }),
@@ -22,9 +23,19 @@ const useStore = create(
                             date: today,
                             cardsLearned: [],
                         },
+                        recentKeywords: [],
                     });
                 }
             },
+
+            addRecentKeywords: (keywords) =>
+                set((state) => ({
+                    // 중복 제거 및 최대 8개만 유지 (토큰 효율)
+                    recentKeywords: [...new Set([...(keywords || []), ...state.recentKeywords])].slice(
+                        0,
+                        8
+                    ),
+                })),
 
             markCardLearned: (situationId) =>
                 set((state) => {
@@ -52,7 +63,10 @@ const useStore = create(
                 }),
 
             resetProgress: () =>
-                set({ dailyProgress: { date: new Date().toDateString(), cardsLearned: [] } }),
+                set({
+                    dailyProgress: { date: new Date().toDateString(), cardsLearned: [] },
+                    recentKeywords: [],
+                }),
         }),
         {
             name: 'koi-language-storage',

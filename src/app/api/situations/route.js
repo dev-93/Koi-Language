@@ -109,7 +109,13 @@ export async function GET() {
                 };
             })
             .filter((s) => s.date)
-            .sort((a, b) => new Date(b.date) - new Date(a.date));
+            // 지능형 로테이션: 오늘 데이트 데이터는 최상단, 나머지는 매번 랜덤 셔플(중복 피로 감소)
+            .sort((a, b) => {
+                const today = new Date().toISOString().split('T')[0];
+                if (a.date === today && b.date !== today) return -1;
+                if (b.date === today && a.date !== today) return 1;
+                return Math.random() - 0.5;
+            });
 
         return NextResponse.json(
             { situations },
