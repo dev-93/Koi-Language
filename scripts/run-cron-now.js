@@ -11,8 +11,6 @@ const NOTION_TOKEN = process.env.NOTION_TOKEN;
 const GEMINI_API_KEY = process.env.VITE_GEMINI_API_KEY;
 const SITUATION_DB_ID = process.env.VITE_NOTION_SITUATION_DB_ID;
 const EXPRESSIONS_DB_ID = process.env.VITE_NOTION_EXPRESSION_DB_ID;
-const TG_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const TG_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
 /** KST 기준 날짜 계산 */
 const getKSTDate = (dateStr) => {
@@ -58,9 +56,15 @@ const geminiRequest = async (prompt) => {
         {
             contents: [{ parts: [{ text: prompt }] }],
             generationConfig: {
-                temperature: 0.7,
+                temperature: 0.8,
                 response_mime_type: 'application/json',
             },
+            safetySettings: [
+                { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+                { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+                { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+                { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+            ],
         }
     );
 
@@ -69,7 +73,14 @@ const geminiRequest = async (prompt) => {
     }
 
     const parsed = JSON.parse(body);
-    return parsed.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+    const text = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) {
+        if (parsed.promptFeedback) {
+            throw new Error(`Gemini blocked: ${JSON.stringify(parsed.promptFeedback)}`);
+        }
+        throw new Error('Gemini returned empty response');
+    }
+    return text;
 };
 
 // ── Notion ───────────────────────────────────────────────
@@ -86,7 +97,10 @@ const notionPost = async (path, body) => {
         },
         body
     );
-    if (status >= 400) throw new Error(`Notion POST failed: ${resBody}`);
+    if (status >= 400) {
+        console.error('Notion Error:', resBody);
+        throw new Error(`Notion POST failed (${status})`);
+    }
     return JSON.parse(resBody);
 };
 
@@ -97,7 +111,6 @@ const notionPost = async (path, body) => {
     try {
         const PROMPT = `
         연애/데이트 일본어 학습을 위한 JSON 형식의 콘텐츠를 생성해주세요.
-        반드시 JSON 파일만 마크다운 없이 반환하세요.
         {
           "situation": { 
              "title_kr": "상황 제목", 
@@ -110,8 +123,8 @@ const notionPost = async (path, body) => {
               { 
                 "kr": "한국어 표현", 
                 "jp": "일본어 표현", 
-                "reading": "일본어 문장의 한국어 한글 발음 (예: '마타 오아이시타이데스')", 
-                "tip": "일본인 상대의 마음을 사로잡는 구체적이고 재치 있는 실전 데이트 팁 (일본 문화/성향 반영, 1~2문장)", 
+                "reading": "일본어 발음 (한글만)", 
+                "tip": "데이트 팁 (1~2문장)", 
                 "words": [{ "word": "단어", "mean": "뜻" }] 
               }
             ],
@@ -119,24 +132,19 @@ const notionPost = async (path, body) => {
               { 
                 "kr": "한국어 표현", 
                 "jp": "일본어 표현", 
-                "reading": "일본어 문장의 한국어 한글 발음 (예: '마타 오아이시타이데스')", 
-                "tip": "일본인 상대의 행동/심리를 이해하는 통찰력 있는 팁 (1~2문장)", 
+                "reading": "일본어 발음 (한글만)", 
+                "tip": "심리 팁 (1~2문장)", 
                 "words": [] 
               }
             ]
           }
         }
-        
-        *실전 품질 기준:*
-        1. 'tip'은 단순히 문장을 설명하는 "직진 표현입니다" 같은 뻔한 말이 아니어야 합니다.
-        2. 일본 데이트 문화(예: 연락 속도, 완곡한 거절, 예의, 더치페이 매너 등)와 일본인의 국민성/심리를 반영한 '실전 팁'이어야 합니다.
-        3. 말투는 친근하고 센스 있게 작성하세요 (예: "일본에선 이 말 한마디면 센스쟁이 확정!", "너무 서두르지 마세요, 일본인들은 ~하는 걸 좋아하니까요").
-        4. 일본어 발음(reading)은 반드시 '한국어(한글)'로만 적어주세요. 히라가나나 카타카나는 절대 사용하지 마세요.
         `;
 
         console.log('🤖 Gemini에게 물어보는 중...');
         const rawResponse = await geminiRequest(PROMPT);
-        // JSON 파싱 (안전 처리)
+        
+        // JSON 파싱
         const jsonStr = rawResponse.match(/\{[\s\S]*\}/)?.[0] || rawResponse;
         const data = JSON.parse(jsonStr);
 
@@ -152,15 +160,17 @@ const notionPost = async (path, body) => {
             },
         });
 
-        // 표현 데이터 합쳐서 처리
+        // 표현 데이터 합쳐서 순차 처리
         const exprList = [
-            ...data.expressions.kr_wants_jp.map((e) => ({ ...e, type: 'kr_wants_jp' })),
-            ...data.expressions.jp_wants_kr.map((e) => ({ ...e, type: 'jp_wants_kr' })),
+            ...(data.expressions.kr_wants_jp || []).map((e) => ({ ...e, type: 'kr_wants_jp' })),
+            ...(data.expressions.jp_wants_kr || []).map((e) => ({ ...e, type: 'jp_wants_kr' })),
         ];
 
-        console.log(`✍️ 표현 ${exprList.length}개 Notion에 추가 중...`);
+        console.log(`✍️ 표현 ${exprList.length}개 Notion에 추가 중 (순차 처리)...`);
         for (const expr of exprList) {
-            // words 데이터 검증 (word가 없는 요소 필터링)
+            // Notion Rate Limit 방지
+            await new Promise(resolve => setTimeout(resolve, 300));
+            
             const safeWords = (expr.words || []).filter((w) => w && w.word);
 
             await notionPost('/v1/pages', {
@@ -176,10 +186,12 @@ const notionPost = async (path, body) => {
                     Date: { date: { start: targetDate } },
                 },
             });
+            process.stdout.write('.');
         }
 
-        console.log('\n✅ 모든 작업이 성공적으로 끝났습니다!');
+        console.log('\n\n✅ 모든 작업이 성공적으로 끝났습니다!');
     } catch (err) {
         console.error('\n❌ 실행 실패:', err.message);
+        process.exit(1);
     }
 })();
