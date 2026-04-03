@@ -16,7 +16,7 @@ const notionRequest = async (method, path, body) => {
             'Content-Type': 'application/json',
         },
         body: payload,
-        next: { revalidate: 3600 }, // Cache for 1 hour
+        next: { revalidate: 300 }, // Cache for 5 minutes
     });
 
     if (!response.ok) {
@@ -121,7 +121,7 @@ export async function GET() {
             { situations },
             {
                 headers: {
-                    'Cache-Control': 's-maxage=3600, stale-while-revalidate',
+                    'Cache-Control': 's-maxage=300, stale-while-revalidate',
                 },
             }
         );
