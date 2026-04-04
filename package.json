@@ -11,7 +11,8 @@
         "format": "prettier --write .",
         "post:notion": "node scripts/seed-notion.js",
         "get:notion": "node scripts/fetchFromNotion.js",
-        "check:notion": "node tests/notion-validation.test.js"
+        "check:notion": "node tests/notion-validation.test.js",
+        "cron:run": "node scripts/run-cron-now.js"
     },
     "dependencies": {
         "@google/genai": "^1.46.0",
