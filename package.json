@@ -18,6 +18,7 @@
         "@google/genai": "^1.46.0",
         "@notionhq/client": "^5.15.0",
         "@vercel/analytics": "^2.0.1",
+        "@vercel/speed-insights": "^2.0.0",
         "canvas-confetti": "^1.9.4",
         "dotenv": "^17.3.1",
         "framer-motion": "^12.38.0",

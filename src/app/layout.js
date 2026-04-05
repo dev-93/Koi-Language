@@ -1,6 +1,8 @@
 import '@/app/globals.css';
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 export const metadata = {
+    metadataBase: new URL('https://koi-language.vercel.app'),
     title: 'Koi Language - 연애 일본어 마스터',
     description:
         '매일 새로운 일본어 데이트 표현과 팁을 학습하세요. 한일 커플을 위한 최고의 언어 파트너.',
@@ -11,7 +13,7 @@ export const metadata = {
         siteName: 'Koi Language',
         images: [
             {
-                url: '/og-image.png', // 나중에 이미지를 추가해 주세요!
+                url: '/og-image.png',
                 width: 1200,
                 height: 630,
             },
@@ -38,12 +40,13 @@ export default function RootLayout({ children }) {
     return (
         <html lang="ko">
             <head>
-                {/* 브라우저 탭 아이콘 설정 */}
                 <link rel="icon" href="/favicon.ico" />
             </head>
             <body className="antialiased">
-                {/* 기존 Vite 프로젝트의 #root 스타일을 유지하기 위해 id="root" 부여 */}
-                <div id="root">{children}</div>
+                <div id="root">
+                    {children}
+                    <SpeedInsights />
+                </div>
             </body>
         </html>
     );
