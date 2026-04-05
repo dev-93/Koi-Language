@@ -1,30 +1,25 @@
 const notionToken = process.env.NOTION_TOKEN;
-const situationDbId = process.env.VITE_NOTION_SITUATION_DB_ID || process.env.NOTION_SITUATION_DB_ID;
+const situationDbId =
+    process.env.VITE_NOTION_SITUATION_DB_ID ||
+    process.env.NOTION_SITUATION_DB_ID ||
+    process.env.NOTION_SITUATIONS_DB_ID;
 const expressionDbId =
-    process.env.VITE_NOTION_EXPRESSION_DB_ID || process.env.NOTION_EXPRESSION_DB_ID;
+    process.env.VITE_NOTION_EXPRESSION_DB_ID ||
+    process.env.NOTION_EXPRESSION_DB_ID ||
+    process.env.NOTION_EXPRESSIONS_DB_ID;
 
-const httpRequest = async (options, body) => {
-    return new Promise((resolve, reject) => {
-        const http = require('https');
-        const req = http.request(options, (res) => {
-            const chunks = [];
-            res.on('data', (chunk) => chunks.push(chunk));
-            res.on('end', () => {
-                const data = Buffer.concat(chunks).toString('utf8');
-                try {
-                    resolve({
-                        status: res.statusCode,
-                        body: data ? JSON.parse(data) : {},
-                    });
-                } catch (e) {
-                    resolve({ status: res.statusCode, body: data });
-                }
-            });
-        });
-        req.on('error', (e) => reject(e));
-        if (body) req.write(JSON.stringify(body));
-        req.end();
+const notionRequest = async (path, body) => {
+    const response = await fetch(`https://api.notion.com${path}`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${notionToken}`,
+            'Notion-Version': '2022-06-28',
+            'Content-Type': 'application/json',
+        },
+        body: body ? JSON.stringify(body) : null,
     });
+    const data = await response.json();
+    return { status: response.status, body: data };
 };
 
 /**
@@ -41,25 +36,13 @@ export const getSituations = async () => {
     }
 
     try {
-        const response = await httpRequest(
-            {
-                hostname: 'api.notion.com',
-                path: `/v1/databases/${situationDbId}/query`,
-                method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${notionToken}`,
-                    'Notion-Version': '2022-06-28',
-                    'Content-Type': 'application/json',
-                },
-            },
-            {
-                sorts: [{ property: 'Date', direction: 'descending' }],
-                page_size: 30,
-            }
-        );
+        const response = await notionRequest(`/v1/databases/${situationDbId}/query`, {
+            sorts: [{ property: 'Date', direction: 'descending' }],
+            page_size: 30,
+        });
 
         if (response.status !== 200) {
-            console.error('Notion API Error', response.body);
+            console.error('Notion API Error (Situations)', response.body);
             return [];
         }
 
@@ -93,26 +76,17 @@ export const getExpressions = async (situationId) => {
     if (!notionToken || !expressionDbId) return [];
 
     try {
-        const response = await httpRequest(
-            {
-                hostname: 'api.notion.com',
-                path: `/v1/databases/${expressionDbId}/query`,
-                method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${notionToken}`,
-                    'Notion-Version': '2022-06-28',
-                    'Content-Type': 'application/json',
-                },
+        const response = await notionRequest(`/v1/databases/${expressionDbId}/query`, {
+            filter: {
+                property: 'Situation',
+                relation: { contains: situationId },
             },
-            {
-                filter: {
-                    property: 'Situation',
-                    relation: { contains: situationId },
-                },
-            }
-        );
+        });
 
-        if (response.status !== 200) return [];
+        if (response.status !== 200) {
+            console.error('Notion API Error (Expressions)', response.body);
+            return [];
+        }
 
         return response.body.results.map((page) => {
             const props = page.properties;

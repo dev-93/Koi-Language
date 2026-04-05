@@ -32,15 +32,21 @@ export default function LearnView({ situation, initialExpressions = [] }) {
         const nationality =
             typeof window !== 'undefined' ? localStorage.getItem('user_nationality') || 'KR' : 'KR';
 
-        // 1. 국적 필터링 (KR -> kr_wants_jp 등)
-        const targetType = nationality === 'KR' ? 'kr_wants_jp' : 'jp_wants_kr';
-        const filtered = (initialExpressions || []).filter((expr) => expr.type === targetType);
+        // 1. 통합 데이터(`integrated`)와 기존 데이터 호환성 유지
+        const integrated = (initialExpressions || []).filter((expr) => expr.type === 'integrated');
+        
+        if (integrated.length > 0) {
+            // 통합 데이터가 있는 경우 전체 사용 (이미 동적 렌더링 준비 완료)
+            setExpressions(integrated);
+        } else {
+            // 과거 데이터인 경우 국적 필터링 거침
+            const targetType = nationality === 'KR' ? 'kr_wants_jp' : 'jp_wants_kr';
+            const filtered = (initialExpressions || []).filter((expr) => expr.type === targetType);
+            const finalData = filtered.length > 0 ? filtered : initialExpressions;
+            setExpressions(finalData);
+        }
 
-        // 2. 만약 필터링 결과가 하나도 없으면 (과거 데이터일 수도 있음) 원본 모두 노출
-        const finalData = filtered.length > 0 ? filtered : initialExpressions;
-        setExpressions(finalData);
-
-        // 3. 국적에 맞춰 보여줄 기본 언어 방향 설정
+        // 2. 국적에 맞춰 보여줄 기본 언어 방향 설정
         setIsKr(nationality === 'KR');
     }, [initialExpressions]);
 
@@ -110,19 +116,28 @@ export default function LearnView({ situation, initialExpressions = [] }) {
                             // 지능형 단어 데이터 파싱
                             let wordList = [];
                             try {
-                                const rawWords = expr.words || '';
-                                if (rawWords.trim().startsWith('[')) {
-                                    wordList = JSON.parse(rawWords);
-                                } else if (rawWords.trim()) {
-                                    // "단어: 뜻, 단어2: 뜻2" 또는 줄바꿈 형태 지원
-                                    const pairs = rawWords.split(/,|\n/).filter((p) => p.trim());
-                                    wordList = pairs.map((p) => {
-                                        const [jpPart, krPart] = p.split(':').map((s) => s.trim());
-                                        return { jp: jpPart, kr: krPart || '' };
-                                    });
-                                }
+                                const rawWords = expr.words || '[]';
+                                const parsedWords = typeof rawWords === 'string' ? JSON.parse(rawWords) : rawWords;
+                                
+                                wordList = (parsedWords || []).map(w => {
+                                    // 통합 데이터 구조: { kr, jp, reading }
+                                    // 과거 데이터 구조: { word, mean } 또는 { jp, kr }
+                                    if (isKr) {
+                                        return { 
+                                            main: w.jp || w.word || '', 
+                                            sub: w.kr || w.mean || '',
+                                            extra: w.reading || '' 
+                                        };
+                                    } else {
+                                        return { 
+                                            main: w.kr || w.mean || w.word || '', 
+                                            sub: w.jp || '',
+                                            extra: '' 
+                                        };
+                                    }
+                                });
                             } catch (e) {
-                                console.warn('Word parsing fallback:', e);
+                                console.warn('Word parsing error:', e);
                             }
 
                             return (
@@ -146,7 +161,7 @@ export default function LearnView({ situation, initialExpressions = [] }) {
                                             </h2>
 
                                             {/* 발음 (독음) */}
-                                            {(expr.reading || expr.pron) && isKr && (
+                                            {isKr && (expr.reading || expr.pron) && (
                                                 <p className="m-0 text-[18px] font-bold text-gray-400 text-center mt-1">
                                                     {(expr.reading || expr.pron).replace(
                                                         /[\u0000-\u001F\u007F-\u009F\uFFFD]/g,
@@ -167,18 +182,26 @@ export default function LearnView({ situation, initialExpressions = [] }) {
 
                                             <div className="card-divider-wide opacity-20 my-6"></div>
 
+                                            {/* 단어 리스트 */}
                                             <div className="d-flex flex-wrap justify-center gap-2 px-4 pb-2">
                                                 {wordList.map((word, wIdx) => (
                                                     <div
                                                         key={wIdx}
-                                                        className="d-flex items-center u-rounded-xl overflow-hidden border border-peach/10 shadow-sm"
+                                                        className="d-flex flex-col items-center u-rounded-xl overflow-hidden border border-peach/10 shadow-sm bg-white"
                                                     >
-                                                        <span className="bg-gray-50 px-3 py-2 text-[13px] font-bold text-gray-600 border-r border-peach/5">
-                                                            {word.jp || word.word}
-                                                        </span>
-                                                        <span className="bg-white px-3 py-2 text-[13px] font-bold text-peach">
-                                                            {word.kr || word.mean}
-                                                        </span>
+                                                        <div className="d-flex items-center">
+                                                            <span className="bg-gray-50 px-3 py-2 text-[13px] font-bold text-gray-600 border-r border-peach/5">
+                                                                {word.main}
+                                                            </span>
+                                                            <span className="bg-white px-3 py-2 text-[13px] font-bold text-peach">
+                                                                {word.sub}
+                                                            </span>
+                                                        </div>
+                                                        {word.extra && (
+                                                            <span className="w-full text-center text-[10px] text-gray-300 font-bold border-t border-peach/5 py-0.5">
+                                                                {word.extra}
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 ))}
                                             </div>
@@ -190,23 +213,37 @@ export default function LearnView({ situation, initialExpressions = [] }) {
                     </Swiper>
 
                     {/* Tip Section */}
-                    {currentExpr?.tip && (
-                        <div className="px-8 mt-1 mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                            <div className="tip-box-standard u-shadow-md border border-peach/10 bg-gradient-to-br from-white to-peach/5 p-6 u-rounded-3xl">
-                                <div className="d-flex items-center gap-2 mb-3">
-                                    <div className="p-1.5 u-bg-white\/80 u-rounded-full shadow-sm">
-                                        <Sparkles size={18} className="text-peach" />
+                    {(() => {
+                        let tipText = '';
+                        try {
+                            if (currentExpr.tip && currentExpr.tip.startsWith('{')) {
+                                const parsedTip = JSON.parse(currentExpr.tip);
+                                tipText = isKr ? parsedTip.kr : parsedTip.jp;
+                            } else {
+                                tipText = currentExpr.tip;
+                            }
+                        } catch (e) {
+                            tipText = currentExpr.tip;
+                        }
+
+                        return tipText ? (
+                            <div className="px-8 mt-1 mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                <div className="tip-box-standard u-shadow-md border border-peach/10 bg-gradient-to-br from-white to-peach/5 p-6 u-rounded-3xl">
+                                    <div className="d-flex items-center gap-2 mb-3">
+                                        <div className="p-1.5 u-bg-white\/80 u-rounded-full shadow-sm">
+                                            <Sparkles size={18} className="text-peach" />
+                                        </div>
+                                        <span className="text-[13px] font-black text-peach tracking-widest uppercase">
+                                            Koi's Dating Tip
+                                        </span>
                                     </div>
-                                    <span className="text-[13px] font-black text-peach tracking-widest uppercase">
-                                        Koi's Dating Tip
-                                    </span>
+                                    <p className="m-0 text-[15px] font-bold text-gray-600 leading-relaxed">
+                                        {tipText}
+                                    </p>
                                 </div>
-                                <p className="m-0 text-[15px] font-bold text-gray-600 leading-relaxed">
-                                    {currentExpr.tip}
-                                </p>
                             </div>
-                        </div>
-                    )}
+                        ) : null;
+                    })()}
                 </div>
             </div>
 
