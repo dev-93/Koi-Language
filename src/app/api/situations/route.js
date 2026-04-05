@@ -33,7 +33,7 @@ const getRelationIds = (prop) => prop?.relation?.map((r) => r.id) ?? [];
 const parseExpression = (page) => {
     const wordsRaw = getRichText(page.properties['Words']);
     const tipRaw = getRichText(page.properties['Tip']);
-    const readingRaw = getRichText(page.properties['Reading']);
+    const readingRaw = getRichText(page.properties['Reading']) || getRichText(page.properties['reading']);
 
     let words = [];
     try { words = wordsRaw ? JSON.parse(wordsRaw) : []; } catch { words = []; }
@@ -98,18 +98,21 @@ export async function GET() {
                 };
                 
                 const sitExpressions = expressions.filter((e) => e.situationIds.includes(sit.id));
-                const integrated = sitExpressions.filter(e => e.target === 'INTEGRATED');
+                const integrated = sitExpressions.filter(e => {
+                    const target = (e.target || '').toUpperCase();
+                    return target === 'INTEGRATED';
+                });
 
                 return {
                     ...sit,
                     expressions: {
                         kr_wants_jp: [
-                            ...sitExpressions.filter((e) => e.target === 'KR'),
-                            ...integrated
+                            ...sitExpressions.filter((e) => (e.target || '').toUpperCase() === 'KR'),
+                            ...integrated.map((e) => ({ ...e, is_integrated: true }))
                         ],
                         jp_wants_kr: [
-                            ...sitExpressions.filter((e) => e.target === 'JP'),
-                            ...integrated
+                            ...sitExpressions.filter((e) => (e.target || '').toUpperCase() === 'JP'),
+                            ...integrated.map((e) => ({ ...e, is_integrated: true }))
                         ],
                     },
                 };

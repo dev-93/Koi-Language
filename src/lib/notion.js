@@ -97,14 +97,14 @@ export const getExpressions = async (situationId) => {
                     '';
             }
 
-            // 발음(Pronunciation) 찾기 보강
-            const pronProp = Object.entries(props).find(
+            // 발음(Reading) 찾기 보강
+            const readingProp = Object.entries(props).find(
                 ([key, val]) =>
                     ['Pronunciation', '발음', 'Pron', 'Reading'].some((name) =>
                         key.includes(name)
                     ) && val.rich_text
             );
-            const pronText = pronProp?.[1]?.rich_text?.[0]?.plain_text || '';
+            const readingText = readingProp?.[1]?.rich_text?.[0]?.plain_text || '';
 
             return {
                 id: page.id,
@@ -113,9 +113,9 @@ export const getExpressions = async (situationId) => {
                     props.Text_JP?.rich_text?.[0]?.plain_text ||
                     props.JP?.rich_text?.[0]?.plain_text ||
                     '',
-                pron: pronText,
+                reading: readingText,
                 tip: props.Tip?.rich_text?.[0]?.plain_text || '',
-                type: props.Type?.select?.name || props.Type?.multi_select?.[0]?.name || '',
+                target: props.Target?.select?.name || props.Type?.select?.name || props.Type?.multi_select?.[0]?.name || '',
                 words: props.Words?.rich_text?.[0]?.plain_text || '', // JSON 형태의 문자열
             };
         });

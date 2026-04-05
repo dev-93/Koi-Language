@@ -26,7 +26,7 @@ export default function LearnView({ situation, initialExpressions = [] }) {
 
         // Target 필드가 INTEGRATED이거나 nationality와 맞는 것 필터링
         const filtered = (initialExpressions || []).filter(e => {
-            const target = (e.target || e.type || '').toUpperCase();
+            const target = (e.target || e.type || e.Target || '').toUpperCase();
             return target === 'INTEGRATED' || target === learnedNationality.toUpperCase();
         });
 
@@ -118,8 +118,8 @@ export default function LearnView({ situation, initialExpressions = [] }) {
                                 }));
                             } catch (e) { console.warn('Word parsing error:', e); }
 
-                            // Reading 노출 보장 (하이브리드 파싱)
-                            const readingText = parseValue(expr.reading, isKr ? 'kr' : 'jp');
+                            // 어떤 이름으로 들어와도 발음을 보여주도록 보강
+                            const readingText = parseValue(expr.reading || expr.pron || expr.Reading || expr.pronunciation, isKr ? 'kr' : 'jp') || expr.reading_en;
                             const mainText = isKr ? expr.jp : expr.kr;
                             const subText = isKr ? expr.kr : expr.jp;
 
