@@ -11,6 +11,8 @@ import {
     UserCircle,
     Settings,
     ArrowRight,
+    CheckCircle2,
+    Check,
 } from 'lucide-react';
 import SituationScene from './SituationScene';
 import useStore from '@/store';
@@ -20,6 +22,8 @@ export default function HomeView({ initialSituations = [] }) {
     const { currentTab: tab, setCurrentTab: setTab } = useStore();
     const [situations, setSituations] = useState(initialSituations);
     const [searchQuery, setSearchQuery] = useState('');
+    const [learnedIds, setLearnedIds] = useState([]);
+    const [filterStatus, setFilterStatus] = useState('all'); // all, completed, uncompleted
 
     // 1. 온보딩 여부 확인 (클라이언트 사이드에서만 동작)
     useEffect(() => {
@@ -34,19 +38,30 @@ export default function HomeView({ initialSituations = [] }) {
         if (initialSituations.length > 0) {
             setSituations(initialSituations);
         }
+
+        // 공부 완료 내역 로드
+        if (typeof window !== 'undefined') {
+            const learned = JSON.parse(localStorage.getItem('learned_id') || '[]');
+            setLearnedIds(learned);
+        }
     }, [initialSituations]);
 
     // 오늘의 표현 찾기 (가장 최근 데이터 하나)
     const currentSituation = situations[0];
 
-    // 이전에 공부했던 내역들 (아카이브)
+    // 이전에 공부했던 내역들 (아카이브) + 필터링 적용
     const archiveSituations = situations
         .slice(1)
-        .filter(
-            (s) =>
+        .filter((s) => {
+            const matchesSearch =
                 s.title.kr.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                s.title.jp.toLowerCase().includes(searchQuery.toLowerCase())
-        );
+                s.title.jp.toLowerCase().includes(searchQuery.toLowerCase());
+
+            const isLearned = learnedIds.includes(s.id);
+            if (filterStatus === 'completed') return matchesSearch && isLearned;
+            if (filterStatus === 'uncompleted') return matchesSearch && !isLearned;
+            return matchesSearch;
+        });
 
     const handleLearnStart = (situationId) => {
         router.push(`/learn/${situationId}`);
@@ -78,11 +93,10 @@ export default function HomeView({ initialSituations = [] }) {
             >
                 <button
                     onClick={() => setTab('today')}
-                    className={`flex-1 py-3 px-4 u-rounded-2xl font-black text-[15px] border-none transition-all cursor-pointer ${
-                        tab === 'today'
-                            ? 'bg-peach text-white u-shadow-md'
-                            : 'bg-transparent text-gray-400 hover:bg-white/50'
-                    }`}
+                    className={`flex-1 py-3 px-4 u-rounded-2xl font-black text-[15px] border-none transition-all cursor-pointer ${tab === 'today'
+                        ? 'bg-peach text-white u-shadow-md'
+                        : 'bg-transparent text-gray-400 hover:bg-white/50'
+                        }`}
                 >
                     <div className="d-flex items-center justify-center gap-2">
                         <Heart size={16} fill={tab === 'today' ? 'white' : 'none'} />
@@ -91,11 +105,10 @@ export default function HomeView({ initialSituations = [] }) {
                 </button>
                 <button
                     onClick={() => setTab('archive')}
-                    className={`flex-1 py-4 px-4 u-rounded-2xl font-black text-[15px] border-none transition-all cursor-pointer ${
-                        tab === 'archive'
-                            ? 'bg-peach text-white u-shadow-md'
-                            : 'bg-transparent text-gray-400 hover:bg-white/50'
-                    }`}
+                    className={`flex-1 py-4 px-4 u-rounded-2xl font-black text-[15px] border-none transition-all cursor-pointer ${tab === 'archive'
+                        ? 'bg-peach text-white u-shadow-md'
+                        : 'bg-transparent text-gray-400 hover:bg-white/50'
+                        }`}
                 >
                     <div className="d-flex items-center justify-center gap-2">
                         <BookMarked size={16} fill={tab === 'archive' ? 'white' : 'none'} />
@@ -121,9 +134,16 @@ export default function HomeView({ initialSituations = [] }) {
                                 />
 
                                 <div className="flex-1 d-flex flex-col items-center justify-start gap-4 w-full pt-4 px-4">
-                                    <h2 className="m-0 text-[30px] font-black text-center leading-tight text-gray-800">
-                                        {currentSituation.title.kr}
-                                    </h2>
+                                    <div className="d-flex items-center gap-2">
+                                        <h2 className="m-0 text-[30px] font-black text-center leading-tight text-gray-800">
+                                            {currentSituation.title.kr}
+                                        </h2>
+                                        {learnedIds.includes(currentSituation.id) && (
+                                            <div className="bg-green-500 text-white p-1 u-rounded-full">
+                                                <CheckCircle2 size={16} fill="white" className="text-green-500" />
+                                            </div>
+                                        )}
+                                    </div>
                                     <p className="m-0 text-[14px] font-medium text-gray-400 text-center leading-relaxed">
                                         {currentSituation.desc.kr}
                                     </p>
@@ -158,6 +178,25 @@ export default function HomeView({ initialSituations = [] }) {
                             />
                         </div>
 
+                        <div className="d-flex items-center gap-2 mb-4 px-1 overflow-x-auto pb-1 no-scrollbar">
+                            {[
+                                { id: 'all', label: '전체' },
+                                { id: 'completed', label: '공부 완료!' },
+                                { id: 'uncompleted', label: '학습 준비중' },
+                            ].map((f) => (
+                                <button
+                                    key={f.id}
+                                    onClick={() => setFilterStatus(f.id)}
+                                    className={`px-4 py-1.5 u-rounded-full text-[13px] font-black transition-all border-none cursor-pointer whitespace-nowrap ${filterStatus === f.id
+                                        ? 'bg-peach text-white'
+                                        : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                                        }`}
+                                >
+                                    {f.label}
+                                </button>
+                            ))}
+                        </div>
+
                         <div
                             className="d-flex flex-col max-h-[550px] overflow-y-auto pb-24 custom-scrollbar"
                             style={{ gap: '1.2rem' }}
@@ -170,7 +209,7 @@ export default function HomeView({ initialSituations = [] }) {
                                         className="u-bg-white\/90 u-backdrop-blur u-shadow-md hover:u-shadow-xl u-rounded-3xl p-6 d-flex items-center justify-between hover:translate-y-[-2px] hover:bg-peach-light transition-all cursor-pointer border group"
                                         style={{ borderColor: 'rgba(255,138,138,0.1)' }}
                                     >
-                                        <div className="d-flex flex-col gap-3">
+                                        <div className="d-flex flex-col gap-2">
                                             <div className="d-flex items-center gap-2">
                                                 <Calendar
                                                     size={13}
@@ -184,8 +223,21 @@ export default function HomeView({ initialSituations = [] }) {
                                                 {situation.title.kr}
                                             </h3>
                                         </div>
-                                        <div className="w-10 h-10 u-rounded-xl bg-peach-light d-flex items-center justify-center text-peach opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <ArrowRight size={20} />
+
+                                        <div className="d-flex items-center gap-3">
+                                            {learnedIds.includes(situation.id) ? (
+                                                <div className="w-10 h-10 u-rounded-full bg-peach d-flex items-center justify-center text-white shadow-sm border border-peach/20">
+                                                    <Check size={20} strokeWidth={4} className="text-white" />
+                                                </div>
+                                            ) : (
+                                                <div className="w-10 h-10 u-rounded-full border-2 border-gray-100 d-flex items-center justify-center text-gray-200">
+                                                    <div className="w-6 h-6 u-rounded-full border border-gray-100/50" />
+                                                </div>
+                                            )}
+
+                                            <div className="text-peach opacity-30 group-hover:opacity-100 transform group-hover:translate-x-1 transition-all ml-1">
+                                                <ArrowRight size={20} strokeWidth={3} />
+                                            </div>
                                         </div>
                                     </div>
                                 ))
