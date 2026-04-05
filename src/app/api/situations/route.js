@@ -14,7 +14,7 @@ const notionRequest = async (method, path, body) => {
             'Content-Type': 'application/json',
         },
         body: payload,
-        next: { revalidate: 300 }, // Cache for 5 minutes
+        next: { revalidate: 300 },
     });
 
     if (!response.ok) {
@@ -30,36 +30,29 @@ const getSelect = (prop) => prop?.select?.name ?? '';
 const getDate = (prop) => prop?.date?.start ?? '';
 const getRelationIds = (prop) => prop?.relation?.map((r) => r.id) ?? [];
 
-const parseSituation = (page) => ({
-    id: page.id,
-    title: {
-        kr: getTitle(page.properties['Title_KR']),
-        jp: getRichText(page.properties['Title_JP']),
-    },
-    desc: {
-        kr: getRichText(page.properties['Desc_KR']),
-        jp: getRichText(page.properties['Desc_JP']),
-    },
-    date: getDate(page.properties['Date']),
-});
-
 const parseExpression = (page) => {
     const wordsRaw = getRichText(page.properties['Words']);
+    const tipRaw = getRichText(page.properties['Tip']);
+    const readingRaw = getRichText(page.properties['Reading']);
+
     let words = [];
-    try {
-        words = wordsRaw ? JSON.parse(wordsRaw) : [];
-    } catch {
-        words = [];
-    }
+    try { words = wordsRaw ? JSON.parse(wordsRaw) : []; } catch { words = []; }
+
+    // JSON 형식인 경우와 평문인 경우 모두 대응
+    let tip = tipRaw;
+    try { tip = JSON.parse(tipRaw); } catch { tip = tipRaw; }
+
+    let reading = readingRaw;
+    try { reading = JSON.parse(readingRaw); } catch { reading = readingRaw; }
+
     return {
         id: page.id,
         kr: getTitle(page.properties['Title_KR']) || getTitle(page.properties['KR']),
         jp: getRichText(page.properties['Text_JP']) || getRichText(page.properties['JP']),
-        reading:
-            getRichText(page.properties['Reading']) ||
-            getRichText(page.properties['Pronunciation']),
-        tip: getRichText(page.properties['Tip']),
-        type: getSelect(page.properties['Type']),
+        reading, // JSON { kr, jp } 또는 String
+        tip,     // JSON { kr, jp } 또는 String
+        // Target 필드가 없으면 기존 Type 필드를 폴백으로 사용
+        target: getSelect(page.properties['Target']) || getSelect(page.properties['Type']),
         situationIds: getRelationIds(page.properties['Situation']),
         words,
     };
@@ -96,48 +89,36 @@ export async function GET() {
 
         const situations = sitPages
             .map((page) => {
-                const sit = parseSituation(page);
-                const sitExpressions = expressions.filter((e) => e.situationIds.includes(sit.id));
+                const props = page.properties;
+                const sit = {
+                    id: page.id,
+                    title: { kr: getTitle(props['Title_KR']), jp: getRichText(props['Title_JP']) },
+                    desc: { kr: getRichText(props['Desc_KR']), jp: getRichText(props['Desc_JP']) },
+                    date: getDate(props['Date']),
+                };
                 
-                // 통합형(integrated) 데이터가 있다면 리스트에 바로 포함시킴
-                const integratedNodes = sitExpressions.filter(e => e.type === 'integrated');
+                const sitExpressions = expressions.filter((e) => e.situationIds.includes(sit.id));
+                const integrated = sitExpressions.filter(e => e.target === 'INTEGRATED');
 
                 return {
                     ...sit,
                     expressions: {
                         kr_wants_jp: [
-                            ...sitExpressions.filter((e) => e.type === 'kr_wants_jp'),
-                            ...integratedNodes // 통합형 데이터도 함께 내려줌
+                            ...sitExpressions.filter((e) => e.target === 'KR'),
+                            ...integrated
                         ],
                         jp_wants_kr: [
-                            ...sitExpressions.filter((e) => e.type === 'jp_wants_kr'),
-                            ...integratedNodes // 통합형 데이터도 함께 내려줌
+                            ...sitExpressions.filter((e) => e.target === 'JP'),
+                            ...integrated
                         ],
                     },
                 };
             })
             .filter((s) => s.date)
-            .sort((a, b) => {
-                const today = new Date().toISOString().split('T')[0];
-                if (a.date === today && b.date !== today) return -1;
-                if (b.date === today && a.date !== today) return 1;
-                // 최신순 정렬 (Date DESC)
-                return b.date > a.date ? 1 : -1;
-            });
+            .sort((a, b) => b.date > a.date ? 1 : -1);
 
-        return NextResponse.json(
-            { situations },
-            {
-                headers: {
-                    'Cache-Control': 's-maxage=300, stale-while-revalidate',
-                },
-            }
-        );
+        return NextResponse.json({ situations });
     } catch (err) {
-        console.error('Notion fetch error:', err);
-        return NextResponse.json(
-            { error: 'Failed to fetch from Notion', detail: err.message },
-            { status: 500 }
-        );
+        return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }

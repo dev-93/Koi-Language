@@ -8,8 +8,6 @@ const NOTION_TOKEN = process.env.NOTION_TOKEN;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const SITUATION_DB_ID = process.env.NOTION_SITUATION_DB_ID || process.env.NOTION_SITUATIONS_DB_ID;
 const EXPRESSIONS_DB_ID = process.env.NOTION_EXPRESSION_DB_ID || process.env.NOTION_EXPRESSIONS_DB_ID;
-const TG_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const TG_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
 const getKSTDate = (dateStr) => {
     const d = dateStr ? new Date(dateStr) : new Date();
@@ -52,7 +50,7 @@ const geminiRequest = async (prompt) => {
         {
             contents: [{ parts: [{ text: prompt }] }],
             generationConfig: {
-                temperature: 0.2, // 결정론적 응답
+                temperature: 0.1,
                 maxOutputTokens: 2048,
                 response_mime_type: 'application/json',
                 responseSchema: {
@@ -75,7 +73,7 @@ const geminiRequest = async (prompt) => {
                                 properties: {
                                     kr: { type: "STRING" },
                                     jp: { type: "STRING" },
-                                    reading: { type: "STRING" },
+                                    reading_en: { type: "STRING", description: "Romaji (e.g. Kimi to issho de...)" },
                                     tip_kr: { type: "STRING" },
                                     tip_jp: { type: "STRING" },
                                     words: {
@@ -85,13 +83,13 @@ const geminiRequest = async (prompt) => {
                                             properties: {
                                                 kr: { type: "STRING" },
                                                 jp: { type: "STRING" },
-                                                reading: { type: "STRING" }
+                                                reading_en: { type: "STRING" }
                                             },
-                                            required: ["kr", "jp", "reading"]
+                                            required: ["kr", "jp", "reading_en"]
                                         }
                                     }
                                 },
-                                required: ["kr", "jp", "reading", "tip_kr", "tip_jp", "words"]
+                                required: ["kr", "jp", "reading_en", "tip_kr", "tip_jp", "words"]
                             }
                         }
                     },
@@ -103,7 +101,6 @@ const geminiRequest = async (prompt) => {
 
     if (status >= 400) throw new Error(`Gemini API Error (${status}): ${body}`);
     const parsed = JSON.parse(body);
-    if (parsed.error) throw new Error(`Gemini Error: ${parsed.error.message}`);
     return parsed.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
 };
 
@@ -125,30 +122,19 @@ const notionPost = async (path, body) => {
 };
 
 (async () => {
-    console.log(`\n🚀 [${targetDate}] 통합 콘텐츠 생성을 시작합니다...`);
-
-    if (!GEMINI_API_KEY || !NOTION_TOKEN) {
-        console.error('❌ 설정 오류: GEMINI_API_KEY 또는 NOTION_TOKEN이 없습니다.');
-        return;
-    }
+    console.log(`\n🚀 [${targetDate}] 로마자 통합 콘텐츠 생성을 시작합니다...`);
+    if (!GEMINI_API_KEY || !NOTION_TOKEN) return console.error('❌ 설정 오류');
 
     try {
         const PROMPT = `일본인 연인과의 실전 데이트 상황 1개와 관련 표현 3개를 생성하세요.
 날짜: ${targetDate}
-반드시 순수 JSON만 반환하고, 따옴표는 작은따옴표(') 또는 이스케이프 처리를 하세요.`;
+중요: 
+1. 모든 reading_en 필드에는 전세계 공용 '영어 로마자 발음(Romaji)'을 적으세요.
+2. 각 표현(expressions)마다 단어(words) 리스트는 가장 핵심적인 것 '최대 3개'만 생성하세요.`;
 
-        console.log('🤖 Gemini에게 통합 데이터 요청 중...');
         const rawResponse = await geminiRequest(PROMPT);
-        
-        let data;
-        try {
-            data = JSON.parse(rawResponse.replace(/[\u0000-\u001F\u007F-\u009F]/g, " "));
-        } catch (e) {
-            const cleaned = rawResponse.replace(/^```json\n?/, '').replace(/\n?```$/, '').trim();
-            data = JSON.parse(cleaned.replace(/[\u0000-\u001F\u007F-\u009F]/g, " "));
-        }
+        const data = JSON.parse(rawResponse.replace(/[\u0000-\u001F\u007F-\u009F]/g, " "));
 
-        console.log('📝 Notion 상황 페이지 작성 중...');
         const sitPage = await notionPost('/v1/pages', {
             parent: { database_id: SITUATION_DB_ID },
             properties: {
@@ -160,18 +146,16 @@ const notionPost = async (path, body) => {
             },
         });
 
-        console.log(`✍️ 통합 표현 ${data.expressions.length}개 추가 중...`);
         for (const expr of data.expressions) {
-            await new Promise(resolve => setTimeout(resolve, 300));
             await notionPost('/v1/pages', {
                 parent: { database_id: EXPRESSIONS_DB_ID },
                 properties: {
                     Title_KR: { title: [{ text: { content: expr.kr } }] },
                     Text_JP: { rich_text: [{ text: { content: expr.jp } }] },
-                    Reading: { rich_text: [{ text: { content: expr.reading } }] },
+                    Reading: { rich_text: [{ text: { content: expr.reading_en } }] },
                     Tip: { rich_text: [{ text: { content: JSON.stringify({ kr: expr.tip_kr, jp: expr.tip_jp }) } }] },
                     Words: { rich_text: [{ text: { content: JSON.stringify(expr.words) } }] },
-                    Type: { select: { name: 'integrated' } },
+                    Target: { select: { name: 'INTEGRATED' } },
                     Situation: { relation: [{ id: sitPage.id }] },
                     Date: { date: { start: targetDate } },
                 },
@@ -179,7 +163,5 @@ const notionPost = async (path, body) => {
             process.stdout.write('.');
         }
         console.log(`\n✅ 성공!`);
-    } catch (err) {
-        console.error(`\n❌ 실패:`, err.message);
-    }
+    } catch (err) { console.error(`\n❌ 실패:`, err.message); }
 })();
