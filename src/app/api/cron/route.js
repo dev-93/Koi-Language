@@ -51,6 +51,76 @@ const geminiRequest = async (prompt) => {
             topP: 0.95,
             topK: 40,
             response_mime_type: 'application/json',
+            responseSchema: {
+                type: "OBJECT",
+                properties: {
+                    situation: {
+                        type: "OBJECT",
+                        properties: {
+                            title_kr: { type: "STRING" },
+                            title_jp: { type: "STRING" },
+                            desc_kr: { type: "STRING" },
+                            desc_jp: { type: "STRING" }
+                        },
+                        required: ["title_kr", "title_jp", "desc_kr", "desc_jp"]
+                    },
+                    expressions: {
+                        type: "OBJECT",
+                        properties: {
+                            kr_wants_jp: {
+                                type: "ARRAY",
+                                items: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        kr: { type: "STRING" },
+                                        jp: { type: "STRING" },
+                                        reading: { type: "STRING" },
+                                        tip: { type: "STRING" },
+                                        words: {
+                                            type: "ARRAY",
+                                            items: {
+                                                type: "OBJECT",
+                                                properties: {
+                                                    word: { type: "STRING" },
+                                                    mean: { type: "STRING" }
+                                                },
+                                                required: ["word", "mean"]
+                                            }
+                                        }
+                                    },
+                                    required: ["kr", "jp", "reading", "tip", "words"]
+                                }
+                            },
+                            jp_wants_kr: {
+                                type: "ARRAY",
+                                items: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        kr: { type: "STRING" },
+                                        jp: { type: "STRING" },
+                                        reading: { type: "STRING" },
+                                        tip: { type: "STRING" },
+                                        words: {
+                                            type: "ARRAY",
+                                            items: {
+                                                type: "OBJECT",
+                                                properties: {
+                                                    word: { type: "STRING" },
+                                                    mean: { type: "STRING" }
+                                                },
+                                                required: ["word", "mean"]
+                                            }
+                                        }
+                                    },
+                                    required: ["kr", "jp", "reading", "tip", "words"]
+                                }
+                            }
+                        },
+                        required: ["kr_wants_jp", "jp_wants_kr"]
+                    }
+                },
+                required: ["situation", "expressions"]
+            }
         },
     });
     // 최신 모델인 gemini-2.5-flash 사용 (사용자 프로젝트 설정 유지)

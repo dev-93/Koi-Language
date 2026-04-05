@@ -53,7 +53,80 @@ const geminiRequest = async (prompt) => {
             contents: [{ parts: [{ text: prompt }] }],
             generationConfig: {
                 temperature: 0.7,
+                maxOutputTokens: 2048,
+                topP: 0.95,
+                topK: 40,
                 response_mime_type: 'application/json',
+                responseSchema: {
+                    type: "OBJECT",
+                    properties: {
+                        situation: {
+                            type: "OBJECT",
+                            properties: {
+                                title_kr: { type: "STRING" },
+                                title_jp: { type: "STRING" },
+                                desc_kr: { type: "STRING" },
+                                desc_jp: { type: "STRING" }
+                            },
+                            required: ["title_kr", "title_jp", "desc_kr", "desc_jp"]
+                        },
+                        expressions: {
+                            type: "OBJECT",
+                            properties: {
+                                kr_wants_jp: {
+                                    type: "ARRAY",
+                                    items: {
+                                        type: "OBJECT",
+                                        properties: {
+                                            kr: { type: "STRING" },
+                                            jp: { type: "STRING" },
+                                            reading: { type: "STRING" },
+                                            tip: { type: "STRING" },
+                                            words: {
+                                                type: "ARRAY",
+                                                items: {
+                                                    type: "OBJECT",
+                                                    properties: {
+                                                        word: { type: "STRING" },
+                                                        mean: { type: "STRING" }
+                                                    },
+                                                    required: ["word", "mean"]
+                                                }
+                                            }
+                                        },
+                                        required: ["kr", "jp", "reading", "tip", "words"]
+                                    }
+                                },
+                                jp_wants_kr: {
+                                    type: "ARRAY",
+                                    items: {
+                                        type: "OBJECT",
+                                        properties: {
+                                            kr: { type: "STRING" },
+                                            jp: { type: "STRING" },
+                                            reading: { type: "STRING" },
+                                            tip: { type: "STRING" },
+                                            words: {
+                                                type: "ARRAY",
+                                                items: {
+                                                    type: "OBJECT",
+                                                    properties: {
+                                                        word: { type: "STRING" },
+                                                        mean: { type: "STRING" }
+                                                    },
+                                                    required: ["word", "mean"]
+                                                }
+                                            }
+                                        },
+                                        required: ["kr", "jp", "reading", "tip", "words"]
+                                    }
+                                }
+                            },
+                            required: ["kr_wants_jp", "jp_wants_kr"]
+                        }
+                    },
+                    required: ["situation", "expressions"]
+                }
             },
         }
     );
@@ -82,8 +155,7 @@ const notionPost = async (path, body) => {
 };
 
 (async () => {
-    console.log(`
-🚀 [${targetDate}] 콘텐츠 생성을 시작합니다...`);
+    console.log(`\n🚀 [${targetDate}] 콘텐츠 생성을 시작합니다...`);
 
     if (!GEMINI_API_KEY || !NOTION_TOKEN) {
         console.error('❌ 설정 오류: GEMINI_API_KEY 또는 NOTION_TOKEN이 없습니다.');
@@ -167,10 +239,8 @@ const notionPost = async (path, body) => {
             });
             process.stdout.write('.');
         }
-        console.log('
-✅ 성공!');
+        console.log(`\n✅ 성공!`);
     } catch (err) {
-        console.error('
-❌ 실패:', err.message);
+        console.error(`\n❌ 실패:`, err.message);
     }
 })();
