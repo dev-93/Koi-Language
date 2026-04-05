@@ -25,11 +25,10 @@ export default function LearnView({ situation, initialExpressions = [] }) {
         const learnedNationality = nationality === 'JP' ? 'JP' : 'KR';
 
         // Target 필드가 INTEGRATED이거나 nationality와 맞는 것 필터링
-        const filtered = (initialExpressions || []).filter(e =>
-            e.target === 'INTEGRATED' ||
-            e.target === learnedNationality ||
-            e.type === 'integrated'
-        );
+        const filtered = (initialExpressions || []).filter(e => {
+            const target = (e.target || e.type || '').toUpperCase();
+            return target === 'INTEGRATED' || target === learnedNationality.toUpperCase();
+        });
 
         setExpressions(filtered.length > 0 ? filtered : initialExpressions);
         setIsKr(nationality === 'KR');
@@ -82,6 +81,30 @@ export default function LearnView({ situation, initialExpressions = [] }) {
             </header>
 
             <div className="w-full d-flex flex-col items-center pt-2">
+                <div className="w-full max-w-[440px] d-flex flex-col items-center pt-4 mb-6">
+                    <div className="text-center mb-4 text-[13px] font-black text-gray-400 tracking-widest uppercase opacity-60">
+                        PROGRESS {currentIndex + 1} / {expressions.length}
+                    </div>
+                    <div className="w-full d-flex justify-center items-center gap-10 px-6">
+                        <button 
+                            onClick={() => swiper?.slidePrev()} 
+                            className="font-black transition-all cursor-pointer d-flex items-center gap-2 text-peach/50 hover:text-peach border-none bg-transparent active:scale-95 disabled:opacity-0 disabled:pointer-events-none" 
+                            disabled={currentIndex === 0}
+                        >
+                            <ArrowLeft size={18} />
+                            <span className="text-[14px] tracking-tighter">PREV</span>
+                        </button>
+
+                        <button 
+                            onClick={() => currentIndex === expressions.length - 1 ? handleFinish() : swiper?.slideNext()} 
+                            className="px-6 py-2 u-rounded-full bg-peach font-black text-white d-flex items-center gap-2 u-shadow-md hover:scale-105 border-none active:scale-95 transition-all"
+                        >
+                            <span className="text-[14px] tracking-tighter">{currentIndex === expressions.length - 1 ? 'FINISH' : 'NEXT'}</span>
+                            <ArrowRight size={18} />
+                        </button>
+                    </div>
+                </div>
+
                 <div className="w-full max-w-[440px]">
                     <Swiper onSwiper={setSwiper} onSlideChange={(s) => setCurrentIndex(s.activeIndex)} className="w-full overflow-visible" spaceBetween={14} slidesPerView={1.05} centeredSlides={true}>
                         {expressions.map((expr, idx) => {
@@ -111,13 +134,13 @@ export default function LearnView({ situation, initialExpressions = [] }) {
                                             </h2>
 
                                             {readingText && (
-                                                <p className="m-0 text-[18px] font-bold text-gray-400 text-center italic px-4">
+                                                <p className="m-0 text-[18px] font-bold text-peach text-center italic mt-2">
                                                     {readingText}
                                                 </p>
                                             )}
 
-                                            <div className="mt-2 px-6 py-3 u-rounded-2xl bg-peach/10 border border-peach/20 min-w-[120px]">
-                                                <p className="m-0 text-[20px] font-black text-peach text-center">
+                                            <div className="mt-4">
+                                                <p className="m-0 text-[20px] font-black text-peach/70 text-center">
                                                     {subText}
                                                 </p>
                                             </div>
@@ -158,30 +181,6 @@ export default function LearnView({ situation, initialExpressions = [] }) {
                             </div>
                         );
                     })()}
-                </div>
-            </div>
-
-            <div className="fixed left-0 right-0 bottom-12 d-flex flex-col items-center z-50">
-                <div className="text-center mb-6 text-[15px] font-black text-gray-800 tracking-widest uppercase opacity-80">
-                    PROGRESS {currentIndex + 1} / {expressions.length}
-                </div>
-                <div className="w-full max-w-[420px] d-flex justify-center items-center gap-4 px-8">
-                    <button
-                        onClick={() => swiper?.slidePrev()}
-                        className="h-16 flex-1 u-rounded-full font-black transition-all cursor-pointer d-flex items-center justify-center gap-2 border-2 border-peach/20 bg-white active:scale-95 disabled:opacity-40"
-                        disabled={currentIndex === 0}
-                    >
-                        <ArrowLeft size={16} className="text-peach/40" />
-                        <span className="text-[14px] tracking-tight text-peach/40">PREV</span>
-                    </button>
-
-                    <button
-                        onClick={currentIndex === expressions.length - 1 ? handleFinish : () => swiper?.slideNext()}
-                        className="h-16 flex-1 u-rounded-full bg-peach font-black text-white d-flex items-center justify-center gap-2 u-shadow-lg hover:brightness-105 transition-all active:scale-95"
-                    >
-                        <span className="text-[14px] tracking-tight">{currentIndex === expressions.length - 1 ? 'FINISH' : 'NEXT'}</span>
-                        <ArrowRight size={16} />
-                    </button>
                 </div>
             </div>
 
