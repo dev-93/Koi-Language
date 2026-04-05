@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import fs from 'fs';
+import path from 'path';
 
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
 const SITUATION_DB_ID = process.env.NOTION_SITUATION_DB_ID || process.env.NOTION_SITUATIONS_DB_ID;
@@ -18,6 +20,24 @@ const sendTelegramMessage = async (text) => {
     } catch (e) {
         console.error('Telegram Error:', e);
     }
+};
+
+const getBusinessStatus = () => {
+    try {
+        // Vercel 서버리스 환경에서 BUSINESS.md 파일 읽기 시도
+        const filePath = path.join(process.cwd(), 'BUSINESS.md');
+        if (fs.existsSync(filePath)) {
+            const content = fs.readFileSync(filePath, 'utf8');
+            const all = (content.match(/- \[[ x]\]/g) || []).length;
+            const done = (content.match(/- \[x\]/g) || []).length;
+            const progress = all > 0 ? Math.round((done / all) * 100) : 0;
+            const next = content.split('\n').find(l => l.includes('- [ ]'))?.replace(/- \[ \]\s*/, '').trim() || 'All Done!';
+            return `\n\n📈 <b>Status</b>: ${progress}% (${done}/${all})\n🚧 <b>Next</b>: ${next}`;
+        }
+    } catch (e) {
+        console.error('Business Status Parse Error:', e);
+    }
+    return '';
 };
 
 const notionRequest = async (method, path, body) => {
@@ -62,7 +82,7 @@ const geminiRequest = async (prompt) => {
                             properties: {
                                 kr: { type: "STRING" },
                                 jp: { type: "STRING" },
-                                reading_en: { type: "STRING", description: "Romaji pronunciation (e.g. Kimi to issho de...)" },
+                                reading_en: { type: "STRING" },
                                 tip_kr: { type: "STRING" },
                                 tip_jp: { type: "STRING" },
                                 words: {
@@ -72,7 +92,7 @@ const geminiRequest = async (prompt) => {
                                         properties: {
                                             kr: { type: "STRING" },
                                             jp: { type: "STRING" },
-                                            reading_en: { type: "STRING", description: "Romaji pronunciation for the word (e.g. Kimi)" }
+                                            reading_en: { type: "STRING" }
                                         },
                                         required: ["kr", "jp", "reading_en"]
                                     }
@@ -110,15 +130,10 @@ export async function GET(request) {
 
         if (!NOTION_TOKEN || !GEMINI_API_KEY) throw new Error('Env configuration missing');
 
-        const prompt = `일본인 연인과의 실전 데이트 상황 1개와 관련 표현 3개를 생성하세요.
-날짜: ${targetDate}
-중요: 
-1. 모든 reading_en 필드에는 전세계 공용 '영어 로마자 발음(Romaji)'을 적으세요.
-2. 각 표현(expressions)마다 단어(words) 리스트는 가장 핵심적인 것 '최대 3개'만 생성하세요.`;
+        const prompt = `일본인 연인과의 실전 데이트 상황 1개와 관련 표현 3개를 생성하세요. 날짜: ${targetDate}`;
 
         const geminiRes = await geminiRequest(prompt);
         let rawText = geminiRes.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
-        
         let data = JSON.parse(rawText.replace(/[\u0000-\u001F\u007F-\u009F]/g, " "));
 
         const sitPage = await notionRequest('POST', '/v1/pages', {
@@ -138,7 +153,6 @@ export async function GET(request) {
                 properties: {
                     Title_KR: { title: [{ text: { content: expr.kr } }] },
                     Text_JP: { rich_text: [{ text: { content: expr.jp } }] },
-                    // 영어 로마자를 Reading 컬럼에 바로 넣습니다. (호환성을 위해)
                     Reading: { rich_text: [{ text: { content: expr.reading_en } }] },
                     Tip: { rich_text: [{ text: { content: JSON.stringify({ kr: expr.tip_kr, jp: expr.tip_jp }) } }] },
                     Words: { rich_text: [{ text: { content: JSON.stringify(expr.words) } }] },
@@ -149,7 +163,8 @@ export async function GET(request) {
             });
         }
 
-        await sendTelegramMessage(`✅ <b>Koi Language</b> 로마자 통합 동기화 성공\n주제: ${data.situation.title_kr}`);
+        const bizStatus = getBusinessStatus();
+        await sendTelegramMessage(`✅ <b>Koi Language</b> 동기화 성공\n주제: ${data.situation.title_kr}${bizStatus}`);
         return NextResponse.json({ success: true });
 
     } catch (err) {

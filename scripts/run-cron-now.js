@@ -2,6 +2,7 @@
 /* eslint-disable no-undef */
 import https from 'https';
 import dotenv from 'dotenv';
+import { sendTelegramReport } from './report-business.js';
 dotenv.config();
 
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
@@ -163,5 +164,8 @@ const notionPost = async (path, body) => {
             process.stdout.write('.');
         }
         console.log(`\n✅ 성공!`);
-    } catch (err) { console.error(`\n❌ 실패:`, err.message); }
+        await sendTelegramReport();
+    } catch (err) { 
+        console.error(`\n❌ 실패:`, err.message); 
+    }
 })();
