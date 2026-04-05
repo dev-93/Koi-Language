@@ -52,7 +52,7 @@ const geminiRequest = async (prompt) => {
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
             temperature: 0.7,
-            maxOutputTokens: 1500, // 너무 길어서 잘리는 현상 방지
+            maxOutputTokens: 1500,
             topP: 0.95,
             topK: 40,
             response_mime_type: 'application/json',
@@ -149,6 +149,7 @@ const createExpressionPage = (expr, situationId, date) =>
 
 export async function GET(request) {
     const targetDate = getTomorrowDate();
+    let logRawText = ''; 
     
     try {
         const authHeader = request.headers.get('authorization');
@@ -158,37 +159,37 @@ export async function GET(request) {
 
         if (!NOTION_TOKEN || !GEMINI_API_KEY) throw new Error('Missing configuration');
 
-        const prompt = `당신은 한국과 일본의 데이트 문화 차이를 깊게 이해하고 있는 연애 전문가이자 언어 선생님입니다.
-일본인과의 만남에서 바로 사용할 수 있는 실전 상황과 표현을 생성해주세요.
+        const prompt = `당신은 한국과 일본의 데이트 문화 차이를 깊게 이해한 연애 전문가이자 시니어 언어 선생님입니다.
+일본인 배우자/연인과의 실전 상황과 표현을 생성해주세요.
 
 **[핵심 미션]**
-1. 언어 중립 통합 구조: 한국어(kr), 일본어(jp), 일본어 발음(reading), 그리고 데이트 팁(tip_kr, tip_jp)을 모두 포함하세요.
-2. 상황 다양성: 자연스러운 만남, 썸 단계, 소개팅, 데이트 중, 특별한 순간 중 하나를 무작위로 고르세요.
+1. 통합 구조: 하나의 표현에 kr, jp, reading, tip_kr, tip_jp 정보를 누락 없이 담으세요.
+2. 예외 케이스: 설명(desc, tip) 내에 따옴표가 들어갈 경우 반드시 작은따옴표(')로 대체하거나 이스케이프(\") 하세요.
 3. 날짜: ${targetDate}
 
-**[주의 사항]** 텍스트 설명 없이 순수 JSON 객체만 반환하세요.`;
+**[반드시 지켜야 할 사항]**
+순수한 JSON 문자열만 응답하세요. 서술이나 마크다운 코드 블록(주석 포함)은 절대 사용하지 마세요.`;
 
         const geminiRes = await geminiRequest(prompt);
-        let rawText = geminiRes.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+        logRawText = geminiRes.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
         
-        // 지능형 JSON 추출 로직 (3중 방어막)
+        let cleaned = logRawText.trim();
+        // 마크다운 흔적 제거
+        cleaned = cleaned.replace(/^```json\n?/, '').replace(/\n?```$/, '');
+        // 제어 문자 및 줄바꿈 정리
+        cleaned = cleaned.replace(/[\u0000-\u001F\u007F-\u009F]/g, " ");
+
         let data;
         try {
-            // 1. 순수 파싱 시도
-            data = JSON.parse(rawText.trim());
-        } catch (e) {
-            // 2. 마크다운 코드 블록 제거 후 시도
-            const cleaned = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-            try {
-                data = JSON.parse(cleaned);
-            } catch (e2) {
-                // 3. 정규표현식으로 { } 구간만 강제 추출
-                const match = rawText.match(/\{[\s\S]*\}/);
-                if (match) {
-                    data = JSON.parse(match[0].replace(/[\u0000-\u001F\u007F-\u009F]/g, ""));
-                } else {
-                    throw new Error('Robust JSON extraction failed');
-                }
+            data = JSON.parse(cleaned);
+        } catch (parseErr) {
+            console.error('JSON Parse Error Source:', logRawText);
+            // 정규표현식 최종 수단
+            const match = logRawText.match(/\{[\s\S]*\}/);
+            if (match) {
+                data = JSON.parse(match[0].replace(/[\u001F\u007F-\u009F]/g, " "));
+            } else {
+                throw new Error(`Parse failed: ${parseErr.message}`);
             }
         }
 
@@ -201,16 +202,15 @@ export async function GET(request) {
 
         await sendTelegramMessage(
             `✅ <b>[Koi Language]</b>\n` +
-            `통합 동기화 성공! (스키마 강제 적용)\n\n` +
-            `📅 날짜: ${targetDate}\n` +
-            `💖 주제: ${data.situation.title_kr}`
+            `통합 동기화 최종 성공!\n📅 날짜: ${targetDate}\n💖 주제: ${data.situation.title_kr}`
         );
 
         return NextResponse.json({ success: true, date: targetDate });
     } catch (err) {
-        console.error('Cron job failed:', err);
+        console.error('Final Cron Error:', err);
         const msg = err instanceof Error ? err.message : String(err);
-        await sendTelegramMessage(`❌ <b>[Koi Language]</b>\n구조적 동기화 실패\n⚠️ 에러: ${msg.substring(0, 200)}`);
+        // 에러 상세 로깅을 텔레그램으로 전송하여 다음 대응 시 참고
+        await sendTelegramMessage(`❌ <b>[Koi Language]</b>\n동기화 최후의 수단 실패\n⚠️ 에러: ${msg.substring(0, 500)}`);
         return NextResponse.json({ error: 'Failed', detail: msg }, { status: 500 });
     }
 }
