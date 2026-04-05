@@ -1,14 +1,11 @@
 import { NextResponse } from 'next/server';
 
-// 환경 변수 유연하게 매핑
-const getEnv = (key) => process.env[key] || process.env[`VITE_${key}`];
-
-const NOTION_TOKEN = getEnv('NOTION_TOKEN');
-const SITUATION_DB_ID = getEnv('NOTION_SITUATION_DB_ID') || getEnv('NOTION_SITUATIONS_DB_ID');
-const EXPRESSIONS_DB_ID = getEnv('NOTION_EXPRESSION_DB_ID') || getEnv('NOTION_EXPRESSIONS_DB_ID');
-const GEMINI_API_KEY = getEnv('GEMINI_API_KEY');
-const TELEGRAM_BOT_TOKEN = getEnv('TELEGRAM_BOT_TOKEN');
-const TELEGRAM_CHAT_ID = getEnv('TELEGRAM_CHAT_ID');
+const NOTION_TOKEN = process.env.NOTION_TOKEN;
+const SITUATION_DB_ID = process.env.NOTION_SITUATION_DB_ID || process.env.NOTION_SITUATIONS_DB_ID;
+const EXPRESSIONS_DB_ID = process.env.NOTION_EXPRESSION_DB_ID || process.env.NOTION_EXPRESSIONS_DB_ID;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
 const sendTelegramMessage = async (text) => {
     if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) return null;
@@ -42,8 +39,8 @@ const geminiRequest = async (prompt) => {
     const payload = {
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
-            temperature: 0.2, // 더 결정론적이고 짧은 응답 유도
-            maxOutputTokens: 2048, // 충분한 토큰 확보
+            temperature: 0.2,
+            maxOutputTokens: 2048,
             response_mime_type: 'application/json',
             responseSchema: {
                 type: "OBJECT",
@@ -120,12 +117,10 @@ export async function GET(request) {
         const geminiRes = await geminiRequest(prompt);
         let rawText = geminiRes.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
         
-        // 잘림 방지 및 정규화
         let data;
         try {
             data = JSON.parse(rawText.replace(/[\u0000-\u001F\u007F-\u009F]/g, " "));
         } catch (e) {
-            // 끝이 잘렸을 경우를 대비한 최소한의 보정
             if (rawText.trim().endsWith('"')) rawText += '}]}';
             else if (!rawText.trim().endsWith('}')) rawText += '}';
             data = JSON.parse(rawText.replace(/[\u0000-\u001F\u007F-\u009F]/g, " "));

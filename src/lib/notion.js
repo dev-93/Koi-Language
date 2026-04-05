@@ -1,12 +1,6 @@
 const notionToken = process.env.NOTION_TOKEN;
-const situationDbId =
-    process.env.VITE_NOTION_SITUATION_DB_ID ||
-    process.env.NOTION_SITUATION_DB_ID ||
-    process.env.NOTION_SITUATIONS_DB_ID;
-const expressionDbId =
-    process.env.VITE_NOTION_EXPRESSION_DB_ID ||
-    process.env.NOTION_EXPRESSION_DB_ID ||
-    process.env.NOTION_EXPRESSIONS_DB_ID;
+const situationDbId = process.env.NOTION_SITUATION_DB_ID || process.env.NOTION_SITUATIONS_DB_ID;
+const expressionDbId = process.env.NOTION_EXPRESSION_DB_ID || process.env.NOTION_EXPRESSIONS_DB_ID;
 
 const notionRequest = async (path, body) => {
     const response = await fetch(`https://api.notion.com${path}`, {
@@ -91,7 +85,6 @@ export const getExpressions = async (situationId) => {
         return response.body.results.map((page) => {
             const props = page.properties;
             // 노션의 'Name' 또는 'Title' 성격의 첫 컬럼을 한국어(kr)로 사용
-            // 타이틀 속성(한국어 뜻) 찾기 보강
             let krText = '';
             const titleProp = Object.values(props).find((p) => p.type === 'title');
             if (titleProp && titleProp.title?.[0]) {
