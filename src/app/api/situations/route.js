@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server';
 
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
-const SITUATION_DB_ID =
-    process.env.VITE_NOTION_SITUATION_DB_ID || process.env.NOTION_SITUATION_DB_ID;
-const EXPRESSIONS_DB_ID =
-    process.env.VITE_NOTION_EXPRESSION_DB_ID || process.env.NOTION_EXPRESSION_DB_ID;
+const SITUATION_DB_ID = process.env.NOTION_SITUATION_DB_ID || process.env.NOTION_SITUATIONS_DB_ID;
+const EXPRESSIONS_DB_ID = process.env.NOTION_EXPRESSION_DB_ID || process.env.NOTION_EXPRESSIONS_DB_ID;
 
 const notionRequest = async (method, path, body) => {
     const payload = body ? JSON.stringify(body) : null;
@@ -100,21 +98,31 @@ export async function GET() {
             .map((page) => {
                 const sit = parseSituation(page);
                 const sitExpressions = expressions.filter((e) => e.situationIds.includes(sit.id));
+                
+                // 통합형(integrated) 데이터가 있다면 리스트에 바로 포함시킴
+                const integratedNodes = sitExpressions.filter(e => e.type === 'integrated');
+
                 return {
                     ...sit,
                     expressions: {
-                        kr_wants_jp: sitExpressions.filter((e) => e.type === 'kr_wants_jp'),
-                        jp_wants_kr: sitExpressions.filter((e) => e.type === 'jp_wants_kr'),
+                        kr_wants_jp: [
+                            ...sitExpressions.filter((e) => e.type === 'kr_wants_jp'),
+                            ...integratedNodes // 통합형 데이터도 함께 내려줌
+                        ],
+                        jp_wants_kr: [
+                            ...sitExpressions.filter((e) => e.type === 'jp_wants_kr'),
+                            ...integratedNodes // 통합형 데이터도 함께 내려줌
+                        ],
                     },
                 };
             })
             .filter((s) => s.date)
-            // 지능형 로테이션: 오늘 데이트 데이터는 최상단, 나머지는 매번 랜덤 셔플(중복 피로 감소)
             .sort((a, b) => {
                 const today = new Date().toISOString().split('T')[0];
                 if (a.date === today && b.date !== today) return -1;
                 if (b.date === today && a.date !== today) return 1;
-                return Math.random() - 0.5;
+                // 최신순 정렬 (Date DESC)
+                return b.date > a.date ? 1 : -1;
             });
 
         return NextResponse.json(

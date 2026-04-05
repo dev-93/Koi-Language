@@ -1,10 +1,10 @@
 const MODELS = ['gemini-2.5-flash', 'gemini-2.5-flash-lite'];
 
 export const generateChatResponse = async (history, userProfile, situation, recentKeywords = []) => {
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
-        return '환경 변수(VITE_GEMINI_API_KEY)가 설정되지 않았습니다. Vercel 설정에서 API Key를 등록해주세요.';
+        return '환경 변수(GEMINI_API_KEY)가 설정되지 않았습니다. Vercel 설정에서 API Key를 등록해주세요.';
     }
 
     const myLang = userProfile.myNationality === 'KR' ? '한국인' : '일본인';

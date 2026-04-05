@@ -5,9 +5,9 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
-const GEMINI_API_KEY = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
-const SITUATION_DB_ID = process.env.VITE_NOTION_SITUATION_DB_ID || process.env.NOTION_SITUATION_DB_ID || process.env.NOTION_SITUATIONS_DB_ID;
-const EXPRESSIONS_DB_ID = process.env.VITE_NOTION_EXPRESSION_DB_ID || process.env.NOTION_EXPRESSION_DB_ID || process.env.NOTION_EXPRESSIONS_DB_ID;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const SITUATION_DB_ID = process.env.NOTION_SITUATION_DB_ID || process.env.NOTION_SITUATIONS_DB_ID;
+const EXPRESSIONS_DB_ID = process.env.NOTION_EXPRESSION_DB_ID || process.env.NOTION_EXPRESSIONS_DB_ID;
 const TG_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TG_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
@@ -52,10 +52,8 @@ const geminiRequest = async (prompt) => {
         {
             contents: [{ parts: [{ text: prompt }] }],
             generationConfig: {
-                temperature: 0.7,
+                temperature: 0.2, // 결정론적 응답
                 maxOutputTokens: 2048,
-                topP: 0.95,
-                topK: 40,
                 response_mime_type: 'application/json',
                 responseSchema: {
                     type: "OBJECT",
@@ -71,58 +69,30 @@ const geminiRequest = async (prompt) => {
                             required: ["title_kr", "title_jp", "desc_kr", "desc_jp"]
                         },
                         expressions: {
-                            type: "OBJECT",
-                            properties: {
-                                kr_wants_jp: {
-                                    type: "ARRAY",
-                                    items: {
-                                        type: "OBJECT",
-                                        properties: {
-                                            kr: { type: "STRING" },
-                                            jp: { type: "STRING" },
-                                            reading: { type: "STRING" },
-                                            tip: { type: "STRING" },
-                                            words: {
-                                                type: "ARRAY",
-                                                items: {
-                                                    type: "OBJECT",
-                                                    properties: {
-                                                        word: { type: "STRING" },
-                                                        mean: { type: "STRING" }
-                                                    },
-                                                    required: ["word", "mean"]
-                                                }
-                                            }
-                                        },
-                                        required: ["kr", "jp", "reading", "tip", "words"]
+                            type: "ARRAY",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    kr: { type: "STRING" },
+                                    jp: { type: "STRING" },
+                                    reading: { type: "STRING" },
+                                    tip_kr: { type: "STRING" },
+                                    tip_jp: { type: "STRING" },
+                                    words: {
+                                        type: "ARRAY",
+                                        items: {
+                                            type: "OBJECT",
+                                            properties: {
+                                                kr: { type: "STRING" },
+                                                jp: { type: "STRING" },
+                                                reading: { type: "STRING" }
+                                            },
+                                            required: ["kr", "jp", "reading"]
+                                        }
                                     }
                                 },
-                                jp_wants_kr: {
-                                    type: "ARRAY",
-                                    items: {
-                                        type: "OBJECT",
-                                        properties: {
-                                            kr: { type: "STRING" },
-                                            jp: { type: "STRING" },
-                                            reading: { type: "STRING" },
-                                            tip: { type: "STRING" },
-                                            words: {
-                                                type: "ARRAY",
-                                                items: {
-                                                    type: "OBJECT",
-                                                    properties: {
-                                                        word: { type: "STRING" },
-                                                        mean: { type: "STRING" }
-                                                    },
-                                                    required: ["word", "mean"]
-                                                }
-                                            }
-                                        },
-                                        required: ["kr", "jp", "reading", "tip", "words"]
-                                    }
-                                }
-                            },
-                            required: ["kr_wants_jp", "jp_wants_kr"]
+                                required: ["kr", "jp", "reading", "tip_kr", "tip_jp", "words"]
+                            }
                         }
                     },
                     required: ["situation", "expressions"]
@@ -155,52 +125,27 @@ const notionPost = async (path, body) => {
 };
 
 (async () => {
-    console.log(`\n🚀 [${targetDate}] 콘텐츠 생성을 시작합니다...`);
+    console.log(`\n🚀 [${targetDate}] 통합 콘텐츠 생성을 시작합니다...`);
 
     if (!GEMINI_API_KEY || !NOTION_TOKEN) {
         console.error('❌ 설정 오류: GEMINI_API_KEY 또는 NOTION_TOKEN이 없습니다.');
         return;
     }
 
-    if (!SITUATION_DB_ID || !EXPRESSIONS_DB_ID) {
-        console.error('❌ 설정 오류: Notion DB ID가 설정되지 않았습니다.');
-        return;
-    }
-
     try {
-        const PROMPT = `당신은 한국과 일본의 데이트 문화 차이를 깊게 이해하고 있는 연애 전문가이자 언어 선생님입니다.
-일본인과의 만남에서 바로 사용할 수 있는 실전 상황과 표현을 생성해주세요.
-
-**[핵심 미션: 상황의 다양성 보장]**
-매일 똑같은 '첫 데이트 신청' 상황은 지양하세요. 아래와 같은 다양한 테마 중 하나를 매일 무작위로 선정하여 상황을 만드세요:
-1. **자연스러운 만남**, 2. **썸 단계**, 3. **첫 만남/소개팅**, 4. **데이트 중**, 5. **특별한 순간**.
-
+        const PROMPT = `일본인 연인과의 실전 데이트 상황 1개와 관련 표현 3개를 생성하세요.
 날짜: ${targetDate}
+반드시 순수 JSON만 반환하고, 따옴표는 작은따옴표(') 또는 이스케이프 처리를 하세요.`;
 
-반드시 다음 JSON 형식으로 응답하세요:
-{
-  "situation": { "title_kr": "제목", "title_jp": "제목JP", "desc_kr": "설명", "desc_jp": "설명JP" },
-  "expressions": {
-    "kr_wants_jp": [{ "kr": "표현", "jp": "표현JP", "reading": "발음", "tip": "팁", "words": [{"word":"W","mean":"M"}] }],
-    "jp_wants_kr": [{ "kr": "표현", "jp": "표현JP", "reading": "발음", "tip": "팁", "words": [] }]
-  }
-}
-
-*지침: 문자열 내 따옴표는 반드시 이스케이프(\") 하세요.*
-`;
-
-        console.log('🤖 Gemini에게 물어보는 중...');
+        console.log('🤖 Gemini에게 통합 데이터 요청 중...');
         const rawResponse = await geminiRequest(PROMPT);
-        let jsonStr = rawResponse;
-        const match = rawResponse.match(/(\{[\s\S]*\})/);
-        if (match) jsonStr = match[1];
-
+        
         let data;
         try {
-            data = JSON.parse(jsonStr);
+            data = JSON.parse(rawResponse.replace(/[\u0000-\u001F\u007F-\u009F]/g, " "));
         } catch (e) {
-            console.error('⚠️ JSON parsing failed. Attempting cleanup...');
-            data = JSON.parse(jsonStr.trim().replace(/[\\u0000-\\u001F\\u007F-\\u009F]/g, ''));
+            const cleaned = rawResponse.replace(/^```json\n?/, '').replace(/\n?```$/, '').trim();
+            data = JSON.parse(cleaned.replace(/[\u0000-\u001F\u007F-\u009F]/g, " "));
         }
 
         console.log('📝 Notion 상황 페이지 작성 중...');
@@ -215,24 +160,18 @@ const notionPost = async (path, body) => {
             },
         });
 
-        const exprList = [
-            ...(data.expressions.kr_wants_jp || []).map((e) => ({ ...e, type: 'kr_wants_jp' })),
-            ...(data.expressions.jp_wants_kr || []).map((e) => ({ ...e, type: 'jp_wants_kr' })),
-        ];
-
-        console.log(`✍️ 표현 ${exprList.length}개 추가 중...`);
-        for (const expr of exprList) {
+        console.log(`✍️ 통합 표현 ${data.expressions.length}개 추가 중...`);
+        for (const expr of data.expressions) {
             await new Promise(resolve => setTimeout(resolve, 300));
-            const safeWords = (expr.words || []).filter((w) => w && w.word);
             await notionPost('/v1/pages', {
                 parent: { database_id: EXPRESSIONS_DB_ID },
                 properties: {
                     Title_KR: { title: [{ text: { content: expr.kr } }] },
                     Text_JP: { rich_text: [{ text: { content: expr.jp } }] },
                     Reading: { rich_text: [{ text: { content: expr.reading } }] },
-                    Tip: { rich_text: [{ text: { content: expr.tip || '' } }] },
-                    Words: { rich_text: [{ text: { content: JSON.stringify(safeWords) } }] },
-                    Type: { select: { name: expr.type } },
+                    Tip: { rich_text: [{ text: { content: JSON.stringify({ kr: expr.tip_kr, jp: expr.tip_jp }) } }] },
+                    Words: { rich_text: [{ text: { content: JSON.stringify(expr.words) } }] },
+                    Type: { select: { name: 'integrated' } },
                     Situation: { relation: [{ id: sitPage.id }] },
                     Date: { date: { start: targetDate } },
                 },
