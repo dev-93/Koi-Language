@@ -110,13 +110,40 @@ export default function LearnView({ situation, initialExpressions = [] }) {
                         {expressions.map((expr, idx) => {
                             let wordList = [];
                             try {
-                                const parsedWords = typeof expr.words === 'string' ? JSON.parse(expr.words) : expr.words;
-                                wordList = (parsedWords || []).slice(0, 3).map(w => ({
-                                    main: isKr ? (w.jp || w.word || '') : (w.kr || w.mean || ''),
-                                    sub: isKr ? (w.kr || w.mean || '') : (w.jp || ''),
-                                    extra: w.reading_en || w.reading_kr || w.reading || ''
-                                }));
-                            } catch (e) { console.warn('Word parsing error:', e); }
+                                const rawWords = expr.words;
+                                if (rawWords) {
+                                    if (typeof rawWords === 'string' && (rawWords.trim().startsWith('[') || rawWords.trim().startsWith('{'))) {
+                                        // JSON 형식인 경우 처리
+                                        const parsed = JSON.parse(rawWords);
+                                        const items = Array.isArray(parsed) ? parsed : [parsed];
+                                        wordList = items.slice(0, 3).map(w => ({
+                                            main: isKr ? (w.jp || w.word || '') : (w.kr || w.mean || ''),
+                                            sub: isKr ? (w.kr || w.mean || '') : (w.jp || ''),
+                                            extra: w.reading_en || w.reading_kr || w.reading || ''
+                                        }));
+                                    } else if (typeof rawWords === 'string') {
+                                        // "단어:뜻, 단어:뜻" 형식의 일반 문자열 처리
+                                        wordList = rawWords.split(',').filter(Boolean).slice(0, 3).map(str => {
+                                            const parts = str.split(':');
+                                            const first = parts[0]?.trim() || '';
+                                            const second = parts[1]?.trim() || '';
+                                            return {
+                                                main: isKr ? first : second,
+                                                sub: isKr ? second : first,
+                                                extra: ''
+                                            };
+                                        });
+                                    } else if (Array.isArray(rawWords)) {
+                                        wordList = rawWords.slice(0, 3).map(w => ({
+                                            main: isKr ? (w.jp || w.word || '') : (w.kr || w.mean || ''),
+                                            sub: isKr ? (w.kr || w.mean || '') : (w.jp || ''),
+                                            extra: w.reading_en || w.reading_kr || w.reading || ''
+                                        }));
+                                    }
+                                }
+                            } catch (e) {
+                                console.warn('Word parsing error:', e, expr.words);
+                            }
 
                             // 어떤 이름으로 들어와도 발음을 보여주도록 보강
                             const readingText = parseValue(expr.reading || expr.pron || expr.Reading || expr.pronunciation, isKr ? 'kr' : 'jp') || expr.reading_en;
