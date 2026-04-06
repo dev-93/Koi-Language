@@ -85,12 +85,15 @@ export default function LearnView({ situation, initialExpressions = [] }) {
                     <div className="text-center mb-4 text-[13px] font-black text-gray-400 tracking-widest uppercase opacity-60">
                         PROGRESS {currentIndex + 1} / {expressions.length}
                     </div>
-                    <div className="w-full d-flex justify-between items-center px-8" style={{ gap: '1.5rem' }}>
+                    <div className="w-full d-flex justify-between items-center px-10">
                         <button
                             onClick={() => swiper?.slidePrev()}
                             disabled={currentIndex === 0}
-                            style={{ visibility: currentIndex === 0 ? 'hidden' : 'visible' }}
-                            className="font-black transition-all cursor-pointer d-flex items-center gap-2 text-peach/60 hover:text-peach border-none bg-transparent active:scale-95 px-4 py-2 u-rounded-full hover:bg-peach/5"
+                            className={`px-6 py-3 u-rounded-full font-black d-flex items-center gap-2 border-none transition-all active:scale-95 ${
+                                currentIndex === 0 
+                                ? 'bg-gray-100 text-gray-300 cursor-default opacity-40' 
+                                : 'bg-peach/10 text-peach hover:bg-peach/20 cursor-pointer'
+                            }`}
                         >
                             <ArrowLeft size={18} />
                             <span className="text-[14px] tracking-tighter">PREV</span>
@@ -98,16 +101,13 @@ export default function LearnView({ situation, initialExpressions = [] }) {
 
                         <button
                             onClick={() => currentIndex === expressions.length - 1 ? handleFinish() : swiper?.slideNext()}
-                            className="px-8 py-3 u-rounded-full bg-peach font-black text-white d-flex items-center gap-2 u-shadow-md hover:scale-105 border-none active:scale-95 transition-all"
+                            className="px-8 py-3 u-rounded-full bg-peach font-black text-white d-flex items-center gap-2 u-shadow-md hover:scale-105 border-none active:scale-95 transition-all cursor-pointer"
                         >
                             <span className="text-[15px] tracking-tighter">
                                 {currentIndex === expressions.length - 1 ? 'FINISH' : 'NEXT'}
                             </span>
                             <ArrowRight size={18} />
                         </button>
-
-                        {/* 레이아웃 균형을 위한 오른쪽 여백 placeholder */}
-                        <div style={{ width: '80px', visibility: 'hidden' }} />
                     </div>
                 </div>
 
