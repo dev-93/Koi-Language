@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import { motion } from 'framer-motion';
 import 'swiper/css';
 import {
     ChevronLeft,
@@ -66,14 +67,16 @@ export default function LearnView({ situation, initialExpressions = [] }) {
     };
 
     return (
-        <div className="home-layout pb-32 relative overflow-hidden bg-white">
+        <div className="home-layout pb-[100px] relative overflow-hidden bg-white">
             <header className="w-full max-w-[480px] h-20 d-flex items-center justify-between px-6 bg-white/90 backdrop-blur sticky top-0 z-40 border-b border-gray-50">
                 <button onClick={() => router.push('/')} className="p-3 u-rounded-full hover:bg-gray-50 border-none bg-transparent cursor-pointer transition-all active:scale-95">
                     <ChevronLeft size={24} className="text-gray-800" />
                 </button>
-                <div className="flex-1 d-flex flex-col items-center justify-center overflow-hidden">
+                <div className="flex-1 d-flex flex-col items-center justify-center overflow-hidden px-2">
                     <span className="text-[10px] font-black text-peach tracking-widest mb-0.5 uppercase opacity-80">SITUATION</span>
-                    <h1 className="m-0 text-[16px] font-black text-gray-800 text-center w-full truncate px-4">{isKr ? situation.title.kr : situation.title.jp}</h1>
+                    <h1 className="m-0 font-['Nanum_Pen_Script'] text-[24px] text-peach text-center w-full leading-tight break-keep whitespace-normal">
+                        {isKr ? situation.title.kr : situation.title.jp}
+                    </h1>
                 </div>
                 <button onClick={() => setIsKr(!isKr)} className="px-4 py-2 u-shadow-sm border-2 border-peach/20 u-rounded-full font-black text-[12px] text-peach hover:bg-peach/5 transition-all cursor-pointer bg-white active:scale-95">
                     {isKr ? 'KR' : 'JP'}
@@ -81,36 +84,6 @@ export default function LearnView({ situation, initialExpressions = [] }) {
             </header>
 
             <div className="w-full d-flex flex-col items-center pt-2">
-                <div className="w-full max-w-[440px] d-flex flex-col items-center pt-4 mb-6">
-                    <div className="text-center mb-4 text-[13px] font-black text-gray-400 tracking-widest uppercase opacity-60">
-                        PROGRESS {currentIndex + 1} / {expressions.length}
-                    </div>
-                    <div className="w-full d-flex justify-between items-center px-10">
-                        <button
-                            onClick={() => swiper?.slidePrev()}
-                            disabled={currentIndex === 0}
-                            className={`px-6 py-3 u-rounded-full font-black d-flex items-center gap-2 border-none transition-all active:scale-95 ${
-                                currentIndex === 0 
-                                ? 'bg-gray-100 text-gray-300 cursor-default opacity-40' 
-                                : 'bg-peach/10 text-peach hover:bg-peach/20 cursor-pointer'
-                            }`}
-                        >
-                            <ArrowLeft size={18} />
-                            <span className="text-[14px] tracking-tighter">PREV</span>
-                        </button>
-
-                        <button
-                            onClick={() => currentIndex === expressions.length - 1 ? handleFinish() : swiper?.slideNext()}
-                            className="px-8 py-3 u-rounded-full bg-peach font-black text-white d-flex items-center gap-2 u-shadow-md hover:scale-105 border-none active:scale-95 transition-all cursor-pointer"
-                        >
-                            <span className="text-[15px] tracking-tighter">
-                                {currentIndex === expressions.length - 1 ? 'FINISH' : 'NEXT'}
-                            </span>
-                            <ArrowRight size={18} />
-                        </button>
-                    </div>
-                </div>
-
                 <div className="w-full max-w-[440px]">
                     <Swiper onSwiper={setSwiper} onSlideChange={(s) => setCurrentIndex(s.activeIndex)} className="w-full overflow-visible" spaceBetween={14} slidesPerView={1.05} centeredSlides={true}>
                         {expressions.map((expr, idx) => {
@@ -214,6 +187,74 @@ export default function LearnView({ situation, initialExpressions = [] }) {
                             </div>
                         );
                     })()}
+                </div>
+            </div>
+
+            {/* 하단 고정 버튼 컨테이너 */}
+            <div className="fixed bottom-0 left-0 right-0 z-50 bg-white pt-2 pb-8 px-6 shadow-[0_-20px_20px_rgba(0,0,0,0.03)] d-flex flex-col items-center">
+                <div className="w-full max-w-[480px] mx-auto mb-5 px-4">
+                    <div className="d-flex justify-between items-center mb-1.5 px-0.5">
+                        <span className="text-[10px] font-black text-gray-300 tracking-wider">PROGRESS</span>
+                        <span className="text-[10px] font-black text-peach/80">{currentIndex + 1} / {expressions.length}</span>
+                    </div>
+                    <div className="progress-bar-bg m-0 h-[6px]">
+                        <motion.div 
+                            className="progress-bar-fill" 
+                            initial={{ width: 0 }}
+                            animate={{ width: `${((currentIndex + 1) / expressions.length) * 100}%` }}
+                            transition={{ duration: 0.5, ease: "easeOut" }}
+                        />
+                    </div>
+                </div>
+                <div 
+                    className="w-full max-w-[480px] mx-auto d-flex justify-center items-center"
+                    style={{ gap: '30px' }}
+                >
+                    <button 
+                        onClick={() => swiper?.slidePrev()}
+                        disabled={currentIndex === 0}
+                        style={{
+                            flex: 1,
+                            maxWidth: '160px',
+                            padding: '14px',
+                            borderRadius: '50px',
+                            fontSize: '15px',
+                            fontWeight: 'bold',
+                            border: '1.5px solid',
+                            borderColor: currentIndex === 0 ? '#cccccc' : '#d4537e',
+                            color: currentIndex === 0 ? '#cccccc' : '#d4537e',
+                            background: 'transparent',
+                            pointerEvents: currentIndex === 0 ? 'none' : 'auto',
+                            cursor: currentIndex === 0 ? 'default' : 'pointer',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        PREV
+                    </button>
+                    <button 
+                        onClick={() => currentIndex === expressions.length - 1 ? handleFinish() : swiper?.slideNext()}
+                        style={{
+                            flex: 1,
+                            maxWidth: '160px',
+                            padding: '14px',
+                            borderRadius: '50px',
+                            fontSize: '15px',
+                            fontWeight: 'bold',
+                            background: '#d4537e',
+                            color: 'white',
+                            border: 'none',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        {currentIndex === expressions.length - 1 ? 'FINISH' : 'NEXT'}
+                    </button>
                 </div>
             </div>
 
