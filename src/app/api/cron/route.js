@@ -120,7 +120,8 @@ const geminiRequest = async (prompt) => {
 
 export async function GET(request) {
     const now = new Date();
-    const targetDate = new Date(now.getTime() + 9 * 60 * 60 * 1000 + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    // KST(UTC+9) 기준으로 오늘 날짜 계산
+    const targetDate = new Date(now.getTime() + 9 * 60 * 60 * 1000).toISOString().split('T')[0];
     
     try {
         const authHeader = request.headers.get('authorization');
