@@ -6,6 +6,8 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import {
     ChevronLeft,
+    ChevronDown,
+    ChevronUp,
     CheckCircle2,
     ArrowLeft,
     ArrowRight,
@@ -19,6 +21,7 @@ export default function LearnView({ situation, initialExpressions = [] }) {
     const [swiper, setSwiper] = useState(null);
     const [isKr, setIsKr] = useState(true);
     const [expressions, setExpressions] = useState([]);
+    const [tipOpen, setTipOpen] = useState(false);
 
     useEffect(() => {
         const nationality = typeof window !== 'undefined' ? localStorage.getItem('user_nationality') || 'KR' : 'KR';
@@ -66,7 +69,7 @@ export default function LearnView({ situation, initialExpressions = [] }) {
     };
 
     return (
-        <div className="home-layout relative bg-white" style={{ paddingBottom: '180px', overflow: 'auto' }}>
+        <div className="home-layout relative bg-white" style={{ paddingBottom: '120px', overflow: 'auto' }}>
             <header className="w-full max-w-[480px] h-20 d-flex items-center justify-between px-6 bg-white/90 backdrop-blur sticky top-0 z-40 border-b border-gray-50">
                 <button onClick={() => router.push('/')} className="p-3 u-rounded-full hover:bg-gray-50 border-none bg-transparent cursor-pointer transition-all active:scale-95">
                     <ChevronLeft size={24} className="text-gray-800" />
@@ -84,7 +87,7 @@ export default function LearnView({ situation, initialExpressions = [] }) {
 
             <div className="w-full d-flex flex-col items-center pt-2">
                 <div className="w-full max-w-[440px]">
-                    <Swiper onSwiper={setSwiper} onSlideChange={(s) => setCurrentIndex(s.activeIndex)} className="w-full overflow-visible" spaceBetween={14} slidesPerView={1.05} centeredSlides={true}>
+                    <Swiper onSwiper={setSwiper} onSlideChange={(s) => { setCurrentIndex(s.activeIndex); setTipOpen(false); }} className="w-full overflow-visible" spaceBetween={14} slidesPerView={1.05} centeredSlides={true}>
                         {expressions.map((expr, idx) => {
                             let wordList = [];
                             try {
@@ -175,14 +178,22 @@ export default function LearnView({ situation, initialExpressions = [] }) {
                         const tipText = parseValue(currentExpr.tip, isKr ? 'kr' : 'jp');
                         if (!tipText) return null;
                         return (
-                            <div className="px-8 mt-2 mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                                <div className="tip-box-standard u-shadow-md border border-peach/10 bg-gradient-to-br from-white to-peach/5 p-6 u-rounded-3xl relative overflow-hidden">
-                                    <div className="d-flex items-center gap-2 mb-3">
-                                        <Sparkles size={18} className="text-peach" />
+                            <div className="px-8 mt-2 mb-12" style={{ position: 'relative' }}>
+                                <button
+                                    onClick={() => setTipOpen(!tipOpen)}
+                                    className="tip-toggle-btn"
+                                >
+                                    <div className="d-flex items-center gap-2">
+                                        <Sparkles size={16} className="text-peach" />
                                         <span className="text-[12px] font-black text-peach tracking-widest uppercase">Koi's Dating Tip</span>
                                     </div>
-                                    <p className="m-0 text-[15px] font-bold text-gray-600 leading-relaxed z-10 relative">{tipText}</p>
-                                </div>
+                                    {tipOpen ? <ChevronUp size={18} className="text-peach" /> : <ChevronDown size={18} className="text-peach" />}
+                                </button>
+                                {tipOpen && (
+                                    <div className="tip-toggle-content-overlay">
+                                        <p className="m-0 text-[15px] font-bold text-gray-600 leading-relaxed">{tipText}</p>
+                                    </div>
+                                )}
                             </div>
                         );
                     })()}
@@ -192,8 +203,6 @@ export default function LearnView({ situation, initialExpressions = [] }) {
             {/* 하단 고정 네비게이션 */}
             <div className="nav-footer-fixed">
                 <div className="nav-footer">
-                    <p className="nav-progress">PROGRESS</p>
-                    <p className="nav-progress-count">{currentIndex + 1}/{expressions.length}</p>
                     <div className="nav-progress-bar">
                         <div className="nav-progress-bar-fill" style={{ width: `${((currentIndex + 1) / expressions.length) * 100}%` }} />
                     </div>
@@ -205,6 +214,7 @@ export default function LearnView({ situation, initialExpressions = [] }) {
                         >
                             ← PREV
                         </button>
+                        <span className="nav-counter">{currentIndex + 1}/{expressions.length}</span>
                         <button
                             className="btn btn-primary"
                             onClick={() => currentIndex === expressions.length - 1 ? handleFinish() : swiper?.slideNext()}

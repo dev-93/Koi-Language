@@ -947,14 +947,13 @@ button {
     right: 0;
     z-index: 50;
     background: white;
-    padding: 12px 24px 32px;
-    box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.04);
+    padding: 8px 20px 24px;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.04);
 }
 
 .nav-footer {
     max-width: 480px;
     margin: 0 auto;
-    text-align: center;
 }
 
 .nav-progress {
@@ -975,30 +974,40 @@ button {
 
 .nav-progress-bar {
     width: 100%;
-    height: 5px;
+    height: 3px;
     background-color: var(--primary-peach-light);
-    border-radius: 3px;
+    border-radius: 2px;
     overflow: hidden;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
 }
 
 .nav-progress-bar-fill {
     height: 100%;
     background-color: var(--primary-peach);
-    border-radius: 3px;
+    border-radius: 2px;
     transition: width 0.4s ease;
+}
+
+.nav-counter {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text-gray);
+    flex-shrink: 0;
+    min-width: 32px;
+    text-align: center;
 }
 
 .nav-buttons {
     display: flex;
-    gap: 12px;
+    align-items: center;
+    gap: 10px;
 }
 
 .nav-buttons .btn {
     flex: 1;
-    padding: 14px;
+    padding: 12px;
     border-radius: 999px;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
 }
 
@@ -1019,4 +1028,58 @@ button {
 .nav-buttons .btn:disabled {
     opacity: 0.4;
     pointer-events: none;
+}
+
+/* ===== Tip Toggle ===== */
+.tip-toggle-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-radius: 16px;
+    border: 1px solid var(--primary-peach-light);
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tip-toggle-btn:hover {
+    background: var(--primary-peach-soft);
+}
+
+.tip-toggle-content {
+    padding: 12px 16px 16px;
+    border: 1px solid var(--primary-peach-light);
+    border-top: none;
+    border-radius: 0 0 16px 16px;
+    background: var(--primary-peach-soft);
+    animation: tipSlideDown 0.2s ease-out;
+}
+
+.tip-toggle-content-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    z-index: 30;
+    padding: 12px 16px 16px;
+    border: 1px solid var(--primary-peach-light);
+    border-top: none;
+    border-radius: 0 0 16px 16px;
+    background: white;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    animation: tipSlideDown 0.2s ease-out;
+}
+
+@keyframes tipSlideDown {
+    from {
+        opacity: 0;
+        max-height: 0;
+    }
+
+    to {
+        opacity: 1;
+        max-height: 200px;
+    }
 }
