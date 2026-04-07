@@ -22,3 +22,11 @@ description: Koi-Language 전용 비즈니스 파트너. 일본어 감정 대화
 UI 관련 작업을 수행할 때는 아래 참조 문서를 확인하세요.
 - **[UI System Guide](references/ui-system.md)**: 컬러, 폰트, 공통 클래스 정보.
 - **[Component Patterns](references/component-patterns.md)**: 버튼, 카드, 채팅 버블 등 공통 UI 패턴 예시.
+
+## 📋 프로젝트 규칙 & 비즈니스
+- **[에이전트 지침서](references/agent-rules.md)**: 데이터 구조, 운영 규칙, 기술적 제약 사항.
+- **[비즈니스 전략](references/business-strategy.md)**: 수익화 모델, 마케팅 전략, KPI.
+
+## ✍️ 커밋 규칙
+- 커밋 메시지는 **항상 한글**로 작성합니다.
+- 형식: `타입: 설명` (예: `기능: 데이팅 팁 토글 추가`, `수정: 하단 네비 높이 축소`, `스타일: 메인 색상 변경`)
