@@ -93,10 +93,11 @@ export default function HomeView({ initialSituations = [] }) {
             >
                 <button
                     onClick={() => setTab('today')}
-                    className={`flex-1 py-3 px-4 u-rounded-2xl font-black text-[15px] border-none transition-all cursor-pointer ${tab === 'today'
-                        ? 'bg-peach text-white u-shadow-md'
-                        : 'bg-transparent text-gray-400 hover:bg-white/50'
+                    className={`flex-1 u-rounded-2xl font-black text-[15px] border-none transition-all cursor-pointer ${tab === 'today'
+                        ? 'bg-peach u-shadow-md'
+                        : 'bg-transparent hover:bg-white/50'
                         }`}
+                    style={{ padding: '14px 16px', color: tab === 'today' ? '#ffffff' : '#9ca3af', fontSize: '16px', fontWeight: 900 }}
                 >
                     <div className="d-flex items-center justify-center gap-2">
                         <Heart size={16} fill={tab === 'today' ? 'white' : 'none'} />
@@ -105,10 +106,11 @@ export default function HomeView({ initialSituations = [] }) {
                 </button>
                 <button
                     onClick={() => setTab('archive')}
-                    className={`flex-1 py-4 px-4 u-rounded-2xl font-black text-[15px] border-none transition-all cursor-pointer ${tab === 'archive'
-                        ? 'bg-peach text-white u-shadow-md'
-                        : 'bg-transparent text-gray-400 hover:bg-white/50'
+                    className={`flex-1 u-rounded-2xl font-black text-[15px] border-none transition-all cursor-pointer ${tab === 'archive'
+                        ? 'bg-peach u-shadow-md'
+                        : 'bg-transparent hover:bg-white/50'
                         }`}
+                    style={{ padding: '14px 16px', color: tab === 'archive' ? '#ffffff' : '#9ca3af', fontSize: '16px', fontWeight: 900 }}
                 >
                     <div className="d-flex items-center justify-center gap-2">
                         <BookMarked size={16} fill={tab === 'archive' ? 'white' : 'none'} />
@@ -188,9 +190,10 @@ export default function HomeView({ initialSituations = [] }) {
                                     key={f.id}
                                     onClick={() => setFilterStatus(f.id)}
                                     className={`px-4 py-1.5 u-rounded-full text-[13px] font-black transition-all border-none cursor-pointer whitespace-nowrap ${filterStatus === f.id
-                                        ? 'bg-peach text-white'
-                                        : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                                        ? 'bg-peach'
+                                        : 'bg-gray-100 hover:bg-gray-200'
                                         }`}
+                                    style={{ color: filterStatus === f.id ? '#ffffff' : '#9ca3af' }}
                                 >
                                     {f.label}
                                 </button>

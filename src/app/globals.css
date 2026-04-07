@@ -1,16 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@400;500;700&display=swap');
 
 :root {
-    --primary-peach: #ff8a8a;
-    /* Slightly more vibrant peach/pink */
-    --primary-peach-light: #fff0f0;
-    --primary-peach-soft: #fff9f9;
+    --primary-peach: #d4537e;
+    --primary-peach-light: #fce8ef;
+    --primary-peach-soft: #fdf2f6;
     --primary-lavender: #dde2ff;
     --primary-lavender-light: #f0f2ff;
     --text-dark: #2d2d2d;
     --text-gray: #757575;
     --bg-gradient: linear-gradient(180deg, #ffffff 0%, #fff5f4 100%);
-    --card-shadow: 0 12px 30px rgba(255, 138, 138, 0.12);
+    --card-shadow: 0 12px 30px rgba(212, 83, 126, 0.12);
     --card-radius: 28px;
 }
 
@@ -73,12 +72,12 @@ h6 {
 .btn-primary {
     background-color: var(--primary-peach);
     color: white;
-    box-shadow: 0 4px 10px rgba(255, 179, 167, 0.4);
+    box-shadow: 0 4px 10px rgba(212, 83, 126, 0.4);
 }
 
 .btn-primary:active {
     transform: translateY(2px);
-    box-shadow: 0 2px 5px rgba(255, 179, 167, 0.4);
+    box-shadow: 0 2px 5px rgba(212, 83, 126, 0.4);
 }
 
 .btn-secondary {
@@ -130,9 +129,9 @@ h6 {
 
 .progress-bar-fill-gradient {
     height: 100%;
-    background: linear-gradient(90deg, #ffb7b7, #ff8a8a);
+    background: linear-gradient(90deg, #e8a0b5, var(--primary-peach));
     border-radius: 9999px;
-    box-shadow: 0 0 8px rgba(255, 138, 138, 0.4);
+    box-shadow: 0 0 8px rgba(212, 83, 126, 0.4);
 }
 
 /* Utilities */
@@ -240,7 +239,7 @@ textarea:focus {
     color: white;
     border-bottom-right-radius: 0.5rem;
     align-self: flex-end;
-    box-shadow: 0 4px 10px rgba(255, 179, 167, 0.4);
+    box-shadow: 0 4px 10px rgba(212, 83, 126, 0.4);
 }
 
 /* New Utility Classes for Modern UI - More specific to avoid conflicts */
@@ -287,11 +286,11 @@ textarea:focus {
 
 /* Renaming to avoid Swiper conflict */
 .bg-peach {
-    background-color: #ff8a8a;
+    background-color: var(--primary-peach);
 }
 
 .text-peach {
-    color: #ff8a8a;
+    color: var(--primary-peach);
 }
 
 .bg-gray-light {
@@ -611,8 +610,8 @@ textarea:focus {
     border-radius: 8px;
     display: inline-block;
     background: #fff0f0;
-    color: #ff8a8a;
-    border: 1px solid #ffecec;
+    color: var(--primary-peach);
+    border: 1px solid var(--primary-peach-light);
     font-weight: 700;
 }
 
@@ -673,7 +672,7 @@ textarea:focus {
 }
 
 .bg-pink-gradient {
-    background: linear-gradient(90deg, #ff8a8a, #ff6b6b);
+    background: linear-gradient(90deg, var(--primary-peach), #c4456e);
     color: white;
 }
 
@@ -699,8 +698,8 @@ textarea:focus {
 .onboarding-gender-card.active {
     background: white;
     box-shadow:
-        0 0 0 4px #fff1f1,
-        0 4px 10px rgba(255, 138, 138, 0.1);
+        0 0 0 4px var(--primary-peach-light),
+        0 4px 10px rgba(212, 83, 126, 0.1);
     color: #2d2d2d;
 }
 
@@ -718,8 +717,8 @@ textarea:focus {
 
 .dot-active {
     width: 40px;
-    background-color: #ff8a8a;
-    box-shadow: 0 0 8px rgba(255, 138, 138, 0.4);
+    background-color: var(--primary-peach);
+    box-shadow: 0 0 8px rgba(212, 83, 126, 0.4);
 }
 
 .dot-inactive {
@@ -757,7 +756,7 @@ textarea:focus {
 }
 
 .chat-bubble.user {
-    background-color: #ff8a8a;
+    background-color: var(--primary-peach);
     color: white;
     border-radius: 24px 24px 4px 24px;
 }
@@ -809,7 +808,7 @@ textarea:focus {
 }
 
 .chat-send-btn.active {
-    background-color: #ff8a8a;
+    background-color: var(--primary-peach);
     color: white;
 }
 
@@ -831,7 +830,7 @@ button {
 }
 
 .primary-btn {
-    background: #ff8a8a;
+    background: var(--primary-peach);
     color: white;
     border-radius: 22px;
     font-weight: 900;
@@ -839,7 +838,7 @@ button {
     align-items: center;
     justify-content: center;
     gap: 10px;
-    box-shadow: 0 10px 15px -3px rgba(255, 138, 138, 0.2);
+    box-shadow: 0 10px 15px -3px rgba(212, 83, 126, 0.2);
     transition: all 0.2s;
 }
 
@@ -856,6 +855,7 @@ button {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     transition: all 0.2s;
 }
+
 /* History Scroll & Bubbles */
 .history-scroll-wrapper {
     width: 100%;
@@ -865,6 +865,7 @@ button {
 .scrollbar-hide::-webkit-scrollbar {
     display: none;
 }
+
 .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -891,8 +892,8 @@ button {
 
 .history-bubble.active {
     background: white;
-    border-color: #ff8a8a;
-    box-shadow: 0 10px 15px -3px rgba(255, 138, 138, 0.15);
+    border-color: var(--primary-peach);
+    box-shadow: 0 10px 15px -3px rgba(212, 83, 126, 0.15);
     transform: scale(1.02);
 }
 
@@ -904,7 +905,7 @@ button {
 }
 
 .history-bubble.active .bubble-status {
-    box-shadow: 0 0 8px rgba(255, 138, 138, 0.6);
+    box-shadow: 0 0 8px rgba(212, 83, 126, 0.6);
 }
 
 /* ===== SituationScene 씬 일러스트 씬 컴포넌트 */
@@ -936,4 +937,86 @@ button {
 
 .scene-container:hover .scene-image {
     transform: scale(1.05);
+}
+
+/* ===== Navigation Footer (PREV / NEXT) ===== */
+.nav-footer-fixed {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background: white;
+    padding: 12px 24px 32px;
+    box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.04);
+}
+
+.nav-footer {
+    max-width: 480px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.nav-progress {
+    color: var(--text-gray);
+    font-size: 0.7rem;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin: 0 0 2px 0;
+}
+
+.nav-progress-count {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0 0 8px 0;
+}
+
+.nav-progress-bar {
+    width: 100%;
+    height: 5px;
+    background-color: var(--primary-peach-light);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.nav-progress-bar-fill {
+    height: 100%;
+    background-color: var(--primary-peach);
+    border-radius: 3px;
+    transition: width 0.4s ease;
+}
+
+.nav-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.nav-buttons .btn {
+    flex: 1;
+    padding: 14px;
+    border-radius: 999px;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.nav-buttons .btn-outline {
+    background: transparent;
+    border: 1.5px solid var(--primary-peach);
+    color: var(--primary-peach);
+    border-radius: 999px;
+}
+
+.nav-buttons .btn-primary {
+    background-color: var(--primary-peach);
+    color: white;
+    border-radius: 999px;
+    box-shadow: 0 4px 12px rgba(212, 83, 126, 0.3);
+}
+
+.nav-buttons .btn:disabled {
+    opacity: 0.4;
+    pointer-events: none;
 }

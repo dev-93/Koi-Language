@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { motion } from 'framer-motion';
 import 'swiper/css';
 import {
     ChevronLeft,
@@ -67,7 +66,7 @@ export default function LearnView({ situation, initialExpressions = [] }) {
     };
 
     return (
-        <div className="home-layout pb-[100px] relative overflow-hidden bg-white">
+        <div className="home-layout relative bg-white" style={{ paddingBottom: '180px', overflow: 'auto' }}>
             <header className="w-full max-w-[480px] h-20 d-flex items-center justify-between px-6 bg-white/90 backdrop-blur sticky top-0 z-40 border-b border-gray-50">
                 <button onClick={() => router.push('/')} className="p-3 u-rounded-full hover:bg-gray-50 border-none bg-transparent cursor-pointer transition-all active:scale-95">
                     <ChevronLeft size={24} className="text-gray-800" />
@@ -190,71 +189,29 @@ export default function LearnView({ situation, initialExpressions = [] }) {
                 </div>
             </div>
 
-            {/* 하단 고정 버튼 컨테이너 */}
-            <div className="fixed bottom-0 left-0 right-0 z-50 bg-white pt-2 pb-8 px-6 shadow-[0_-20px_20px_rgba(0,0,0,0.03)] d-flex flex-col items-center">
-                <div className="w-full max-w-[480px] mx-auto mb-5 px-4">
-                    <div className="d-flex justify-between items-center mb-1.5 px-0.5">
-                        <span className="text-[10px] font-black text-gray-300 tracking-wider">PROGRESS</span>
-                        <span className="text-[10px] font-black text-peach/80">{currentIndex + 1} / {expressions.length}</span>
+            {/* 하단 고정 네비게이션 */}
+            <div className="nav-footer-fixed">
+                <div className="nav-footer">
+                    <p className="nav-progress">PROGRESS</p>
+                    <p className="nav-progress-count">{currentIndex + 1}/{expressions.length}</p>
+                    <div className="nav-progress-bar">
+                        <div className="nav-progress-bar-fill" style={{ width: `${((currentIndex + 1) / expressions.length) * 100}%` }} />
                     </div>
-                    <div className="progress-bar-bg m-0 h-[6px]">
-                        <motion.div 
-                            className="progress-bar-fill" 
-                            initial={{ width: 0 }}
-                            animate={{ width: `${((currentIndex + 1) / expressions.length) * 100}%` }}
-                            transition={{ duration: 0.5, ease: "easeOut" }}
-                        />
+                    <div className="nav-buttons">
+                        <button
+                            className="btn btn-outline"
+                            onClick={() => swiper?.slidePrev()}
+                            disabled={currentIndex === 0}
+                        >
+                            ← PREV
+                        </button>
+                        <button
+                            className="btn btn-primary"
+                            onClick={() => currentIndex === expressions.length - 1 ? handleFinish() : swiper?.slideNext()}
+                        >
+                            {currentIndex === expressions.length - 1 ? 'FINISH ✓' : 'NEXT →'}
+                        </button>
                     </div>
-                </div>
-                <div 
-                    className="w-full max-w-[480px] mx-auto d-flex justify-center items-center"
-                    style={{ gap: '30px' }}
-                >
-                    <button 
-                        onClick={() => swiper?.slidePrev()}
-                        disabled={currentIndex === 0}
-                        style={{
-                            flex: 1,
-                            maxWidth: '160px',
-                            padding: '14px',
-                            borderRadius: '50px',
-                            fontSize: '15px',
-                            fontWeight: 'bold',
-                            border: '1.5px solid',
-                            borderColor: currentIndex === 0 ? '#cccccc' : '#d4537e',
-                            color: currentIndex === 0 ? '#cccccc' : '#d4537e',
-                            background: 'transparent',
-                            pointerEvents: currentIndex === 0 ? 'none' : 'auto',
-                            cursor: currentIndex === 0 ? 'default' : 'pointer',
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            transition: 'all 0.2s'
-                        }}
-                    >
-                        PREV
-                    </button>
-                    <button 
-                        onClick={() => currentIndex === expressions.length - 1 ? handleFinish() : swiper?.slideNext()}
-                        style={{
-                            flex: 1,
-                            maxWidth: '160px',
-                            padding: '14px',
-                            borderRadius: '50px',
-                            fontSize: '15px',
-                            fontWeight: 'bold',
-                            background: '#d4537e',
-                            color: 'white',
-                            border: 'none',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            transition: 'all 0.2s'
-                        }}
-                    >
-                        {currentIndex === expressions.length - 1 ? 'FINISH' : 'NEXT'}
-                    </button>
                 </div>
             </div>
 
