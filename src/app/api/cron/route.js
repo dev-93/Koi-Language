@@ -59,8 +59,8 @@ const geminiRequest = async (prompt) => {
     const payload = {
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
-            temperature: 0.1,
-            maxOutputTokens: 2048,
+            temperature: 0.4,
+            maxOutputTokens: 4096,
             response_mime_type: 'application/json',
             responseSchema: {
                 type: "OBJECT",
@@ -122,7 +122,7 @@ export async function GET(request) {
     const now = new Date();
     // KST(UTC+9) 기준으로 오늘 날짜 계산
     const targetDate = new Date(now.getTime() + 9 * 60 * 60 * 1000).toISOString().split('T')[0];
-    
+
     try {
         const authHeader = request.headers.get('authorization');
         if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -131,7 +131,27 @@ export async function GET(request) {
 
         if (!NOTION_TOKEN || !GEMINI_API_KEY) throw new Error('Env configuration missing');
 
-        const prompt = `일본인 연인과의 실전 데이트 상황 1개와 관련 표현 3개를 생성하세요. 날짜: ${targetDate}`;
+        const prompt = `당신은 일본어 연애/소셜 표현 전문가입니다.
+
+아래 카테고리 중 하나를 랜덤으로 골라 실전 상황 1개와 관련 표현 3~6개를 생성하세요.
+
+[카테고리]
+- 소개팅/미팅 (첫 만남, 자기소개, 연락처 교환)
+- 썸/밀당 (카톡/LINE 대화, 은근한 호감 표현, 재회 약속)
+- 술자리/이자카야 (건배, 취기 고백, 분위기 띄우기)
+- 여행/원거리 (공항 마중, 비행기 타고 만나러 가기, 관광지 데이트)
+- 일상 데이트 (카페, 영화, 공원 산책, 집 데이트)
+- 감정 표현 (고백, 질투, 화해, 감사, 보고 싶음)
+- 문화 체험 (축제, 온천, 벚꽃, 불꽃놀이, 신사 참배)
+
+날짜: ${targetDate}
+
+중요:
+1. 이전에 자주 나온 "카페", "벚꽃", "첫 데이트" 같은 뻔한 상황은 피하세요.
+2. 구체적이고 생생한 상황을 만드세요 (예: "이자카야에서 사케 마시며 고백하기", "비 오는 날 편의점 앞에서 우산 나눠쓰기").
+3. 표현은 최소 3개, 최대 6개로 상황의 복잡도에 따라 자유롭게 조절하세요.
+4. 모든 reading_en 필드에는 영어 로마자 발음(Romaji)을 적으세요.
+5. 각 표현의 words는 핵심 단어 최대 3개만 포함하세요.`;
 
         const geminiRes = await geminiRequest(prompt);
         let rawText = geminiRes.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
