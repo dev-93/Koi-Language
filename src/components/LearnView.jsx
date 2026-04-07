@@ -8,9 +8,6 @@ import {
     ChevronLeft,
     ChevronDown,
     ChevronUp,
-    CheckCircle2,
-    ArrowLeft,
-    ArrowRight,
     Sparkles,
 } from 'lucide-react';
 import SituationScene from './SituationScene';
@@ -69,18 +66,17 @@ export default function LearnView({ situation, initialExpressions = [] }) {
     };
 
     return (
-        <div className="home-layout relative bg-white" style={{ paddingBottom: '120px', overflow: 'auto' }}>
-            <header className="w-full max-w-[480px] h-20 d-flex items-center justify-between px-6 bg-white/90 backdrop-blur sticky top-0 z-40 border-b border-gray-50">
-                <button onClick={() => router.push('/')} className="p-3 u-rounded-full hover:bg-gray-50 border-none bg-transparent cursor-pointer transition-all active:scale-95">
-                    <ChevronLeft size={24} className="text-gray-800" />
+        <div className="home-layout relative bg-white" style={{ paddingBottom: '80px', overflow: 'auto' }}>
+            <header className="w-full max-w-[480px] d-flex items-center justify-between px-4 bg-white/90 backdrop-blur sticky top-0 z-40 border-b border-gray-50" style={{ padding: '8px 16px' }}>
+                <button onClick={() => router.push('/')} className="p-2 u-rounded-full hover:bg-gray-50 border-none bg-transparent cursor-pointer transition-all active:scale-95">
+                    <ChevronLeft size={20} className="text-gray-800" />
                 </button>
-                <div className="flex-1 d-flex flex-col items-center justify-center overflow-hidden px-2">
-                    <span className="text-[10px] font-black text-peach tracking-widest mb-0.5 uppercase opacity-80">SITUATION</span>
-                    <h1 className="m-0 font-['Nanum_Pen_Script'] text-[24px] text-peach text-center w-full leading-tight break-keep whitespace-normal">
+                <div className="flex-1 d-flex items-center justify-center px-2">
+                    <h1 className="learn-header-title">
                         {isKr ? situation.title.kr : situation.title.jp}
                     </h1>
                 </div>
-                <button onClick={() => setIsKr(!isKr)} className="px-4 py-2 u-shadow-sm border-2 border-peach/20 u-rounded-full font-black text-[12px] text-peach hover:bg-peach/5 transition-all cursor-pointer bg-white active:scale-95">
+                <button onClick={() => setIsKr(!isKr)} className="px-3 py-1 u-shadow-sm border-2 border-peach/20 u-rounded-full font-black text-[11px] text-peach hover:bg-peach/5 transition-all cursor-pointer bg-white active:scale-95">
                     {isKr ? 'KR' : 'JP'}
                 </button>
             </header>
@@ -133,30 +129,28 @@ export default function LearnView({ situation, initialExpressions = [] }) {
 
                             return (
                                 <SwiperSlide key={expr.id || idx}>
-                                    <div className={`m-2 px-4 py-8 u-rounded-[40px] shadow-2xl transition-all duration-500 border border-gray-50 bg-white d-flex flex-col items-center min-h-[500px] ${currentIndex === idx ? 'scale-100 opacity-100' : 'scale-[0.92] opacity-40 blur-[1px]'}`}>
+                                    <div className={`m-1 px-3 py-3 u-rounded-[28px] shadow-2xl transition-all duration-500 border border-gray-50 bg-white d-flex flex-col items-center ${currentIndex === idx ? 'scale-100 opacity-100' : 'scale-[0.92] opacity-40 blur-[1px]'}`}>
                                         <SituationScene title={situation.title.kr} date={situation.date} />
 
-                                        <div className="w-full d-flex flex-col items-center justify-center mt-8 gap-3">
-                                            <h2 className="m-0 text-[26px] font-black text-center leading-tight text-gray-800 tracking-tight whitespace-pre-wrap px-4 break-words">
+                                        <div className="w-full d-flex flex-col items-center justify-center mt-2">
+                                            <h2 className="learn-expr-main">
                                                 {mainText}
                                             </h2>
 
                                             {readingText && (
-                                                <p className="m-0 text-[18px] font-bold text-peach text-center italic mt-2">
+                                                <p className="learn-expr-reading">
                                                     {readingText}
                                                 </p>
                                             )}
 
-                                            <div className="mt-4">
-                                                <p className="m-0 text-[20px] font-black text-peach/70 text-center">
-                                                    {subText}
-                                                </p>
-                                            </div>
+                                            <p className="learn-expr-sub">
+                                                {subText}
+                                            </p>
                                         </div>
 
-                                        <div className="w-full card-divider-wide opacity-10 my-8"></div>
+                                        <div className="w-full card-divider-wide opacity-10 my-2"></div>
 
-                                        <div className="w-full px-2 d-grid grid-cols-3 gap-3">
+                                        <div className="w-full px-2 d-grid grid-cols-3 gap-2">
                                             {wordList.map((word, wIdx) => (
                                                 <div key={wIdx} className="d-flex flex-col items-center u-rounded-2xl overflow-hidden border border-gray-100 shadow-sm bg-white p-2">
                                                     <span className="text-[13px] font-black text-gray-800 text-center w-full truncate">{word.main}</span>
@@ -178,7 +172,7 @@ export default function LearnView({ situation, initialExpressions = [] }) {
                         const tipText = parseValue(currentExpr.tip, isKr ? 'kr' : 'jp');
                         if (!tipText) return null;
                         return (
-                            <div className="px-8 mt-2 mb-12" style={{ position: 'relative' }}>
+                            <div className="tip-area" style={{ position: 'relative' }}>
                                 <button
                                     onClick={() => setTipOpen(!tipOpen)}
                                     className="tip-toggle-btn"
