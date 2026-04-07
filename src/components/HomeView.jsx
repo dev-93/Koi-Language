@@ -88,7 +88,7 @@ export default function HomeView({ initialSituations = [] }) {
 
             {/* Main Tabs (Optional: Show only on certain tabs if needed, but keeping for UX) */}
             <div
-                className="u-bg-white\/80 u-backdrop-blur u-shadow-lg u-rounded-3xl p-1.5 w-full max-w-[420px] d-flex mb-8"
+                className="u-bg-white\/80 u-backdrop-blur u-shadow-lg u-rounded-3xl p-1.5 w-full max-w-[420px] d-flex home-tabs-wrapper"
                 style={{ gap: '0.4rem' }}
             >
                 <button

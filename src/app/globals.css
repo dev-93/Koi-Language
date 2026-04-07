@@ -1200,3 +1200,73 @@ button {
         font-size: 15px;
     }
 }
+
+/* ===== Home Mobile Compact ===== */
+@media (max-width: 480px) {
+    .home-layout {
+        min-height: 100vh;
+        min-height: 100dvh;
+        padding: 12px 12px 0;
+        padding-bottom: 80px;
+        overflow: hidden;
+    }
+
+    .header-wrapper {
+        margin-bottom: 10px;
+    }
+
+    .header-wrapper .title-cute {
+        font-size: 1.4rem !important;
+    }
+
+    .header-wrapper .header-subtitle {
+        font-size: 8px;
+    }
+
+    .learn-card-main {
+        padding: 16px;
+        min-height: unset;
+        border-radius: 22px;
+    }
+
+    .home-layout>.w-full.flex-1 {
+        flex: 1;
+        justify-content: center;
+    }
+
+    .learn-card-main .scene-container {
+        aspect-ratio: 2.2 / 1;
+        border-radius: 14px;
+    }
+
+    .learn-card-main .scene-wrapper {
+        margin-bottom: 8px;
+    }
+
+    .learn-card-main h2 {
+        font-size: 22px !important;
+    }
+
+    .learn-card-main p {
+        font-size: 13px !important;
+    }
+
+    .learn-card-main .btn {
+        margin-top: 12px;
+        padding: 12px;
+    }
+
+    .learn-card-main .btn span {
+        font-size: 15px !important;
+    }
+}
+
+.home-tabs-wrapper {
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 480px) {
+    .home-tabs-wrapper {
+        margin-bottom: 10px;
+    }
+}
