@@ -168,31 +168,33 @@ export default function LearnView({ situation, initialExpressions = [] }) {
                         })}
                     </Swiper>
 
-                    {(() => {
-                        const tipText = parseValue(currentExpr.tip, isKr ? 'kr' : 'jp');
-                        if (!tipText) return null;
-                        return (
-                            <div className="tip-area" style={{ position: 'relative' }}>
-                                <button
-                                    onClick={() => setTipOpen(!tipOpen)}
-                                    className="tip-toggle-btn"
-                                >
-                                    <div className="d-flex items-center gap-2">
-                                        <Sparkles size={16} className="text-peach" />
-                                        <span className="text-[12px] font-black text-peach tracking-widest uppercase">Koi's Dating Tip</span>
-                                    </div>
-                                    {tipOpen ? <ChevronUp size={18} className="text-peach" /> : <ChevronDown size={18} className="text-peach" />}
-                                </button>
-                                {tipOpen && (
-                                    <div className="tip-toggle-content-overlay">
-                                        <p className="m-0 text-[15px] font-bold text-gray-600 leading-relaxed">{tipText}</p>
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })()}
+                    {/* Tip은 하단 nav에 통합 */}
                 </div>
             </div>
+
+            {/* Tip 오버레이 - nav 바깥에서 독립적으로 띄움 */}
+            {tipOpen && (() => {
+                const tipText = parseValue(currentExpr.tip, isKr ? 'kr' : 'jp');
+                if (!tipText) return null;
+                return (
+                    <div className="tip-overlay-panel">
+                        <p className="m-0 text-[15px] font-bold text-gray-600 leading-relaxed">{tipText}</p>
+                    </div>
+                );
+            })()}
+
+            {/* Tip 토글 버튼 - nav 위에 고정 */}
+            {(() => {
+                const tipText = parseValue(currentExpr.tip, isKr ? 'kr' : 'jp');
+                if (!tipText) return null;
+                return (
+                    <button onClick={() => setTipOpen(!tipOpen)} className="tip-nav-btn">
+                        <Sparkles size={14} className="text-peach" />
+                        <span>{tipOpen ? '닫기' : 'Tip'}</span>
+                        {tipOpen ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                    </button>
+                );
+            })()}
 
             {/* 하단 고정 네비게이션 */}
             <div className="nav-footer-fixed">

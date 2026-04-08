@@ -1037,6 +1037,50 @@ button {
     margin-bottom: 24px;
 }
 
+.tip-nav-btn {
+    position: fixed;
+    bottom: 80px;
+    left: 0;
+    right: 0;
+    z-index: 51;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 8px 16px;
+    border-radius: 12px 12px 0 0;
+    background: var(--primary-peach-soft);
+    border: 1px solid var(--primary-peach-light);
+    border-bottom: none;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 900;
+    color: var(--primary-peach);
+    transition: all 0.2s;
+}
+
+.tip-nav-btn:hover {
+    background: var(--primary-peach-light);
+}
+
+.tip-overlay-panel {
+    position: fixed;
+    bottom: 112px;
+    left: 0;
+    right: 0;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 16px 20px;
+    background: white;
+    border: 1px solid var(--primary-peach-light);
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+    animation: tipSlideUp 0.2s ease-out;
+    z-index: 52;
+}
+
 .tip-toggle-btn {
     width: 100%;
     display: flex;
@@ -1122,7 +1166,6 @@ button {
     font-weight: 700;
     color: var(--primary-peach);
     text-align: center;
-    font-style: italic;
     opacity: 0.8;
 }
 
@@ -1157,7 +1200,7 @@ button {
 /* ===== Mobile Compact (모바일 한 화면 최적화) ===== */
 @media (max-width: 480px) {
     .scene-container {
-        aspect-ratio: 2.2 / 1;
+        aspect-ratio: 16 / 9;
         border-radius: 14px;
     }
 
@@ -1235,7 +1278,7 @@ button {
     }
 
     .learn-card-main .scene-container {
-        aspect-ratio: 2.2 / 1;
+        aspect-ratio: 16 / 9;
         border-radius: 14px;
     }
 
