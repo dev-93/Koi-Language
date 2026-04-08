@@ -9,6 +9,7 @@ import {
     ChevronDown,
     ChevronUp,
     Sparkles,
+    Volume2,
 } from 'lucide-react';
 import SituationScene from './SituationScene';
 
@@ -19,6 +20,15 @@ export default function LearnView({ situation, initialExpressions = [] }) {
     const [isKr, setIsKr] = useState(true);
     const [expressions, setExpressions] = useState([]);
     const [tipOpen, setTipOpen] = useState(false);
+
+    const speak = (text, lang = 'ja-JP') => {
+        if (!window.speechSynthesis) return;
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = lang;
+        utterance.rate = 0.85;
+        window.speechSynthesis.speak(utterance);
+    };
 
     useEffect(() => {
         const nationality = typeof window !== 'undefined' ? localStorage.getItem('user_nationality') || 'KR' : 'KR';
@@ -133,9 +143,18 @@ export default function LearnView({ situation, initialExpressions = [] }) {
                                         <SituationScene title={situation.title.kr} date={situation.date} />
 
                                         <div className="w-full d-flex flex-col items-center justify-center mt-2">
-                                            <h2 className="learn-expr-main">
-                                                {mainText}
-                                            </h2>
+                                            <div className="d-flex items-center gap-2">
+                                                <h2 className="learn-expr-main">
+                                                    {mainText}
+                                                </h2>
+                                                <button
+                                                    onClick={() => speak(mainText, isKr ? 'ja-JP' : 'ko-KR')}
+                                                    className="tts-btn"
+                                                    aria-label="발음 듣기"
+                                                >
+                                                    <Volume2 size={18} />
+                                                </button>
+                                            </div>
 
                                             {readingText && (
                                                 <p className="learn-expr-reading">

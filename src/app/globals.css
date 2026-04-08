@@ -1147,6 +1147,27 @@ button {
 }
 
 /* ===== Learn Expression Text (반응형) ===== */
+.tts-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--primary-peach-light);
+    color: var(--primary-peach);
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.tts-btn:active {
+    transform: scale(0.9);
+    background: var(--primary-peach);
+    color: white;
+}
+
 .learn-expr-main {
     margin: 0;
     font-size: 28px;
