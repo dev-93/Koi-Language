@@ -150,13 +150,38 @@ export default function LearnView({ situation, initialExpressions = [] }) {
                                                 <h2 className="learn-expr-main">
                                                     {mainText}
                                                 </h2>
-                                                <button
-                                                    onClick={() => speak(mainText, isKr ? 'ja-JP' : 'ko-KR')}
-                                                    className="tts-btn"
-                                                    aria-label="발음 듣기"
-                                                >
-                                                    <Volume2 size={18} />
-                                                </button>
+                                                <div className="d-flex flex-col items-center shrink-0" style={{ gap: '6px' }}>
+                                                    <button
+                                                        onClick={() => speak(mainText, isKr ? 'ja-JP' : 'ko-KR')}
+                                                        className="tts-btn"
+                                                        aria-label="발음 듣기"
+                                                    >
+                                                        <Volume2 size={18} />
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            toggleFavorite({
+                                                                exprId: expr.id || `${situation.id}-${idx}`,
+                                                                jp: expr.jp,
+                                                                kr: expr.kr,
+                                                                reading: readingText,
+                                                                tip: expr.tip,
+                                                                situationTitle: isKr ? situation.title.kr : situation.title.jp,
+                                                                situationId: situation.id,
+                                                            });
+                                                        }}
+                                                        className="fav-btn"
+                                                        style={{ width: 32, height: 32 }}
+                                                        aria-label="즐겨찾기"
+                                                    >
+                                                        <Heart
+                                                            size={16}
+                                                            fill={isFavorite(expr.id || `${situation.id}-${idx}`) ? '#d4537e' : 'none'}
+                                                            color="#d4537e"
+                                                        />
+                                                    </button>
+                                                </div>
                                             </div>
 
                                             {readingText && (
@@ -184,29 +209,6 @@ export default function LearnView({ situation, initialExpressions = [] }) {
                                                 </div>
                                             ))}
                                         </div>
-
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                toggleFavorite({
-                                                    exprId: expr.id || `${situation.id}-${idx}`,
-                                                    jp: expr.jp,
-                                                    kr: expr.kr,
-                                                    reading: readingText,
-                                                    tip: expr.tip,
-                                                    situationTitle: isKr ? situation.title.kr : situation.title.jp,
-                                                    situationId: situation.id,
-                                                });
-                                            }}
-                                            className="fav-btn mt-2"
-                                            aria-label="즐겨찾기"
-                                        >
-                                            <Heart
-                                                size={20}
-                                                fill={isFavorite(expr.id || `${situation.id}-${idx}`) ? '#d4537e' : 'none'}
-                                                color="#d4537e"
-                                            />
-                                        </button>
                                     </div>
                                 </SwiperSlide>
                             );
