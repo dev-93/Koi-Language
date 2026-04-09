@@ -33,3 +33,7 @@
 - **Spacing**: `.mb-1`, `.mb-2`, `.mb-4`, `.mt-2`, `.mt-4` 등
 - **Flexbox**: `.flex`, `.flex-col`, `.items-center`, `.justify-center`, `.gap-2`, `.gap-4` 등
 - **Visibility**: `.u-invisible`, `.u-backdrop-blur`
+
+## Favorite (즐겨찾기) Styles
+- **fav-btn**: 40x40 원형 버튼, `--primary-peach-soft` 배경, `--primary-peach-light` 보더, `:active` 시 `scale(0.85)`
+- **fav-badge**: 절대 위치 카운트 배지, 16px 높이, `--primary-peach` 배경, 흰색 10px 폰트

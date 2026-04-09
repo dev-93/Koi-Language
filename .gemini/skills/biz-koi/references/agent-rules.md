@@ -27,6 +27,7 @@
   - 발음(`Reading`): 전용 도구(Romaji)를 활용한 정확한 로마자 표기.
   - 팁(`Tip`): `{ "kr": "...", "jp": "..." }` JSON 형식을 준수하여 문화적/심리적 조언 포함.
   - 단어(`Words`): 해당 표현의 핵심 어휘 최대 3개까지 JSON 배열 형태로 포함.
+- **즐겨찾기 (Favorites):** 클라이언트 Zustand store에 persist. 구조: `{ exprId, jp, kr, reading, tip, situationTitle, situationId, savedAt }`. 서버 동기화 없이 localStorage 기반.
 
 ## 🛠️ 3. 기술적 제약 사항
 - **환경 변수:** `VITE_` 접두사가 제거된 최신 변수명(`GEMINI_API_KEY`, `NOTION_TOKEN` 등)을 사용.

@@ -22,6 +22,7 @@ description: Koi-Language 전용 비즈니스 파트너. 일본어 감정 대화
 2. **마케팅 자동화**: 숏폼(TikTok/Shorts) 문구 추출 및 노출 최적화.
 3. **유료화 전환**: 프리미엄 기능(감정 Tip 등)의 마스킹 처리 및 클릭률 측정.
 4. **UI 구현**: 새로운 화면이나 컴포넌트 생성 시 프로젝트의 디자인 시스템 준수.
+5. **즐겨찾기 시스템**: 학습 중 마음에 드는 표현을 하트로 저장, 홈 화면 '내 표현' 탭에서 재열람 가능. Zustand persist로 로컬 저장.
 
 ## 🎨 UI 가이드라인
 UI 관련 작업을 수행할 때는 아래 참조 문서를 확인하세요.
@@ -42,3 +43,10 @@ UI 관련 작업을 수행할 때는 아래 참조 문서를 확인하세요.
 - **고정 영역 최소화**: `position: fixed` 하단 영역(네비, 버튼 등)은 최대한 얇게 유지합니다.
 - **overflow 제어**: 모바일 레이아웃 최상위 컨테이너에 `overflow: hidden`과 `height: 100dvh`를 적용합니다.
 - **폰트 크기**: 모바일에서는 PC 대비 2~4px 작게 설정합니다.
+
+## 💾 상태 관리 (Zustand Store)
+- **persist 미들웨어**: `koi-language-storage` 키로 localStorage에 자동 저장.
+- **favorites**: 마음에 드는 표현 배열. `toggleFavorite(expr)` / `isFavorite(exprId)` 메서드 사용.
+- **dailyProgress**: 일일 학습 진행도 (날짜 변경 시 자동 리셋).
+- **currentTab**: 홈 화면 탭 상태 (`today` | `archive` | `favorites` | `settings`).
+- **recentKeywords**: 중복 방지용 최근 키워드 (최대 8개).

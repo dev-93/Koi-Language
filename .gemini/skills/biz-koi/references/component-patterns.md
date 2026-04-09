@@ -105,3 +105,30 @@
 
 ## Icons
 아이콘은 항상 `lucide-react`를 사용하며, 크기는 기본 `20` 또는 `24`를 권장합니다.
+
+## Favorite Button (즐겨찾기 하트 버튼)
+학습 카드에서 마음에 드는 표현을 저장하는 버튼입니다.
+```jsx
+import useStore from '@/store';
+import { Heart } from 'lucide-react';
+
+const { toggleFavorite, isFavorite } = useStore();
+
+<button
+  onClick={() => toggleFavorite({ exprId, jp, kr, reading, tip, situationTitle, situationId })}
+  className="fav-btn"
+  aria-label="즐겨찾기"
+>
+  <Heart size={20} fill={isFavorite(exprId) ? '#d4537e' : 'none'} color="#d4537e" />
+</button>
+```
+- `.fav-btn`: 40x40 원형, `--primary-peach-soft` 배경, `--primary-peach-light` 보더
+- 활성 시 하트가 `#d4537e`로 채워짐
+- `:active` 시 `scale(0.85)` 축소 애니메이션
+
+## Favorite Badge (즐겨찾기 카운트 배지)
+하단 네비게이션의 즐겨찾기 아이콘 위에 표시되는 카운트 배지입니다.
+```jsx
+{favorites.length > 0 && <span className="fav-badge">{favorites.length}</span>}
+```
+- `.fav-badge`: 절대 위치, 16px 원형, `--primary-peach` 배경, 흰색 텍스트, 10px 폰트
