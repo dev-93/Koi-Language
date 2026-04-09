@@ -38,6 +38,7 @@ export async function GET(request) {
         const result = await generateAndSave({
             targetDate,
             geminiApiKey,
+            geminiApiKeyFallback: process.env.GEMINI_API_KEY_FALLBACK,
             notionToken,
             situationDbId: process.env.NOTION_SITUATION_DB_ID || process.env.NOTION_SITUATIONS_DB_ID,
             expressionsDbId: process.env.NOTION_EXPRESSION_DB_ID || process.env.NOTION_EXPRESSIONS_DB_ID,

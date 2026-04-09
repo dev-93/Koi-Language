@@ -22,6 +22,7 @@ const targetDate = process.argv[2] || getKSTDate();
         const result = await generateAndSave({
             targetDate,
             geminiApiKey: GEMINI_API_KEY,
+            geminiApiKeyFallback: process.env.GEMINI_API_KEY_FALLBACK,
             notionToken: NOTION_TOKEN,
             situationDbId: SITUATION_DB_ID,
             expressionsDbId: EXPRESSIONS_DB_ID,

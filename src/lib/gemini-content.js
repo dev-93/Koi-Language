@@ -70,6 +70,27 @@ export const buildPrompt = (targetDate) => `당신은 일본어 연애/소셜 �
 4. 모든 reading_en 필드에는 영어 로마자 발음(Romaji)을 적으세요.
 5. 각 표현의 words는 핵심 단어 최대 3개만 포함하세요.`;
 
+// ── Gemini API 호출 (fallback 키 지원) ──
+
+/**
+ * Gemini API 호출을 실행하고, 실패 시 fallback 키로 재시도
+ * @param {Function} requestFn - (apiKey) => Promise 형태의 요청 함수
+ * @param {string[]} apiKeys - 시도할 API 키 목록
+ * @returns {Promise<*>}
+ */
+const withFallbackKey = async (requestFn, apiKeys) => {
+    let lastError;
+    for (const key of apiKeys) {
+        try {
+            return await requestFn(key);
+        } catch (err) {
+            lastError = err;
+            console.warn(`⚠️ Gemini API 키 실패, 다음 키로 재시도: ${err.message}`);
+        }
+    }
+    throw lastError;
+};
+
 // ── Gemini 텍스트 콘텐츠 생성 ──
 
 export const geminiGenerateContent = async (prompt, apiKey) => {
@@ -173,6 +194,7 @@ const notionPost = async (path, body, token) => {
  * @param {Object} opts
  * @param {string} opts.targetDate - YYYY-MM-DD
  * @param {string} opts.geminiApiKey
+ * @param {string} [opts.geminiApiKeyFallback] - 실패 시 사용할 대체 API 키
  * @param {string} opts.notionToken
  * @param {string} opts.situationDbId
  * @param {string} opts.expressionsDbId
@@ -182,21 +204,24 @@ const notionPost = async (path, body, token) => {
 export const generateAndSave = async ({
     targetDate,
     geminiApiKey,
+    geminiApiKeyFallback,
     notionToken,
     situationDbId,
     expressionsDbId,
     onProgress,
 }) => {
-    // 1. 텍스트 콘텐츠 생성
-    const prompt = buildPrompt(targetDate);
-    const data = await geminiGenerateContent(prompt, geminiApiKey);
+    const apiKeys = [geminiApiKey, geminiApiKeyFallback].filter(Boolean);
 
-    // 2. 이미지 생성 + Blob 업로드
+    // 1. 텍스트 콘텐츠 생성 (fallback 키 지원)
+    const prompt = buildPrompt(targetDate);
+    const data = await withFallbackKey((key) => geminiGenerateContent(prompt, key), apiKeys);
+
+    // 2. 이미지 생성 + Blob 업로드 (fallback 키 지원)
     let imageUrl = null;
     try {
         const imagePrompt = `${data.situation.title_kr} - ${data.situation.desc_kr}`;
         onProgress?.('🎨');
-        const imageBuffer = await geminiGenerateImage(imagePrompt, geminiApiKey);
+        const imageBuffer = await withFallbackKey((key) => geminiGenerateImage(imagePrompt, key), apiKeys);
         if (imageBuffer) {
             imageUrl = await uploadToBlob(imageBuffer, `${targetDate}.png`);
             onProgress?.('📸');
