@@ -10,8 +10,10 @@ import {
     ChevronUp,
     Sparkles,
     Volume2,
+    Heart,
 } from 'lucide-react';
 import SituationScene from './SituationScene';
+import useStore from '@/store';
 
 export default function LearnView({ situation, initialExpressions = [] }) {
     const router = useRouter();
@@ -20,6 +22,7 @@ export default function LearnView({ situation, initialExpressions = [] }) {
     const [isKr, setIsKr] = useState(true);
     const [expressions, setExpressions] = useState([]);
     const [tipOpen, setTipOpen] = useState(false);
+    const { toggleFavorite, isFavorite } = useStore();
 
     const speak = (text, lang = 'ja-JP') => {
         if (!window.speechSynthesis) return;
@@ -181,6 +184,29 @@ export default function LearnView({ situation, initialExpressions = [] }) {
                                                 </div>
                                             ))}
                                         </div>
+
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                toggleFavorite({
+                                                    exprId: expr.id || `${situation.id}-${idx}`,
+                                                    jp: expr.jp,
+                                                    kr: expr.kr,
+                                                    reading: readingText,
+                                                    tip: expr.tip,
+                                                    situationTitle: isKr ? situation.title.kr : situation.title.jp,
+                                                    situationId: situation.id,
+                                                });
+                                            }}
+                                            className="fav-btn mt-2"
+                                            aria-label="즐겨찾기"
+                                        >
+                                            <Heart
+                                                size={20}
+                                                fill={isFavorite(expr.id || `${situation.id}-${idx}`) ? '#d4537e' : 'none'}
+                                                color="#d4537e"
+                                            />
+                                        </button>
                                     </div>
                                 </SwiperSlide>
                             );

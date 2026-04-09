@@ -11,6 +11,7 @@ const useStore = create(
                 cardsLearned: [], // Array of situation IDs
             },
             recentKeywords: [], // 최근 학습한 상황의 키워드 (중복 방지용)
+            favorites: [], // 마음에 드는 표현 저장 [{exprId, jp, kr, reading, tip, situationTitle, savedAt}]
 
             setUserProfile: (profile) => set({ userProfile: profile }),
             resetUserProfile: () => set({ userProfile: null }),
@@ -69,6 +70,19 @@ const useStore = create(
                     dailyProgress: { date: new Date().toDateString(), cardsLearned: [] },
                     recentKeywords: [],
                 }),
+
+            toggleFavorite: (expr) =>
+                set((state) => {
+                    const exists = state.favorites.some((f) => f.exprId === expr.exprId);
+                    if (exists) {
+                        return { favorites: state.favorites.filter((f) => f.exprId !== expr.exprId) };
+                    }
+                    return { favorites: [{ ...expr, savedAt: new Date().toISOString() }, ...state.favorites] };
+                }),
+
+            isFavorite: (exprId) => {
+                return get().favorites.some((f) => f.exprId === exprId);
+            },
         }),
         {
             name: 'koi-language-storage',

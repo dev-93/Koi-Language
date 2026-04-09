@@ -13,6 +13,8 @@ import {
     ArrowRight,
     CheckCircle2,
     Check,
+    Volume2,
+    Trash2,
 } from 'lucide-react';
 import SituationScene from './SituationScene';
 import useStore from '@/store';
@@ -20,6 +22,7 @@ import useStore from '@/store';
 export default function HomeView({ initialSituations = [] }) {
     const router = useRouter();
     const { currentTab: tab, setCurrentTab: setTab } = useStore();
+    const { favorites, toggleFavorite } = useStore();
     const [situations, setSituations] = useState(initialSituations);
     const [searchQuery, setSearchQuery] = useState('');
     const [learnedIds, setLearnedIds] = useState([]);
@@ -86,38 +89,53 @@ export default function HomeView({ initialSituations = [] }) {
                 </div>
             </div>
 
-            {/* Main Tabs (Optional: Show only on certain tabs if needed, but keeping for UX) */}
-            <div
-                className="u-bg-white\/80 u-backdrop-blur u-shadow-lg u-rounded-3xl p-1.5 w-full max-w-[420px] d-flex home-tabs-wrapper"
-                style={{ gap: '0.4rem' }}
-            >
-                <button
-                    onClick={() => setTab('today')}
-                    className={`flex-1 u-rounded-2xl font-black text-[15px] border-none transition-all cursor-pointer ${tab === 'today'
-                        ? 'bg-peach u-shadow-md'
-                        : 'bg-transparent hover:bg-white/50'
-                        }`}
-                    style={{ padding: '14px 16px', color: tab === 'today' ? '#ffffff' : '#9ca3af', fontSize: '16px', fontWeight: 900 }}
+            {/* Main Tabs - today/archive 전용 */}
+            {(tab === 'today' || tab === 'archive') && (
+                <div
+                    className="u-bg-white\/80 u-backdrop-blur u-shadow-lg u-rounded-3xl p-1.5 w-full max-w-[420px] d-flex home-tabs-wrapper"
+                    style={{ gap: '0.4rem' }}
                 >
-                    <div className="d-flex items-center justify-center gap-2">
-                        <Heart size={16} fill={tab === 'today' ? 'white' : 'none'} />
-                        <span>오늘의 표현</span>
+                    <button
+                        onClick={() => setTab('today')}
+                        className={`flex-1 u-rounded-2xl font-black text-[15px] border-none transition-all cursor-pointer ${tab === 'today'
+                            ? 'bg-peach u-shadow-md'
+                            : 'bg-transparent hover:bg-white/50'
+                            }`}
+                        style={{ padding: '14px 16px', color: tab === 'today' ? '#ffffff' : '#9ca3af', fontSize: '16px', fontWeight: 900 }}
+                    >
+                        <div className="d-flex items-center justify-center gap-2">
+                            <Heart size={16} fill={tab === 'today' ? 'white' : 'none'} />
+                            <span>오늘의 표현</span>
+                        </div>
+                    </button>
+                    <button
+                        onClick={() => setTab('archive')}
+                        className={`flex-1 u-rounded-2xl font-black text-[15px] border-none transition-all cursor-pointer ${tab === 'archive'
+                            ? 'bg-peach u-shadow-md'
+                            : 'bg-transparent hover:bg-white/50'
+                            }`}
+                        style={{ padding: '14px 16px', color: tab === 'archive' ? '#ffffff' : '#9ca3af', fontSize: '16px', fontWeight: 900 }}
+                    >
+                        <div className="d-flex items-center justify-center gap-2">
+                            <BookMarked size={16} fill={tab === 'archive' ? 'white' : 'none'} />
+                            <span>지난 학습</span>
+                        </div>
+                    </button>
+                </div>
+            )}
+
+            {/* Favorites 전용 헤더 */}
+            {tab === 'favorites' && (
+                <div className="w-full max-w-[420px] d-flex items-center justify-center home-tabs-wrapper">
+                    <div className="d-flex items-center gap-2">
+                        <Heart size={16} color="var(--primary-peach)" fill="var(--primary-peach)" />
+                        <span style={{ fontSize: '15px', fontWeight: 900, color: 'var(--text-dark)' }}>내가 저장한 표현</span>
+                        {favorites.length > 0 && (
+                            <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--primary-peach)', opacity: 0.7 }}>{favorites.length}개</span>
+                        )}
                     </div>
-                </button>
-                <button
-                    onClick={() => setTab('archive')}
-                    className={`flex-1 u-rounded-2xl font-black text-[15px] border-none transition-all cursor-pointer ${tab === 'archive'
-                        ? 'bg-peach u-shadow-md'
-                        : 'bg-transparent hover:bg-white/50'
-                        }`}
-                    style={{ padding: '14px 16px', color: tab === 'archive' ? '#ffffff' : '#9ca3af', fontSize: '16px', fontWeight: 900 }}
-                >
-                    <div className="d-flex items-center justify-center gap-2">
-                        <BookMarked size={16} fill={tab === 'archive' ? 'white' : 'none'} />
-                        <span>지난 학습</span>
-                    </div>
-                </button>
-            </div>
+                </div>
+            )}
 
             {/* Tab Contents */}
             <div className="w-full flex-1 d-flex flex-col items-center">
@@ -308,6 +326,74 @@ export default function HomeView({ initialSituations = [] }) {
                         </p>
                     </div>
                 )}
+
+                {tab === 'favorites' && (
+                    <div className="w-full max-w-[420px] d-flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500 px-1" style={{ gap: '8px' }}>
+                        {favorites.length > 0 ? (
+                            <div className="d-flex flex-col pb-24 custom-scrollbar" style={{ gap: '8px' }}>
+                                {favorites.map((fav) => (
+                                    <div
+                                        key={fav.exprId}
+                                        className="fav-card"
+                                    >
+                                        <div className="d-flex items-center justify-between w-full" style={{ gap: '8px' }}>
+                                            <div className="d-flex flex-col flex-1" style={{ minWidth: 0, gap: '2px' }}>
+                                                <p className="m-0 font-black text-gray-800" style={{ fontSize: '16px', lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{fav.jp}</p>
+                                                <p className="m-0 font-bold" style={{ fontSize: '13px', color: 'var(--text-gray)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{fav.kr}</p>
+                                            </div>
+                                            <div className="d-flex items-center shrink-0" style={{ gap: '6px' }}>
+                                                <button
+                                                    onClick={() => {
+                                                        if (window.speechSynthesis) {
+                                                            window.speechSynthesis.cancel();
+                                                            const u = new SpeechSynthesisUtterance(fav.jp);
+                                                            u.lang = 'ja-JP';
+                                                            u.rate = 0.85;
+                                                            window.speechSynthesis.speak(u);
+                                                        }
+                                                    }}
+                                                    className="tts-btn"
+                                                    style={{ width: 28, height: 28 }}
+                                                    aria-label="발음 듣기"
+                                                >
+                                                    <Volume2 size={14} />
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        if (confirm('이 표현을 삭제할까요?')) {
+                                                            toggleFavorite(fav);
+                                                        }
+                                                    }}
+                                                    className="fav-btn"
+                                                    style={{ width: 28, height: 28 }}
+                                                    aria-label="즐겨찾기 해제"
+                                                >
+                                                    <Trash2 size={12} color="#d4537e" />
+                                                </button>
+                                                <button
+                                                    onClick={() => fav.situationId && handleLearnStart(fav.situationId)}
+                                                    className="fav-go-btn"
+                                                    aria-label="학습하기"
+                                                >
+                                                    <ArrowRight size={14} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="d-flex items-center" style={{ gap: '4px', marginTop: '4px' }}>
+                                            <span className="fav-situation-chip">{fav.situationTitle}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center" style={{ paddingTop: '60px' }}>
+                                <Heart size={36} color="#e5e7eb" style={{ margin: '0 auto 12px' }} />
+                                <p className="text-gray-400 font-bold" style={{ fontSize: '14px' }}>아직 저장한 표현이 없어요</p>
+                                <p className="text-gray-300 font-medium" style={{ fontSize: '12px', marginTop: '6px' }}>학습 중 하트를 눌러보세요</p>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* Fixed Bottom Navigation */}
@@ -324,6 +410,16 @@ export default function HomeView({ initialSituations = [] }) {
                     className={`p-4 u-rounded-full transition-all ${tab === 'archive' ? 'bg-peach text-white shadow-lg' : 'text-gray-300 hover:text-gray-400'}`}
                 >
                     <BookOpen size={24} fill={tab === 'archive' ? 'white' : 'none'} />
+                </button>
+                <div className="w-px h-6 bg-gray-100" />
+                <button
+                    onClick={() => setTab('favorites')}
+                    className={`p-4 u-rounded-full transition-all relative ${tab === 'favorites' ? 'bg-peach text-white shadow-lg' : 'text-gray-300 hover:text-gray-400'}`}
+                >
+                    <BookMarked size={24} fill={tab === 'favorites' ? 'white' : 'none'} />
+                    {favorites.length > 0 && tab !== 'favorites' && (
+                        <span className="fav-badge">{favorites.length}</span>
+                    )}
                 </button>
                 <div className="w-px h-6 bg-gray-100" />
                 <button
