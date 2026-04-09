@@ -108,7 +108,7 @@ const DEFAULT_SCENE = {
     label: '소중한 일상',
 };
 
-const SituationScene = ({ title = '', date = '', imageUrl = '' }) => {
+const SituationScene = ({ id = '', title = '', date = '', imageUrl = '' }) => {
     // 1. 제목 키워드 매칭 확인 (가장 정확한 방법)
     const findSceneByKey = () => {
         return Object.values(SCENE_MAP).find((value) =>
@@ -125,13 +125,24 @@ const SituationScene = ({ title = '', date = '', imageUrl = '' }) => {
     };
 
     // 동적 생성 이미지가 있으면 우선 사용, 없으면 기존 키워드 매칭 fallback
+    // 우선순위: imageUrl > /situations/${id}.png > 키워드 매칭 > 날짜 기반
     const scene = imageUrl ? null : (findSceneByKey() || getFallbackScene() || DEFAULT_SCENE);
+
+    // ID 기반 이미지가 존재하는지 여부를 확인하는 대신, 
+    // 이미지 경로를 결정할 때 ID 기반 경로를 가장 먼저 시도합니다.
+    const displayImageUrl = imageUrl || (id ? `/situations/${id}.png` : scene.img);
 
     return (
         <div className="scene-wrapper">
             <div className="scene-container">
                 <img
-                    src={imageUrl || scene.img}
+                    src={displayImageUrl}
+                    onError={(e) => {
+                        // 만약 ID 기반 이미지가 로드 실패하면 fallback 이미지로 교체
+                        if (id && e.target.src.includes(id)) {
+                            e.target.src = scene?.img || DEFAULT_SCENE.img;
+                        }
+                    }}
                     alt={imageUrl ? title : scene.label}
                     className="scene-image"
                 />

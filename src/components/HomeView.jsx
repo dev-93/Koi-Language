@@ -131,6 +131,7 @@ export default function HomeView({ initialSituations = [] }) {
                             >
                                 {/* 상황 씬 */}
                                 <SituationScene
+                                    id={currentSituation.id}
                                     title={currentSituation.title.kr}
                                     date={currentSituation.date}
                                     imageUrl={currentSituation.imageUrl}

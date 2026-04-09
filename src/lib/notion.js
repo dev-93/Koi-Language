@@ -53,6 +53,7 @@ export const getSituations = async () => {
                     kr: props.Desc_KR?.rich_text?.[0]?.plain_text || '',
                     jp: props.Desc_JP?.rich_text?.[0]?.plain_text || '',
                 },
+                imageUrl: props.URL?.rich_text?.[0]?.plain_text || '',
             };
         });
     } catch (error) {
