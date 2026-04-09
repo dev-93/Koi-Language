@@ -27,6 +27,11 @@ const SCENE_MAP = {
         label: '포근한 집 데이트',
         keywords: ['집', '요리', '초대', '홈데이트', '실내', '방', '요리하기', '넷플릭스'],
     },
+    izakaya_romance: {
+        img: '/situations/izakaya_interest.png',
+        label: '이자카야 호감 표현',
+        keywords: ['호감', '썸남', '썸녀'],
+    },
     izakaya: {
         img: '/situations/izakaya.png',
         label: '이자카야 데이트',
