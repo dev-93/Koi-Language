@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 /**
  * =========================================================================
@@ -109,6 +109,8 @@ const DEFAULT_SCENE = {
 };
 
 const SituationScene = ({ id = '', title = '', date = '', imageUrl = '' }) => {
+    const [loaded, setLoaded] = useState(false);
+
     // 1. 제목 키워드 매칭 확인 (가장 정확한 방법)
     const findSceneByKey = () => {
         return Object.values(SCENE_MAP).find((value) =>
@@ -135,8 +137,10 @@ const SituationScene = ({ id = '', title = '', date = '', imageUrl = '' }) => {
     return (
         <div className="scene-wrapper">
             <div className="scene-container">
+                {!loaded && <div className="scene-skeleton" />}
                 <img
                     src={displayImageUrl}
+                    onLoad={() => setLoaded(true)}
                     onError={(e) => {
                         // 만약 ID 기반 이미지가 로드 실패하면 fallback 이미지로 교체
                         if (id && e.target.src.includes(id)) {
@@ -145,6 +149,7 @@ const SituationScene = ({ id = '', title = '', date = '', imageUrl = '' }) => {
                     }}
                     alt={imageUrl ? title : scene.label}
                     className="scene-image"
+                    style={{ opacity: loaded ? 1 : 0 }}
                 />
             </div>
         </div>
