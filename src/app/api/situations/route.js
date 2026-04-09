@@ -95,8 +95,9 @@ export async function GET() {
                     title: { kr: getTitle(props['Title_KR']), jp: getRichText(props['Title_JP']) },
                     desc: { kr: getRichText(props['Desc_KR']), jp: getRichText(props['Desc_JP']) },
                     date: getDate(props['Date']),
+                    imageUrl: props['URL']?.url || null,
                 };
-                
+
                 const sitExpressions = expressions.filter((e) => e.situationIds.includes(sit.id));
                 const integrated = sitExpressions.filter(e => {
                     const target = (e.target || '').toUpperCase();

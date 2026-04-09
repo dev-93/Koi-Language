@@ -44,7 +44,8 @@ export async function GET(request) {
         });
 
         const bizStatus = getBusinessStatus();
-        await sendTelegramMessage(`✅ <b>Koi Language</b> 동기화 성공\n주제: ${result.situation.title_kr}${bizStatus}`);
+        const imgStatus = result.imageUrl ? '🖼️ 이미지 생성됨' : '⚠️ 이미지 없음';
+        await sendTelegramMessage(`✅ <b>Koi Language</b> 동기화 성공\n주제: ${result.situation.title_kr}\n${imgStatus}${bizStatus}`);
         return NextResponse.json({ success: true });
 
     } catch (err) {

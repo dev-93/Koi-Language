@@ -103,7 +103,7 @@ const DEFAULT_SCENE = {
     label: '소중한 일상',
 };
 
-const SituationScene = ({ title = '', date = '' }) => {
+const SituationScene = ({ title = '', date = '', imageUrl = '' }) => {
     // 1. 제목 키워드 매칭 확인 (가장 정확한 방법)
     const findSceneByKey = () => {
         return Object.values(SCENE_MAP).find((value) =>
@@ -119,12 +119,17 @@ const SituationScene = ({ title = '', date = '' }) => {
         return SCENE_MAP[keys[day % keys.length]];
     };
 
-    const scene = findSceneByKey() || getFallbackScene() || DEFAULT_SCENE;
+    // 동적 생성 이미지가 있으면 우선 사용, 없으면 기존 키워드 매칭 fallback
+    const scene = imageUrl ? null : (findSceneByKey() || getFallbackScene() || DEFAULT_SCENE);
 
     return (
         <div className="scene-wrapper">
             <div className="scene-container">
-                <img src={scene.img} alt={scene.label} className="scene-image" />
+                <img
+                    src={imageUrl || scene.img}
+                    alt={imageUrl ? title : scene.label}
+                    className="scene-image"
+                />
             </div>
         </div>
     );

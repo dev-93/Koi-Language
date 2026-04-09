@@ -133,6 +133,7 @@ export default function HomeView({ initialSituations = [] }) {
                                 <SituationScene
                                     title={currentSituation.title.kr}
                                     date={currentSituation.date}
+                                    imageUrl={currentSituation.imageUrl}
                                 />
 
                                 <div className="flex-1 d-flex flex-col items-center justify-start gap-4 w-full pt-4 px-4">

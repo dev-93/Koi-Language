@@ -28,7 +28,7 @@ const targetDate = process.argv[2] || getKSTDate();
             onProgress: () => process.stdout.write('.'),
         });
 
-        console.log(`\n✅ 성공! (${result.situation.title_kr}, ${result.expressionCount}개 표현)`);
+        console.log(`\n✅ 성공! (${result.situation.title_kr}, ${result.expressionCount}개 표현${result.imageUrl ? ', 🖼️ 이미지 생성됨' : ''})`);
         await sendTelegramReport();
     } catch (err) {
         console.error(`\n❌ 실패:`, err.message);

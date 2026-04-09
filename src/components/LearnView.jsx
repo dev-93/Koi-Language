@@ -140,7 +140,7 @@ export default function LearnView({ situation, initialExpressions = [] }) {
                             return (
                                 <SwiperSlide key={expr.id || idx}>
                                     <div className={`m-1 px-3 py-3 u-rounded-[28px] shadow-2xl transition-all duration-500 border border-gray-50 bg-white d-flex flex-col items-center ${currentIndex === idx ? 'scale-100 opacity-100' : 'scale-[0.92] opacity-40 blur-[1px]'}`}>
-                                        <SituationScene title={situation.title.kr} date={situation.date} />
+                                        <SituationScene title={situation.title.kr} date={situation.date} imageUrl={situation.imageUrl} />
 
                                         <div className="w-full d-flex flex-col items-center justify-center mt-2">
                                             <div className="d-flex items-center gap-2">
