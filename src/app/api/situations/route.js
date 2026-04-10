@@ -108,11 +108,17 @@ export async function GET() {
                     ...sit,
                     expressions: {
                         kr_wants_jp: [
-                            ...sitExpressions.filter((e) => (e.target || '').toUpperCase() === 'KR'),
+                            ...sitExpressions.filter((e) => {
+                                const t = (e.target || '').toUpperCase();
+                                return t === 'KR' || t === 'KR_WANTS_JP';
+                            }),
                             ...integrated.map((e) => ({ ...e, is_integrated: true }))
                         ],
                         jp_wants_kr: [
-                            ...sitExpressions.filter((e) => (e.target || '').toUpperCase() === 'JP'),
+                            ...sitExpressions.filter((e) => {
+                                const t = (e.target || '').toUpperCase();
+                                return t === 'JP' || t === 'JP_WANTS_KR';
+                            }),
                             ...integrated.map((e) => ({ ...e, is_integrated: true }))
                         ],
                     },

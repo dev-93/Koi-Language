@@ -11,8 +11,8 @@ dotenv.config();
  */
 
 const token = process.env.NOTION_TOKEN;
-const SIT_DB_ID = process.env.VITE_NOTION_SITUATION_DB_ID;
-const EXPR_DB_ID = process.env.VITE_NOTION_EXPRESSION_DB_ID;
+const SIT_DB_ID = process.env.NOTION_SITUATIONS_DB_ID;
+const EXPR_DB_ID = process.env.NOTION_EXPRESSIONS_DB_ID;
 
 const notionRequest = (method, path, body) =>
     new Promise((resolve, reject) => {
