@@ -309,7 +309,7 @@ export const generateAndSave = async ({
     };
 
     if (imageUrl) {
-        situationProperties.URL = { url: imageUrl };
+        situationProperties.URL = { rich_text: [{ text: { content: imageUrl } }] };
     }
 
     const sitPage = await notionPost('/v1/pages', {
