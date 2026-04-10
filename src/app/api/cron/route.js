@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 import { getKSTDate } from '@/lib/date';
-import { generateAndSave } from '@/lib/gemini-content';
+import { generateAndSave, getSeriesInfo } from '@/lib/gemini-content';
 import { sendTelegramMessage } from '@/lib/telegram';
 
 const getBusinessStatus = () => {
@@ -47,7 +47,9 @@ export async function GET(request) {
 
         const bizStatus = getBusinessStatus();
         const imgStatus = result.imageUrl ? '🖼️ 이미지 생성됨' : '⚠️ 이미지 없음';
-        await sendTelegramMessage(`✅ <b>Koi Language</b> 동기화 성공\n주제: ${result.situation.title_kr}\n${imgStatus}${bizStatus}`);
+        const series = getSeriesInfo(targetDate);
+        const seriesTag = series ? `\n📚 시리즈 ${series.day}일차` : '';
+        await sendTelegramMessage(`✅ <b>Koi Language</b> 동기화 성공\n주제: ${result.situation.title_kr}\n${imgStatus}${seriesTag}${bizStatus}`);
         return NextResponse.json({ success: true });
 
     } catch (err) {
