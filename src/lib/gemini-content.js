@@ -48,6 +48,16 @@ const EXPRESSION_SCHEMA = {
     required: ['situation', 'expressions'],
 };
 
+// ── 커스텀 시리즈 (날짜 지정) ──
+
+const CUSTOM_SERIES = [
+    {
+        startDate: '2026-04-11',
+        days: 2,
+        category: '자연스럽게 말 걸기 (카페에서 옆자리에게, 서점에서 같은 책 고르다가, 편의점 앞에서, 공원 벤치에서 등 일상 속 자연스러운 첫 대화)',
+    },
+];
+
 // ── 시리즈 모드 ──
 
 const CATEGORIES = [
@@ -66,6 +76,17 @@ const CATEGORIES = [
  * 월초/월중 시리즈가 서로 다른 카테고리, 연속 월도 겹치지 않도록 분배
  */
 export const getSeriesInfo = (targetDate) => {
+    // 1. 커스텀 시리즈 우선 체크
+    const target = new Date(targetDate);
+    for (const cs of CUSTOM_SERIES) {
+        const start = new Date(cs.startDate);
+        const diffDays = Math.round((target - start) / (1000 * 60 * 60 * 24));
+        if (diffDays >= 0 && diffDays < cs.days) {
+            return { category: cs.category, day: diffDays + 1 };
+        }
+    }
+
+    // 2. 기본 자동 시리즈 (1~3일, 15~17일)
     const date = new Date(targetDate);
     const day = date.getDate();
     const month = date.getMonth();
