@@ -3,17 +3,25 @@ const situationDbId = process.env.NOTION_SITUATION_DB_ID || process.env.NOTION_S
 const expressionDbId = process.env.NOTION_EXPRESSION_DB_ID || process.env.NOTION_EXPRESSIONS_DB_ID;
 
 const notionRequest = async (path, body) => {
-    const response = await fetch(`https://api.notion.com${path}`, {
-        method: 'POST',
-        headers: {
-            Authorization: `Bearer ${notionToken}`,
-            'Notion-Version': '2022-06-28',
-            'Content-Type': 'application/json',
-        },
-        body: body ? JSON.stringify(body) : null,
-    });
-    const data = await response.json();
-    return { status: response.status, body: data };
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+
+    try {
+        const response = await fetch(`https://api.notion.com${path}`, {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${notionToken}`,
+                'Notion-Version': '2022-06-28',
+                'Content-Type': 'application/json',
+            },
+            body: body ? JSON.stringify(body) : null,
+            signal: controller.signal,
+        });
+        const data = await response.json();
+        return { status: response.status, body: data };
+    } finally {
+        clearTimeout(timeout);
+    }
 };
 
 /**
@@ -53,7 +61,7 @@ export const getSituations = async () => {
                     kr: props.Desc_KR?.rich_text?.[0]?.plain_text || '',
                     jp: props.Desc_JP?.rich_text?.[0]?.plain_text || '',
                 },
-                imageUrl: props.URL?.rich_text?.[0]?.plain_text || '',
+                imageUrl: props.URL?.url || props.URL?.rich_text?.[0]?.plain_text || '',
             };
         });
     } catch (error) {
