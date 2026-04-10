@@ -39,6 +39,7 @@ export async function GET(request) {
             targetDate,
             geminiApiKey,
             geminiApiKeyFallback: process.env.GEMINI_API_KEY_FALLBACK,
+            falKey: process.env.FAL_KEY,
             notionToken,
             situationDbId: process.env.NOTION_SITUATION_DB_ID || process.env.NOTION_SITUATIONS_DB_ID,
             expressionsDbId: process.env.NOTION_EXPRESSION_DB_ID || process.env.NOTION_EXPRESSIONS_DB_ID,

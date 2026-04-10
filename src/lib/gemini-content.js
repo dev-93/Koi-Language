@@ -1,5 +1,5 @@
 /**
- * Gemini 콘텐츠 생성 + 이미지 생성 + Notion 저장 공통 모듈
+ * Gemini 콘텐츠 생성 + fal-ai 이미지 생성 + Notion 저장 공통 모듈
  */
 import { put } from '@vercel/blob';
 
@@ -119,53 +119,49 @@ export const geminiGenerateContent = async (prompt, apiKey) => {
     return JSON.parse(rawText.replace(/[\u0000-\u001F\u007F-\u009F]/g, ' '));
 };
 
-// ── Gemini 이미지 생성 ──
+// ── fal-ai 이미지 생성 ──
 
 const IMAGE_STYLE_PROMPT = 'A cute heartwarming flat vector illustration of a lovely Korean couple';
-const IMAGE_STYLE_SUFFIX = 'soft pastel colors, minimalist background, UI illustration style, clean simple outlines, flat shading, dribbble style, light purple and soft pink tones, 16:9 aspect ratio, horizontal landscape format';
+const IMAGE_STYLE_SUFFIX = 'soft pastel colors, minimalist background, UI illustration style, clean simple outlines, flat shading, dribbble style, light purple and soft pink tones';
 
 /**
- * Gemini 이미지 생성 API로 상황에 맞는 썸네일 생성
- * @param {string} situationDesc - 상황 설명 (영어 또는 한국어)
- * @param {string} apiKey - Gemini API Key
- * @returns {Promise<Buffer|null>} PNG 이미지 Buffer 또는 null
+ * fal-ai FLUX 모델로 상황에 맞는 썸네일 생성
+ * @param {string} situationDesc - 상황 설명
+ * @param {string} falKey - FAL_KEY
+ * @returns {Promise<string|null>} 이미지 URL 또는 null
  */
-export const geminiGenerateImage = async (situationDesc, apiKey) => {
+export const falGenerateImage = async (situationDesc, falKey) => {
     const prompt = `${IMAGE_STYLE_PROMPT} ${situationDesc}, ${IMAGE_STYLE_SUFFIX}`;
 
-    const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`,
-        {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: {
-                    responseModalities: ['IMAGE'],
-                    imageConfig: { aspectRatio: '16:9' },
-                },
-            }),
-        }
-    );
+    const response = await fetch('https://fal.run/fal-ai/flux/dev', {
+        method: 'POST',
+        headers: {
+            Authorization: `Key ${falKey}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            prompt,
+            image_size: 'landscape_16_9',
+            num_images: 1,
+        }),
+    });
 
     const data = await response.json();
-    if (data.error) throw new Error(`Gemini Image API Error: ${data.error.message}`);
-    if (!response.ok) throw new Error(`Gemini Image API Error (${response.status})`);
+    if (!response.ok) throw new Error(`fal-ai Error (${response.status}): ${JSON.stringify(data)}`);
 
-    const imagePart = data.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
-    if (!imagePart) return null;
-
-    return Buffer.from(imagePart.inlineData.data, 'base64');
+    return data.images?.[0]?.url ?? null;
 };
 
 /**
- * 이미지를 Vercel Blob에 업로드
- * @param {Buffer} imageBuffer - PNG 이미지 Buffer
+ * 이미지 URL을 다운로드 후 Vercel Blob에 업로드
+ * @param {string} imageUrl - 원본 이미지 URL
  * @param {string} filename - 파일명 (e.g. "2025-04-09.png")
  * @returns {Promise<string>} 업로드된 이미지 URL
  */
-export const uploadToBlob = async (imageBuffer, filename) => {
-    const { url } = await put(`situations/${filename}`, imageBuffer, {
+export const uploadToBlob = async (imageUrl, filename) => {
+    const res = await fetch(imageUrl);
+    const buffer = Buffer.from(await res.arrayBuffer());
+    const { url } = await put(`situations/${filename}`, buffer, {
         access: 'public',
         contentType: 'image/png',
     });
@@ -195,6 +191,7 @@ const notionPost = async (path, body, token) => {
  * @param {string} opts.targetDate - YYYY-MM-DD
  * @param {string} opts.geminiApiKey
  * @param {string} [opts.geminiApiKeyFallback] - 실패 시 사용할 대체 API 키
+ * @param {string} [opts.falKey] - fal-ai API Key (이미지 생성용)
  * @param {string} opts.notionToken
  * @param {string} opts.situationDbId
  * @param {string} opts.expressionsDbId
@@ -205,6 +202,7 @@ export const generateAndSave = async ({
     targetDate,
     geminiApiKey,
     geminiApiKeyFallback,
+    falKey,
     notionToken,
     situationDbId,
     expressionsDbId,
@@ -216,21 +214,23 @@ export const generateAndSave = async ({
     const prompt = buildPrompt(targetDate);
     const data = await withFallbackKey((key) => geminiGenerateContent(prompt, key), apiKeys);
 
-    // 2. 이미지 생성 + Blob 업로드 (fallback 키 지원)
+    // 2. fal-ai 이미지 생성 + Blob 업로드
     let imageUrl = null;
-    try {
-        const imagePrompt = `${data.situation.title_kr} - ${data.situation.desc_kr}`;
-        onProgress?.('🎨');
-        const imageBuffer = await withFallbackKey((key) => geminiGenerateImage(imagePrompt, key), apiKeys);
-        if (imageBuffer) {
-            imageUrl = await uploadToBlob(imageBuffer, `${targetDate}.png`);
-            onProgress?.('📸');
+    if (falKey) {
+        try {
+            const imagePrompt = `${data.situation.title_kr} - ${data.situation.desc_kr}`;
+            onProgress?.('🎨');
+            const falImageUrl = await falGenerateImage(imagePrompt, falKey);
+            if (falImageUrl) {
+                imageUrl = await uploadToBlob(falImageUrl, `${targetDate}.png`);
+                onProgress?.('📸');
+            }
+        } catch (err) {
+            console.error('이미지 생성/업로드 실패 (계속 진행):', err.message);
         }
-    } catch (err) {
-        console.error('이미지 생성/업로드 실패 (계속 진행):', err.message);
     }
 
-    // 3. Notion에 상황 저장 (이미지 URL 포함)
+    // 3. Notion에 상황 저장
     const situationProperties = {
         Title_KR: { title: [{ text: { content: data.situation.title_kr } }] },
         Title_JP: { rich_text: [{ text: { content: data.situation.title_jp } }] },
