@@ -13,11 +13,16 @@ const OnboardingView = () => {
     const router = useRouter();
     const [step, setStep] = useState(1);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [authMode, setAuthMode] = useState('login'); // 'login' or 'register'
     const [formData, setFormData] = useState({
+        email: '',
+        password: '',
+        name: '',
         nationality: 'KR',
         user_gender: 'M',
         target_gender: 'F',
     });
+    const [isLoading, setIsLoading] = useState(false);
     const [isUpdate, setIsUpdate] = useState(false);
     const [isMounted, setIsMounted] = useState(false);
 
@@ -30,11 +35,12 @@ const OnboardingView = () => {
             const onboardingComplete = localStorage.getItem('onboarding_complete');
 
             if (savedNationality || savedUserGender || savedTargetGender) {
-                setFormData({
+                setFormData(prev => ({
+                    ...prev,
                     nationality: savedNationality || 'KR',
                     user_gender: savedUserGender || 'M',
                     target_gender: savedTargetGender || 'F',
-                });
+                }));
             }
             if (onboardingComplete === 'true') {
                 setIsUpdate(true);
@@ -58,42 +64,79 @@ const OnboardingView = () => {
         if (step > 1) setStep(step - 1);
     };
 
-    const handleLogin = async (provider) => {
+    const handleAuth = async (e) => {
+        e.preventDefault();
+        setIsLoading(true);
         try {
-            // 실제 동작하는 로그인 API 호출
-            const response = await fetch('/api/auth/login', {
+            const endpoint = authMode === 'login' ? '/api/auth/login' : '/api/auth/register';
+            const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                    provider,
-                    email: `user_${Date.now()}@koi-language.com`,
-                    name: `Koi ${provider} User`
+                    email: formData.email,
+                    password: formData.password,
+                    name: formData.name || 'Koi User'
                 }),
             });
 
             const data = await response.json();
 
             if (data.success) {
-                console.log(`${provider} login success`, data.user);
                 setIsLoggedIn(true);
+                // 기존 데이터가 있다면 업데이트
+                if (data.user.nationality) {
+                    setFormData(prev => ({
+                        ...prev,
+                        nationality: data.user.nationality,
+                        user_gender: data.user.userGender || 'M',
+                        target_gender: data.user.targetGender || 'F'
+                    }));
+                }
                 setStep(2);
             } else {
-                alert('로그인에 실패했습니다: ' + data.message);
+                alert(data.message || '인증에 실패했습니다.');
             }
         } catch (error) {
-            console.error('Login error:', error);
+            console.error('Auth error:', error);
             alert('인터넷 연결을 확인해 주세요.');
+        } finally {
+            setIsLoading(false);
         }
     };
 
-    const handleComplete = () => {
-        if (typeof window !== 'undefined') {
-            localStorage.setItem('onboarding_complete', 'true');
-            localStorage.setItem('user_nationality', formData.nationality);
-            localStorage.setItem('user_gender', formData.user_gender);
-            localStorage.setItem('target_gender', formData.target_gender);
+    const handleComplete = async () => {
+        setIsLoading(true);
+        try {
+            // Notion DB에 프로필 정보 영속화
+            const response = await fetch('/api/user/profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    nationality: formData.nationality,
+                    userGender: formData.user_gender,
+                    target_gender: formData.target_gender
+                }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                if (typeof window !== 'undefined') {
+                    localStorage.setItem('onboarding_complete', 'true');
+                    localStorage.setItem('user_nationality', formData.nationality);
+                    localStorage.setItem('user_gender', formData.user_gender);
+                    localStorage.setItem('target_gender', formData.target_gender);
+                }
+                router.push('/');
+            } else {
+                alert('프로필 저장에 실패했습니다: ' + data.message);
+            }
+        } catch (error) {
+            console.error('Complete error:', error);
+            alert('저장 중 오류가 발생했습니다.');
+        } finally {
+            setIsLoading(false);
         }
-        router.push('/');
     };
 
     const steps = [
@@ -175,7 +218,7 @@ const OnboardingView = () => {
                     </p>
 
                     {step === 1 && (
-                        <div className="w-full d-flex flex-col gap-4 mt-12">
+                        <div className="w-full d-flex flex-col gap-4 mt-8">
                             {isLoggedIn ? (
                                 <div className="p-6 bg-peach/10 u-rounded-3xl border border-peach/20">
                                     <p className="m-0 text-peach font-black text-[18px]">
@@ -183,35 +226,53 @@ const OnboardingView = () => {
                                     </p>
                                 </div>
                             ) : (
-                                <>
+                                <form onSubmit={handleAuth} className="w-full d-flex flex-col gap-4">
+                                    <div className="d-flex flex-col gap-2">
+                                        <input
+                                            type="email"
+                                            placeholder="이메일 주소"
+                                            required
+                                            className="u-input bg-gray-50 border-gray-100 py-4 px-6 u-rounded-2xl font-bold text-gray-800"
+                                            value={formData.email}
+                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                        />
+                                        <input
+                                            type="password"
+                                            placeholder="비밀번호"
+                                            required
+                                            className="u-input bg-gray-50 border-gray-100 py-4 px-6 u-rounded-2xl font-bold text-gray-800"
+                                            value={formData.password}
+                                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                        />
+                                        {authMode === 'register' && (
+                                            <input
+                                                type="text"
+                                                placeholder="닉네임 (선택)"
+                                                className="u-input bg-gray-50 border-gray-100 py-4 px-6 u-rounded-2xl font-bold text-gray-800"
+                                                value={formData.name}
+                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                            />
+                                        )}
+                                    </div>
+
                                     <Motion.button
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
-                                        onClick={() => handleLogin('Google')}
-                                        className="onboarding-btn-option bg-white text-gray-700 border border-gray-200 cursor-pointer d-flex items-center justify-center gap-3"
+                                        type="submit"
+                                        disabled={isLoading}
+                                        className="btn btn-primary u-rounded-2xl py-4 font-black text-[18px] u-shadow-lg d-flex justify-center items-center"
                                     >
-                                        <img
-                                            src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-                                            width="20"
-                                            alt="G"
-                                        />
-                                        Google로 계속하기
+                                        {isLoading ? '처리 중...' : (authMode === 'login' ? '로그인하기' : '회원가입하기')}
                                     </Motion.button>
-                                    <Motion.button
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
-                                        onClick={() => handleLogin('Apple')}
-                                        className="onboarding-btn-option bg-black text-white border-none cursor-pointer d-flex items-center justify-center gap-3"
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
+                                        className="border-none bg-transparent text-gray-400 font-bold text-[14px] cursor-pointer mt-2 hover:text-peach transition-colors"
                                     >
-                                        <img
-                                            src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg"
-                                            width="20"
-                                            alt="A"
-                                            className="invert"
-                                        />
-                                        Apple로 계속하기
-                                    </Motion.button>
-                                </>
+                                        {authMode === 'login' ? '처음이신가요? 회원가입하기' : '이미 계정이 있나요? 로그인하기'}
+                                    </button>
+                                </form>
                             )}
                         </div>
                     )}
