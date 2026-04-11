@@ -58,10 +58,32 @@ const OnboardingView = () => {
         if (step > 1) setStep(step - 1);
     };
 
-    const handleLogin = (provider) => {
-        console.log(`${provider} login mock`);
-        setIsLoggedIn(true);
-        setStep(2);
+    const handleLogin = async (provider) => {
+        try {
+            // 실제 동작하는 로그인 API 호출
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    provider,
+                    email: `user_${Date.now()}@koi-language.com`,
+                    name: `Koi ${provider} User`
+                }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                console.log(`${provider} login success`, data.user);
+                setIsLoggedIn(true);
+                setStep(2);
+            } else {
+                alert('로그인에 실패했습니다: ' + data.message);
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            alert('인터넷 연결을 확인해 주세요.');
+        }
     };
 
     const handleComplete = () => {
