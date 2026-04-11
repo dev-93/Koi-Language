@@ -9,7 +9,8 @@ dotenv.config();
 
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
 const GEMINI_API_KEY = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
-const EXPRESSIONS_DB_ID = process.env.VITE_NOTION_EXPRESSION_DB_ID || process.env.NOTION_EXPRESSION_DB_ID;
+const EXPRESSIONS_DB_ID =
+    process.env.VITE_NOTION_EXPRESSION_DB_ID || process.env.NOTION_EXPRESSION_DB_ID;
 
 if (!NOTION_TOKEN || !GEMINI_API_KEY || !EXPRESSIONS_DB_ID) {
     console.error('❌ 필수 환경 변수가 누락되었습니다. (.env 파일을 확인하세요)');
@@ -78,7 +79,7 @@ const convertToKoreanReading = async (jpText, retryCount = 0) => {
     if (status === 429 && retryCount < 3) {
         const wait = (retryCount + 1) * 30000; // 30초, 60초, 90초 대기
         console.warn(`⚠️ Rate Limit 도달. ${wait / 1000}초 후 재시도...`);
-        await new Promise(r => setTimeout(r, wait));
+        await new Promise((r) => setTimeout(r, wait));
         return convertToKoreanReading(jpText, retryCount + 1);
     }
 
@@ -103,15 +104,15 @@ const hasJapanese = (text) => /[\u3040-\u309F\u30A0-\u30FF]/.test(text);
         do {
             const query = await notionRequest('POST', `/v1/databases/${EXPRESSIONS_DB_ID}/query`, {
                 page_size: 100,
-                ...(cursor && { start_cursor: cursor })
+                ...(cursor && { start_cursor: cursor }),
             });
-            
-            const batchTargets = query.results.filter(page => {
+
+            const batchTargets = query.results.filter((page) => {
                 const reading = page.properties.Reading?.rich_text?.[0]?.plain_text || '';
                 return hasJapanese(reading);
             });
             allTargets.push(...batchTargets);
-            
+
             cursor = query.has_more ? query.next_cursor : undefined;
         } while (cursor);
 
@@ -120,7 +121,7 @@ const hasJapanese = (text) => /[\u3040-\u309F\u30A0-\u30FF]/.test(text);
         for (const [index, page] of allTargets.entries()) {
             const jpText = page.properties.Text_JP?.rich_text?.[0]?.plain_text || '';
             const currentReading = page.properties.Reading?.rich_text?.[0]?.plain_text || '';
-            
+
             console.log(`\n[${index + 1}/${allTargets.length}] 수정 중...`);
             console.log(`- 원문: ${jpText}`);
             console.log(`- 현재 발음: ${currentReading}`);
@@ -131,9 +132,9 @@ const hasJapanese = (text) => /[\u3040-\u309F\u30A0-\u30FF]/.test(text);
                 await notionRequest('PATCH', `/v1/pages/${page.id}`, {
                     properties: {
                         Reading: {
-                            rich_text: [{ text: { content: newReading } }]
-                        }
-                    }
+                            rich_text: [{ text: { content: newReading } }],
+                        },
+                    },
                 });
                 console.log(`✅ 수정 완료: ${newReading}`);
             } else {
@@ -141,7 +142,7 @@ const hasJapanese = (text) => /[\u3040-\u309F\u30A0-\u30FF]/.test(text);
             }
 
             // Free Tier Rate Limit(분당 5회) 고려하여 넉넉히 대기
-            await new Promise(r => setTimeout(r, 12000)); 
+            await new Promise((r) => setTimeout(r, 12000));
         }
 
         console.log('\n✨ 모든 작업이 완료되었습니다!');

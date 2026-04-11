@@ -21,11 +21,11 @@ export async function uploadToBlob(localPath, fileName) {
     try {
         const fileBuffer = fs.readFileSync(localPath);
         console.log(`☁️  Uploading ${fileName} to Vercel Blob...`);
-        
+
         const blob = await put(`situations/${fileName}`, fileBuffer, {
             access: 'public',
             contentType: 'image/png',
-            token: BLOB_READ_WRITE_TOKEN
+            token: BLOB_READ_WRITE_TOKEN,
         });
 
         console.log(`✅ Upload successful: ${blob.url}`);

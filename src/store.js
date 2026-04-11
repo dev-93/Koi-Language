@@ -34,10 +34,9 @@ const useStore = create(
             addRecentKeywords: (keywords) =>
                 set((state) => ({
                     // 중복 제거 및 최대 8개만 유지 (토큰 효율)
-                    recentKeywords: [...new Set([...(keywords || []), ...state.recentKeywords])].slice(
-                        0,
-                        8
-                    ),
+                    recentKeywords: [
+                        ...new Set([...(keywords || []), ...state.recentKeywords]),
+                    ].slice(0, 8),
                 })),
 
             markCardLearned: (situationId) =>
@@ -75,9 +74,16 @@ const useStore = create(
                 set((state) => {
                     const exists = state.favorites.some((f) => f.exprId === expr.exprId);
                     if (exists) {
-                        return { favorites: state.favorites.filter((f) => f.exprId !== expr.exprId) };
+                        return {
+                            favorites: state.favorites.filter((f) => f.exprId !== expr.exprId),
+                        };
                     }
-                    return { favorites: [{ ...expr, savedAt: new Date().toISOString() }, ...state.favorites] };
+                    return {
+                        favorites: [
+                            { ...expr, savedAt: new Date().toISOString() },
+                            ...state.favorites,
+                        ],
+                    };
                 }),
 
             isFavorite: (exprId) => {

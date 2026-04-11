@@ -17,9 +17,9 @@ async function cleanup() {
         filter: {
             and: [
                 { property: 'Date', date: { equals: DATE } },
-                { property: 'title', title: { is_not_empty: true } }
-            ]
-        }
+                { property: 'title', title: { is_not_empty: true } },
+            ],
+        },
     });
 
     for (const page of situations.results) {
@@ -33,13 +33,13 @@ async function cleanup() {
     const expDbId = process.env.NOTION_EXPRESSION_DB_ID || '332eb93112d5811a81edeedec17049b7';
     const expressions = await notion.databases.query({
         database_id: expDbId,
-        filter: { property: 'Date', date: { equals: DATE } }
+        filter: { property: 'Date', date: { equals: DATE } },
     });
 
     for (const page of expressions.results) {
         const relation = page.properties.Situation?.relation || [];
-        const isLinkedToTarget = relation.some(r => r.id === KEEP_SITUATION_ID);
-        
+        const isLinkedToTarget = relation.some((r) => r.id === KEEP_SITUATION_ID);
+
         if (!isLinkedToTarget) {
             console.log(`🗑️ 표현 삭제: ${page.id}`);
             await notion.pages.update({ page_id: page.id, archived: true });

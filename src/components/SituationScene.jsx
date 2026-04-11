@@ -62,6 +62,7 @@ const SCENE_MAP = {
             '저녁',
             '바',
             '펍',
+            '편의점',
         ],
     },
     contact: {
@@ -99,6 +100,7 @@ const SCENE_MAP = {
             '첫만남',
             '레스토랑',
             '데이트',
+            '서점',
         ],
     },
 };
@@ -128,9 +130,9 @@ const SituationScene = ({ id = '', title = '', date = '', imageUrl = '' }) => {
 
     // 동적 생성 이미지가 있으면 우선 사용, 없으면 기존 키워드 매칭 fallback
     // 우선순위: imageUrl > /situations/${id}.png > 키워드 매칭 > 날짜 기반
-    const scene = imageUrl ? null : (findSceneByKey() || getFallbackScene() || DEFAULT_SCENE);
+    const scene = imageUrl ? null : findSceneByKey() || getFallbackScene() || DEFAULT_SCENE;
 
-    // ID 기반 이미지가 존재하는지 여부를 확인하는 대신, 
+    // ID 기반 이미지가 존재하는지 여부를 확인하는 대신,
     // 이미지 경로를 결정할 때 ID 기반 경로를 가장 먼저 시도합니다.
     const displayImageUrl = imageUrl || (id ? `/situations/${id}.png` : scene.img);
 

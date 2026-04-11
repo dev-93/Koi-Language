@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Heart, ArrowRight, ArrowLeft, Globe, User, LogIn } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Motion, AnimatePresence } from 'framer-motion';
 
 /**
  * 온보딩 뷰 컴포넌트
@@ -106,20 +106,20 @@ const OnboardingView = () => {
 
             <div className="w-full max-w-[420px] px-6 d-flex justify-between items-center mb-8">
                 {step > 1 ? (
-                    <motion.button
+                    <Motion.button
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         onClick={handlePrev}
                         className="p-3 u-rounded-full hover:bg-gray-50 border-none bg-transparent cursor-pointer text-gray-400"
                     >
                         <ArrowLeft size={24} />
-                    </motion.button>
+                    </Motion.button>
                 ) : (
                     <div className="w-12 h-12" />
                 )}
                 <div className="d-flex gap-2 items-center">
                     {[1, 2, 3].map((s) => (
-                        <motion.div
+                        <Motion.div
                             key={s}
                             initial={false}
                             animate={{
@@ -134,7 +134,7 @@ const OnboardingView = () => {
             </div>
 
             <AnimatePresence mode="wait">
-                <motion.div
+                <Motion.div
                     key={step}
                     initial={{ opacity: 0, y: 20, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -162,24 +162,33 @@ const OnboardingView = () => {
                                 </div>
                             ) : (
                                 <>
-                                    <motion.button
+                                    <Motion.button
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
                                         onClick={() => handleLogin('Google')}
                                         className="onboarding-btn-option bg-white text-gray-700 border border-gray-200 cursor-pointer d-flex items-center justify-center gap-3"
                                     >
-                                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" alt="G" />
+                                        <img
+                                            src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                                            width="20"
+                                            alt="G"
+                                        />
                                         Google로 계속하기
-                                    </motion.button>
-                                    <motion.button
+                                    </Motion.button>
+                                    <Motion.button
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
                                         onClick={() => handleLogin('Apple')}
                                         className="onboarding-btn-option bg-black text-white border-none cursor-pointer d-flex items-center justify-center gap-3"
                                     >
-                                        <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" width="20" alt="A" className="invert" />
+                                        <img
+                                            src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg"
+                                            width="20"
+                                            alt="A"
+                                            className="invert"
+                                        />
                                         Apple로 계속하기
-                                    </motion.button>
+                                    </Motion.button>
                                 </>
                             )}
                         </div>
@@ -187,7 +196,7 @@ const OnboardingView = () => {
 
                     {step === 2 && (
                         <div className="w-full d-flex flex-col gap-4 mt-12">
-                            <motion.button
+                            <Motion.button
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                                 onClick={() => setFormData({ ...formData, nationality: 'KR' })}
@@ -198,8 +207,8 @@ const OnboardingView = () => {
                                 }`}
                             >
                                 <span className="text-[20px]">🇰🇷</span> 한국인입니다
-                            </motion.button>
-                            <motion.button
+                            </Motion.button>
+                            <Motion.button
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                                 onClick={() => setFormData({ ...formData, nationality: 'JP' })}
@@ -210,83 +219,97 @@ const OnboardingView = () => {
                                 }`}
                             >
                                 <span className="text-[20px]">🇯🇵</span> 日本人입니다
-                            </motion.button>
+                            </Motion.button>
                         </div>
                     )}
 
                     {step === 3 && (
                         <div className="w-full d-flex flex-col gap-8 mt-10">
                             <div className="w-full">
-                                <p className="text-left text-[14px] font-black text-gray-400 mb-4 ml-2">본인의 성별</p>
+                                <p className="text-left text-[14px] font-black text-gray-400 mb-4 ml-2">
+                                    본인의 성별
+                                </p>
                                 <div className="d-flex gap-4">
-                                    <motion.button
+                                    <Motion.button
                                         whileTap={{ scale: 0.95 }}
-                                        onClick={() => setFormData({ ...formData, user_gender: 'M' })}
+                                        onClick={() =>
+                                            setFormData({ ...formData, user_gender: 'M' })
+                                        }
                                         className={`onboarding-gender-card d-flex flex-col items-center justify-center gap-2 cursor-pointer ${
                                             formData.user_gender === 'M' ? 'active' : 'inactive'
                                         }`}
                                     >
                                         <span className="text-[32px]">🙋‍♂️</span>
                                         <span>남성</span>
-                                    </motion.button>
-                                    <motion.button
+                                    </Motion.button>
+                                    <Motion.button
                                         whileTap={{ scale: 0.95 }}
-                                        onClick={() => setFormData({ ...formData, user_gender: 'F' })}
+                                        onClick={() =>
+                                            setFormData({ ...formData, user_gender: 'F' })
+                                        }
                                         className={`onboarding-gender-card d-flex flex-col items-center justify-center gap-2 cursor-pointer ${
                                             formData.user_gender === 'F' ? 'active' : 'inactive'
                                         }`}
                                     >
                                         <span className="text-[32px]">🙋‍♀️</span>
                                         <span>여성</span>
-                                    </motion.button>
+                                    </Motion.button>
                                 </div>
                             </div>
 
                             <div className="w-full">
-                                <p className="text-left text-[14px] font-black text-gray-400 mb-4 ml-2">대화 상대방의 성별</p>
+                                <p className="text-left text-[14px] font-black text-gray-400 mb-4 ml-2">
+                                    대화 상대방의 성별
+                                </p>
                                 <div className="d-flex gap-4">
-                                    <motion.button
+                                    <Motion.button
                                         whileTap={{ scale: 0.95 }}
-                                        onClick={() => setFormData({ ...formData, target_gender: 'M' })}
+                                        onClick={() =>
+                                            setFormData({ ...formData, target_gender: 'M' })
+                                        }
                                         className={`onboarding-gender-card d-flex flex-col items-center justify-center gap-2 cursor-pointer ${
                                             formData.target_gender === 'M' ? 'active' : 'inactive'
                                         }`}
                                     >
                                         <span className="text-[32px]">👨</span>
                                         <span>남성</span>
-                                    </motion.button>
-                                    <motion.button
+                                    </Motion.button>
+                                    <Motion.button
                                         whileTap={{ scale: 0.95 }}
-                                        onClick={() => setFormData({ ...formData, target_gender: 'F' })}
+                                        onClick={() =>
+                                            setFormData({ ...formData, target_gender: 'F' })
+                                        }
                                         className={`onboarding-gender-card d-flex flex-col items-center justify-center gap-2 cursor-pointer ${
                                             formData.target_gender === 'F' ? 'active' : 'inactive'
                                         }`}
                                     >
                                         <span className="text-[32px]">👩</span>
                                         <span>여성</span>
-                                    </motion.button>
+                                    </Motion.button>
                                 </div>
                             </div>
                         </div>
                     )}
-                </motion.div>
+                </Motion.div>
             </AnimatePresence>
 
             <div className="w-full max-w-[420px] px-8 pb-4">
-                <motion.button
+                <Motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={handleNext}
                     disabled={step === 1 && !isLoggedIn}
                     className={`btn u-rounded-full py-5 u-shadow-xl text-[18px] font-black d-flex items-center justify-center gap-3 ${
-                        step === 1 && !isLoggedIn ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'btn-primary'
+                        step === 1 && !isLoggedIn
+                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            : 'btn-primary'
                     }`}
                 >
                     <span>
                         {step === 3 ? (isUpdate ? '수정 완료' : '시작하기') : '다음 단계로'}
                     </span>
                     <ArrowRight size={22} strokeWidth={3} />
-                </motion.button>
+                </Motion.button>
                 <p className="m-0 text-center text-[12px] font-bold text-gray-300 mt-6 tracking-wide">
                     {step} / 3 PAGES
                 </p>

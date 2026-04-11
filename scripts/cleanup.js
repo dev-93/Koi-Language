@@ -46,7 +46,7 @@ const archivePage = async (pageId) => {
 
 const cleanup = async () => {
     const dates = ['2026-04-04', '2026-04-05'];
-    
+
     for (const dbId of [SITUATION_DB_ID, EXPRESSIONS_DB_ID]) {
         console.log(`\n🧹 Database ${dbId} 에서 4월 4일, 5일 데이터 삭제 중...`);
         const { body } = await httpRequest(
@@ -57,11 +57,11 @@ const cleanup = async () => {
             },
             {
                 filter: {
-                    or: dates.map(d => ({ property: "Date", date: { equals: d } }))
-                }
+                    or: dates.map((d) => ({ property: 'Date', date: { equals: d } })),
+                },
             }
         );
-        
+
         const data = JSON.parse(body);
         const pages = data.results || [];
         console.log(`🔍 총 ${pages.length}개의 페이지 발견.`);

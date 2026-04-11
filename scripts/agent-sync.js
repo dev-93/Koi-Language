@@ -9,19 +9,22 @@ const NOTION_TOKEN = process.env.NOTION_TOKEN;
 
 async function checkMissingImages() {
     console.log('🔍 Checking Notion situations for missing images...');
-    
+
     try {
-        const response = await fetch(`https://api.notion.com/v1/databases/${SITUATIONS_DB_ID}/query`, {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${NOTION_TOKEN}`,
-                'Notion-Version': '2022-06-28',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                sorts: [{ property: 'Date', direction: 'ascending' }],
-            }),
-        });
+        const response = await fetch(
+            `https://api.notion.com/v1/databases/${SITUATIONS_DB_ID}/query`,
+            {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${NOTION_TOKEN}`,
+                    'Notion-Version': '2022-06-28',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    sorts: [{ property: 'Date', direction: 'ascending' }],
+                }),
+            }
+        );
 
         const data = await response.json();
         const situations = data.results || [];
@@ -31,13 +34,14 @@ async function checkMissingImages() {
         for (const page of situations) {
             const props = page.properties;
             const date = props.Date?.date?.start;
-            const titleKr = props.Title_KR?.title?.[0]?.plain_text || props.Name?.title?.[0]?.plain_text || '';
+            const titleKr =
+                props.Title_KR?.title?.[0]?.plain_text || props.Name?.title?.[0]?.plain_text || '';
             const descKr = props.Desc_KR?.rich_text?.[0]?.plain_text || '';
-            
+
             if (!date) continue;
 
             // 파일명 규칙: SITUATION_ID.png 또는 날짜 기반 (여기서는 ID 기반이 안전함)
-            const fileName = `${page.id}.png`; 
+            const fileName = `${page.id}.png`;
             const filePath = path.join(process.cwd(), 'public', 'situations', fileName);
 
             if (!fs.existsSync(filePath)) {
@@ -46,7 +50,7 @@ async function checkMissingImages() {
                     date,
                     title: titleKr,
                     desc: descKr,
-                    fileName
+                    fileName,
                 });
             }
         }
@@ -56,7 +60,9 @@ async function checkMissingImages() {
         } else {
             console.log(`📌 Found ${missingTasks.length} situations missing images:`);
             console.log(JSON.stringify(missingTasks, null, 2));
-            console.log('\n[AGENT_INSTRUCTION]: Please generate images for the tasks listed above.');
+            console.log(
+                '\n[AGENT_INSTRUCTION]: Please generate images for the tasks listed above.'
+            );
         }
     } catch (err) {
         console.error('❌ Error in agent-sync:', err.message);

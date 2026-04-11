@@ -25,7 +25,7 @@ export async function updateNotionImageUrl(pageId, imageUrl) {
             },
             body: JSON.stringify({
                 properties: {
-                    'URL': {
+                    URL: {
                         rich_text: [
                             {
                                 text: {

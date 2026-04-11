@@ -1,6 +1,11 @@
 const MODELS = ['gemini-2.5-flash', 'gemini-2.5-flash-lite'];
 
-export const generateChatResponse = async (history, userProfile, situation, recentKeywords = []) => {
+export const generateChatResponse = async (
+    history,
+    userProfile,
+    situation,
+    recentKeywords = []
+) => {
     const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 
     if (!apiKey) {

@@ -46,7 +46,7 @@ const archivePage = async (pageId) => {
 
 const cleanupDuplicates = async (date) => {
     console.log(`\n🔍 ${date} 중복 데이터 체크 중...`);
-    
+
     // Situation DB 정리에 앞서 데이터 조회
     const { body } = await httpRequest(
         {
@@ -55,15 +55,17 @@ const cleanupDuplicates = async (date) => {
             method: 'POST',
         },
         {
-            filter: { property: "Date", date: { equals: date } }
+            filter: { property: 'Date', date: { equals: date } },
         }
     );
-    
+
     const data = JSON.parse(body);
     const pages = data.results || [];
-    
+
     if (pages.length > 1) {
-        console.log(`⚠️ ${date}에 ${pages.length}개의 중복 페이지 발견. 1개만 남기고 모두 삭제합니다.`);
+        console.log(
+            `⚠️ ${date}에 ${pages.length}개의 중복 페이지 발견. 1개만 남기고 모두 삭제합니다.`
+        );
         // 첫 번째 페이지만 남기고 나머지 삭제
         for (let i = 1; i < pages.length; i++) {
             const res = await archivePage(pages[i].id);
@@ -77,12 +79,16 @@ const cleanupDuplicates = async (date) => {
 const finalCleanup = async () => {
     // 1. 4월 2일 중복 제거
     await cleanupDuplicates('2026-04-02');
-    
+
     // 2. 4월 4일/5일 혹시 남아있다면 완전 제거
     for (const d of ['2026-04-04', '2026-04-05']) {
         const { body } = await httpRequest(
-            { hostname: 'api.notion.com', path: `/v1/databases/${SITUATION_DB_ID}/query`, method: 'POST' },
-            { filter: { property: "Date", date: { equals: d } } }
+            {
+                hostname: 'api.notion.com',
+                path: `/v1/databases/${SITUATION_DB_ID}/query`,
+                method: 'POST',
+            },
+            { filter: { property: 'Date', date: { equals: d } } }
         );
         const pages = JSON.parse(body).results || [];
         for (const p of pages) {
@@ -90,7 +96,7 @@ const finalCleanup = async () => {
             console.log(`🗑️ Leftover ${d} archived: ${p.id}`);
         }
     }
-    
+
     console.log('\n✅ Cleanup complete!');
 };
 

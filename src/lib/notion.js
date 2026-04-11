@@ -124,7 +124,11 @@ export const getExpressions = async (situationId) => {
                     '',
                 reading: readingText,
                 tip: props.Tip?.rich_text?.[0]?.plain_text || '',
-                target: props.Target?.select?.name || props.Type?.select?.name || props.Type?.multi_select?.[0]?.name || '',
+                target:
+                    props.Target?.select?.name ||
+                    props.Type?.select?.name ||
+                    props.Type?.multi_select?.[0]?.name ||
+                    '',
                 words: props.Words?.rich_text?.[0]?.plain_text || '', // JSON 형태의 문자열
             };
         });

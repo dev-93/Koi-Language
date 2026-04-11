@@ -13,7 +13,12 @@ const getBusinessStatus = () => {
             const all = (content.match(/- \[[ x]\]/g) || []).length;
             const done = (content.match(/- \[x\]/g) || []).length;
             const progress = all > 0 ? Math.round((done / all) * 100) : 0;
-            const next = content.split('\n').find(l => l.includes('- [ ]'))?.replace(/- \[ \]\s*/, '').trim() || 'All Done!';
+            const next =
+                content
+                    .split('\n')
+                    .find((l) => l.includes('- [ ]'))
+                    ?.replace(/- \[ \]\s*/, '')
+                    .trim() || 'All Done!';
             return `\n\n📈 <b>Status</b>: ${progress}% (${done}/${all})\n🚧 <b>Next</b>: ${next}`;
         }
     } catch (e) {
@@ -41,17 +46,20 @@ export async function GET(request) {
             geminiApiKeyFallback: process.env.GEMINI_API_KEY_FALLBACK,
             falKey: process.env.FAL_KEY,
             notionToken,
-            situationDbId: process.env.NOTION_SITUATION_DB_ID || process.env.NOTION_SITUATIONS_DB_ID,
-            expressionsDbId: process.env.NOTION_EXPRESSION_DB_ID || process.env.NOTION_EXPRESSIONS_DB_ID,
+            situationDbId:
+                process.env.NOTION_SITUATION_DB_ID || process.env.NOTION_SITUATIONS_DB_ID,
+            expressionsDbId:
+                process.env.NOTION_EXPRESSION_DB_ID || process.env.NOTION_EXPRESSIONS_DB_ID,
         });
 
         const bizStatus = getBusinessStatus();
         const imgStatus = result.imageUrl ? '🖼️ 이미지 생성됨' : '⚠️ 이미지 없음';
         const series = getSeriesInfo(targetDate);
         const seriesTag = series ? `\n📚 시리즈 ${series.day}일차` : '';
-        await sendTelegramMessage(`✅ <b>Koi Language</b> 동기화 성공\n주제: ${result.situation.title_kr}\n${imgStatus}${seriesTag}${bizStatus}`);
+        await sendTelegramMessage(
+            `✅ <b>Koi Language</b> 동기화 성공\n주제: ${result.situation.title_kr}\n${imgStatus}${seriesTag}${bizStatus}`
+        );
         return NextResponse.json({ success: true });
-
     } catch (err) {
         console.error('Cron Error:', err);
         await sendTelegramMessage(`❌ <b>Koi Language</b> 동기화 실패\n에러: ${err.message}`);

@@ -25,7 +25,11 @@ const EXPRESSION_SCHEMA = {
                 properties: {
                     kr: { type: 'STRING' },
                     jp: { type: 'STRING' },
-                    reading_en: { type: 'STRING', description: 'Romaji (e.g. Kimi to issho de...)' },
+                    reading_kr: {
+                        type: 'STRING',
+                        description:
+                            'Korean pronunciation of the Japanese text (e.g. 키미토 잇쇼데...)',
+                    },
                     tip_kr: { type: 'STRING' },
                     tip_jp: { type: 'STRING' },
                     words: {
@@ -35,13 +39,13 @@ const EXPRESSION_SCHEMA = {
                             properties: {
                                 kr: { type: 'STRING' },
                                 jp: { type: 'STRING' },
-                                reading_en: { type: 'STRING' },
+                                reading_kr: { type: 'STRING' },
                             },
-                            required: ['kr', 'jp', 'reading_en'],
+                            required: ['kr', 'jp', 'reading_kr'],
                         },
                     },
                 },
-                required: ['kr', 'jp', 'reading_en', 'tip_kr', 'tip_jp', 'words'],
+                required: ['kr', 'jp', 'reading_kr', 'tip_kr', 'tip_jp', 'words'],
             },
         },
     },
@@ -54,7 +58,8 @@ const CUSTOM_SERIES = [
     {
         startDate: '2026-04-11',
         days: 2,
-        category: '자연스럽게 말 걸기 (카페에서 옆자리에게, 서점에서 같은 책 고르다가, 편의점 앞에서, 공원 벤치에서 등 일상 속 자연스러운 첫 대화)',
+        category:
+            '자연스럽게 말 걸기 (카페에서 옆자리에게, 서점에서 같은 책 고르다가, 편의점 앞에서, 공원 벤치에서 등 일상 속 자연스러운 첫 대화)',
     },
 ];
 
@@ -109,9 +114,10 @@ export const getSeriesInfo = (targetDate) => {
 };
 
 export const buildPrompt = (targetDate, recentTitles = []) => {
-    const avoidList = recentTitles.length > 0
-        ? `\n\n[최근 생성된 상황 - 반드시 피하세요]\n${recentTitles.map(t => `- ${t}`).join('\n')}`
-        : '';
+    const avoidList =
+        recentTitles.length > 0
+            ? `\n\n[최근 생성된 상황 - 반드시 피하세요]\n${recentTitles.map((t) => `- ${t}`).join('\n')}`
+            : '';
 
     const series = getSeriesInfo(targetDate);
 
@@ -142,7 +148,7 @@ ${categorySection}
 1. 위 [최근 생성된 상황]과 비슷한 주제나 키워드는 절대 반복하지 마세요.
 2. 구체적이고 생생한 상황을 만드세요 (예: "비 오는 날 편의점 앞에서 우산 나눠쓰기", "온천 여관에서 유카타 입고 불꽃놀이 보기").
 3. 표현은 최소 3개, 최대 6개로 상황의 복잡도에 따라 자유롭게 조절하세요.
-4. 모든 reading_en 필드에는 영어 로마자 발음(Romaji)을 적으세요.
+4. 모든 reading_kr 필드에는 한국인이 읽기 편한 한국어 발음을 적으세요 (예: "키미토 잇쇼데...").
 5. 각 표현의 words는 핵심 단어 최대 3개만 포함하세요.`;
 };
 
@@ -189,16 +195,19 @@ export const geminiGenerateContent = async (prompt, apiKey) => {
 
     const data = await response.json();
     if (data.error) throw new Error(`Gemini API Error: ${data.error.message}`);
-    if (!response.ok) throw new Error(`Gemini API Error (${response.status}): ${JSON.stringify(data)}`);
+    if (!response.ok)
+        throw new Error(`Gemini API Error (${response.status}): ${JSON.stringify(data)}`);
 
     const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+    // eslint-disable-next-line no-control-regex
     return JSON.parse(rawText.replace(/[\u0000-\u001F\u007F-\u009F]/g, ' '));
 };
 
 // ── fal-ai 이미지 생성 ──
 
 const IMAGE_STYLE_PROMPT = 'A cute heartwarming flat vector illustration of a lovely Korean couple';
-const IMAGE_STYLE_SUFFIX = 'soft pastel colors, minimalist background, UI illustration style, clean simple outlines, flat shading, dribbble style, light purple and soft pink tones';
+const IMAGE_STYLE_SUFFIX =
+    'soft pastel colors, minimalist background, UI illustration style, clean simple outlines, flat shading, dribbble style, light purple and soft pink tones';
 
 /**
  * fal-ai FLUX 모델로 상황에 맞는 썸네일 생성
@@ -257,7 +266,8 @@ const notionPost = async (path, body, token) => {
         body: JSON.stringify(body),
     });
     const resBody = await response.json();
-    if (!response.ok) throw new Error(`Notion POST failed (${response.status}): ${JSON.stringify(resBody)}`);
+    if (!response.ok)
+        throw new Error(`Notion POST failed (${response.status}): ${JSON.stringify(resBody)}`);
     return resBody;
 };
 
@@ -289,12 +299,16 @@ export const generateAndSave = async ({
     // 1. 최근 상황 제목 조회 (중복 방지용)
     let recentTitles = [];
     try {
-        const recent = await notionPost(`/v1/databases/${situationDbId}/query`, {
-            sorts: [{ property: 'Date', direction: 'descending' }],
-            page_size: 7,
-        }, notionToken);
+        const recent = await notionPost(
+            `/v1/databases/${situationDbId}/query`,
+            {
+                sorts: [{ property: 'Date', direction: 'descending' }],
+                page_size: 7,
+            },
+            notionToken
+        );
         recentTitles = recent.results
-            .map(p => p.properties?.Title_KR?.title?.[0]?.plain_text)
+            .map((p) => p.properties?.Title_KR?.title?.[0]?.plain_text)
             .filter(Boolean);
     } catch (err) {
         console.warn('최근 상황 조회 실패 (계속 진행):', err.message);
@@ -333,26 +347,42 @@ export const generateAndSave = async ({
         situationProperties.URL = { rich_text: [{ text: { content: imageUrl } }] };
     }
 
-    const sitPage = await notionPost('/v1/pages', {
-        parent: { database_id: situationDbId },
-        properties: situationProperties,
-    }, notionToken);
+    const sitPage = await notionPost(
+        '/v1/pages',
+        {
+            parent: { database_id: situationDbId },
+            properties: situationProperties,
+        },
+        notionToken
+    );
 
     // 5. 표현 저장
     for (const expr of data.expressions) {
-        await notionPost('/v1/pages', {
-            parent: { database_id: expressionsDbId },
-            properties: {
-                Title_KR: { title: [{ text: { content: expr.kr } }] },
-                Text_JP: { rich_text: [{ text: { content: expr.jp } }] },
-                Reading: { rich_text: [{ text: { content: expr.reading_en } }] },
-                Tip: { rich_text: [{ text: { content: JSON.stringify({ kr: expr.tip_kr, jp: expr.tip_jp }) } }] },
-                Words: { rich_text: [{ text: { content: JSON.stringify(expr.words) } }] },
-                Target: { select: { name: 'INTEGRATED' } },
-                Situation: { relation: [{ id: sitPage.id }] },
-                Date: { date: { start: targetDate } },
+        await notionPost(
+            '/v1/pages',
+            {
+                parent: { database_id: expressionsDbId },
+                properties: {
+                    Title_KR: { title: [{ text: { content: expr.kr } }] },
+                    Text_JP: { rich_text: [{ text: { content: expr.jp } }] },
+                    Reading: { rich_text: [{ text: { content: expr.reading_kr } }] },
+                    Tip: {
+                        rich_text: [
+                            {
+                                text: {
+                                    content: JSON.stringify({ kr: expr.tip_kr, jp: expr.tip_jp }),
+                                },
+                            },
+                        ],
+                    },
+                    Words: { rich_text: [{ text: { content: JSON.stringify(expr.words) } }] },
+                    Target: { select: { name: 'INTEGRATED' } },
+                    Situation: { relation: [{ id: sitPage.id }] },
+                    Date: { date: { start: targetDate } },
+                },
             },
-        }, notionToken);
+            notionToken
+        );
         onProgress?.('.');
     }
 

@@ -16,7 +16,8 @@ export async function sendTelegramReport() {
     const completedTasks = (content.match(/- \[x\]/g) || []).length;
     const progress = allTasks > 0 ? Math.round((completedTasks / allTasks) * 100) : 0;
 
-    const nextActionLine = content.split('\n').find((line) => line.includes('- [ ]')) || 'All Done!';
+    const nextActionLine =
+        content.split('\n').find((line) => line.includes('- [ ]')) || 'All Done!';
     const nextAction = nextActionLine.replace(/- \[ \]\s*/, '').trim();
 
     const reportMessage = `

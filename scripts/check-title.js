@@ -7,8 +7,8 @@ const SITUATION_DB_ID = process.env.VITE_NOTION_SITUATION_DB_ID;
 
 const query = async () => {
     const payload = JSON.stringify({
-        filter: { property: "Date", date: { equals: "2026-04-05" } },
-        page_size: 1
+        filter: { property: 'Date', date: { equals: '2026-04-05' } },
+        page_size: 1,
     });
 
     const options = {
