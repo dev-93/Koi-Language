@@ -2,22 +2,19 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession, signIn } from 'next-auth/react';
 import { Heart, ArrowRight, ArrowLeft, Globe, User, LogIn } from 'lucide-react';
-import { Motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 /**
  * 온보딩 뷰 컴포넌트
- * 사용자 로그인, 국적 및 프로필 설정을 도와주는 프리미엄 인터페이스
+ * Google 로그인 + 국적/프로필 설정 프리미엄 인터페이스
  */
 const OnboardingView = () => {
     const router = useRouter();
+    const { data: session, status } = useSession();
     const [step, setStep] = useState(1);
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [authMode, setAuthMode] = useState('login'); // 'login' or 'register'
     const [formData, setFormData] = useState({
-        email: '',
-        password: '',
-        name: '',
         nationality: 'KR',
         user_gender: 'M',
         target_gender: 'F',
@@ -26,15 +23,30 @@ const OnboardingView = () => {
     const [isUpdate, setIsUpdate] = useState(false);
     const [isMounted, setIsMounted] = useState(false);
 
+    const isLoggedIn = status === 'authenticated';
+
     useEffect(() => {
         const rafId = requestAnimationFrame(() => {
             setIsMounted(true);
+
+            // 세션이 있고 프로필 정보가 있으면 업데이트 모드
+            if (session?.user?.profile) {
+                const profile = session.user.profile;
+                setFormData({
+                    nationality: profile.nationality || 'KR',
+                    user_gender: profile.user_gender || 'M',
+                    target_gender: profile.target_gender || 'F',
+                });
+                setIsUpdate(true);
+            }
+
+            // localStorage 폴백
             const savedNationality = localStorage.getItem('user_nationality');
             const savedUserGender = localStorage.getItem('user_gender');
             const savedTargetGender = localStorage.getItem('target_gender');
             const onboardingComplete = localStorage.getItem('onboarding_complete');
 
-            if (savedNationality || savedUserGender || savedTargetGender) {
+            if (!session?.user?.profile && (savedNationality || savedUserGender || savedTargetGender)) {
                 setFormData(prev => ({
                     ...prev,
                     nationality: savedNationality || 'KR',
@@ -44,17 +56,22 @@ const OnboardingView = () => {
             }
             if (onboardingComplete === 'true') {
                 setIsUpdate(true);
-                setIsLoggedIn(true);
             }
         });
 
         return () => cancelAnimationFrame(rafId);
-    }, []);
+    }, [session]);
+
+    // 로그인 성공 시 자동으로 Step 2로 이동
+    useEffect(() => {
+        if (isLoggedIn && step === 1) {
+            setStep(2);
+        }
+    }, [isLoggedIn, step]);
 
     const handleNext = () => {
         if (step === 1 && !isLoggedIn) {
-            alert('로그인이 필요합니다.');
-            return;
+            return; // 로그인 필요
         }
         if (step < 3) setStep(step + 1);
         else handleComplete();
@@ -64,57 +81,21 @@ const OnboardingView = () => {
         if (step > 1) setStep(step - 1);
     };
 
-    const handleAuth = async (e) => {
-        e.preventDefault();
-        setIsLoading(true);
-        try {
-            const endpoint = authMode === 'login' ? '/api/auth/login' : '/api/auth/register';
-            const response = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    email: formData.email,
-                    password: formData.password,
-                    name: formData.name || 'Koi User'
-                }),
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                setIsLoggedIn(true);
-                // 기존 데이터가 있다면 업데이트
-                if (data.user.nationality) {
-                    setFormData(prev => ({
-                        ...prev,
-                        nationality: data.user.nationality,
-                        user_gender: data.user.userGender || 'M',
-                        target_gender: data.user.targetGender || 'F'
-                    }));
-                }
-                setStep(2);
-            } else {
-                alert(data.message || '인증에 실패했습니다.');
-            }
-        } catch (error) {
-            console.error('Auth error:', error);
-            alert('인터넷 연결을 확인해 주세요.');
-        } finally {
-            setIsLoading(false);
-        }
+    const handleGoogleLogin = () => {
+        signIn('google', { callbackUrl: '/onboarding' });
     };
 
     const handleComplete = async () => {
         setIsLoading(true);
         try {
-            // Notion DB에 프로필 정보 영속화
+            // Supabase에 프로필 정보 영속화
             const response = await fetch('/api/user/profile', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     nationality: formData.nationality,
                     userGender: formData.user_gender,
-                    target_gender: formData.target_gender
+                    targetGender: formData.target_gender,
                 }),
             });
 
@@ -171,20 +152,20 @@ const OnboardingView = () => {
 
             <div className="w-full max-w-[420px] px-6 d-flex justify-between items-center mb-8">
                 {step > 1 ? (
-                    <Motion.button
+                    <motion.button
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         onClick={handlePrev}
                         className="p-3 u-rounded-full hover:bg-gray-50 border-none bg-transparent cursor-pointer text-gray-400"
                     >
                         <ArrowLeft size={24} />
-                    </Motion.button>
+                    </motion.button>
                 ) : (
                     <div className="w-12 h-12" />
                 )}
                 <div className="d-flex gap-2 items-center">
                     {[1, 2, 3].map((s) => (
-                        <Motion.div
+                        <motion.div
                             key={s}
                             initial={false}
                             animate={{
@@ -199,7 +180,7 @@ const OnboardingView = () => {
             </div>
 
             <AnimatePresence mode="wait">
-                <Motion.div
+                <motion.div
                     key={step}
                     initial={{ opacity: 0, y: 20, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -221,65 +202,71 @@ const OnboardingView = () => {
                         <div className="w-full d-flex flex-col gap-4 mt-8">
                             {isLoggedIn ? (
                                 <div className="p-6 bg-peach/10 u-rounded-3xl border border-peach/20">
-                                    <p className="m-0 text-peach font-black text-[18px]">
-                                        로그인 되었습니다! ✨
-                                    </p>
-                                </div>
-                            ) : (
-                                <form onSubmit={handleAuth} className="w-full d-flex flex-col gap-4">
-                                    <div className="d-flex flex-col gap-2">
-                                        <input
-                                            type="email"
-                                            placeholder="이메일 주소"
-                                            required
-                                            className="u-input bg-gray-50 border-gray-100 py-4 px-6 u-rounded-2xl font-bold text-gray-800"
-                                            value={formData.email}
-                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                        />
-                                        <input
-                                            type="password"
-                                            placeholder="비밀번호"
-                                            required
-                                            className="u-input bg-gray-50 border-gray-100 py-4 px-6 u-rounded-2xl font-bold text-gray-800"
-                                            value={formData.password}
-                                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                        />
-                                        {authMode === 'register' && (
-                                            <input
-                                                type="text"
-                                                placeholder="닉네임 (선택)"
-                                                className="u-input bg-gray-50 border-gray-100 py-4 px-6 u-rounded-2xl font-bold text-gray-800"
-                                                value={formData.name}
-                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    <div className="d-flex items-center gap-3 justify-center">
+                                        {session?.user?.image && (
+                                            <img
+                                                src={session.user.image}
+                                                alt="프로필"
+                                                className="w-10 h-10 u-rounded-full"
+                                                style={{ width: 40, height: 40, borderRadius: '50%' }}
                                             />
                                         )}
+                                        <div>
+                                            <p className="m-0 text-peach font-black text-[18px]">
+                                                {session?.user?.name || '사용자'}님, 환영해요! ✨
+                                            </p>
+                                            <p className="m-0 text-gray-400 text-[13px] mt-1">
+                                                {session?.user?.email}
+                                            </p>
+                                        </div>
                                     </div>
-
-                                    <Motion.button
+                                </div>
+                            ) : (
+                                <div className="w-full d-flex flex-col gap-4">
+                                    {/* 구글 로그인 버튼 */}
+                                    <motion.button
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
-                                        type="submit"
-                                        disabled={isLoading}
-                                        className="btn btn-primary u-rounded-2xl py-4 font-black text-[18px] u-shadow-lg d-flex justify-center items-center"
+                                        onClick={handleGoogleLogin}
+                                        disabled={status === 'loading'}
+                                        className="btn u-rounded-2xl py-4 font-black text-[16px] u-shadow-lg d-flex justify-center items-center gap-3 border-none cursor-pointer"
+                                        style={{
+                                            background: 'white',
+                                            color: '#333',
+                                            border: '2px solid #e5e7eb',
+                                            width: '100%',
+                                            padding: '16px',
+                                            borderRadius: '16px',
+                                            fontSize: '16px',
+                                            fontWeight: 800,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '12px',
+                                            boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+                                            transition: 'all 0.2s ease',
+                                        }}
                                     >
-                                        {isLoading ? '처리 중...' : (authMode === 'login' ? '로그인하기' : '회원가입하기')}
-                                    </Motion.button>
+                                        <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                                        </svg>
+                                        {status === 'loading' ? '로딩 중...' : 'Google로 시작하기'}
+                                    </motion.button>
 
-                                    <button
-                                        type="button"
-                                        onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
-                                        className="border-none bg-transparent text-gray-400 font-bold text-[14px] cursor-pointer mt-2 hover:text-peach transition-colors"
-                                    >
-                                        {authMode === 'login' ? '처음이신가요? 회원가입하기' : '이미 계정이 있나요? 로그인하기'}
-                                    </button>
-                                </form>
+                                    <p className="m-0 text-gray-300 text-[12px] text-center mt-2">
+                                        간편하게 구글 계정으로 로그인하세요
+                                    </p>
+                                </div>
                             )}
                         </div>
                     )}
 
                     {step === 2 && (
                         <div className="w-full d-flex flex-col gap-4 mt-12">
-                            <Motion.button
+                            <motion.button
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                                 onClick={() => setFormData({ ...formData, nationality: 'KR' })}
@@ -290,8 +277,8 @@ const OnboardingView = () => {
                                 }`}
                             >
                                 <span className="text-[20px]">🇰🇷</span> 한국인입니다
-                            </Motion.button>
-                            <Motion.button
+                            </motion.button>
+                            <motion.button
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                                 onClick={() => setFormData({ ...formData, nationality: 'JP' })}
@@ -302,7 +289,7 @@ const OnboardingView = () => {
                                 }`}
                             >
                                 <span className="text-[20px]">🇯🇵</span> 日本人입니다
-                            </Motion.button>
+                            </motion.button>
                         </div>
                     )}
 
@@ -313,7 +300,7 @@ const OnboardingView = () => {
                                     본인의 성별
                                 </p>
                                 <div className="d-flex gap-4">
-                                    <Motion.button
+                                    <motion.button
                                         whileTap={{ scale: 0.95 }}
                                         onClick={() =>
                                             setFormData({ ...formData, user_gender: 'M' })
@@ -324,8 +311,8 @@ const OnboardingView = () => {
                                     >
                                         <span className="text-[32px]">🙋‍♂️</span>
                                         <span>남성</span>
-                                    </Motion.button>
-                                    <Motion.button
+                                    </motion.button>
+                                    <motion.button
                                         whileTap={{ scale: 0.95 }}
                                         onClick={() =>
                                             setFormData({ ...formData, user_gender: 'F' })
@@ -336,7 +323,7 @@ const OnboardingView = () => {
                                     >
                                         <span className="text-[32px]">🙋‍♀️</span>
                                         <span>여성</span>
-                                    </Motion.button>
+                                    </motion.button>
                                 </div>
                             </div>
 
@@ -345,7 +332,7 @@ const OnboardingView = () => {
                                     대화 상대방의 성별
                                 </p>
                                 <div className="d-flex gap-4">
-                                    <Motion.button
+                                    <motion.button
                                         whileTap={{ scale: 0.95 }}
                                         onClick={() =>
                                             setFormData({ ...formData, target_gender: 'M' })
@@ -356,8 +343,8 @@ const OnboardingView = () => {
                                     >
                                         <span className="text-[32px]">👨</span>
                                         <span>남성</span>
-                                    </Motion.button>
-                                    <Motion.button
+                                    </motion.button>
+                                    <motion.button
                                         whileTap={{ scale: 0.95 }}
                                         onClick={() =>
                                             setFormData({ ...formData, target_gender: 'F' })
@@ -368,16 +355,16 @@ const OnboardingView = () => {
                                     >
                                         <span className="text-[32px]">👩</span>
                                         <span>여성</span>
-                                    </Motion.button>
+                                    </motion.button>
                                 </div>
                             </div>
                         </div>
                     )}
-                </Motion.div>
+                </motion.div>
             </AnimatePresence>
 
             <div className="w-full max-w-[420px] px-8 pb-4">
-                <Motion.button
+                <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={handleNext}
@@ -392,7 +379,7 @@ const OnboardingView = () => {
                         {step === 3 ? (isUpdate ? '수정 완료' : '시작하기') : '다음 단계로'}
                     </span>
                     <ArrowRight size={22} strokeWidth={3} />
-                </Motion.button>
+                </motion.button>
                 <p className="m-0 text-center text-[12px] font-bold text-gray-300 mt-6 tracking-wide">
                     {step} / 3 PAGES
                 </p>
