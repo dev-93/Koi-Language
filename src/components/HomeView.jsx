@@ -258,7 +258,7 @@ export default function HomeView({ initialSituations = [] }) {
                                                     {currentSituation.desc.kr}
                                                 </p>
                                             </div>
-                                            <div className="btn btn-primary u-rounded-full mt-6 py-5 gap-3 hover:scale-[1.02] active:scale-[0.98]">
+                                            <div className="btn btn-primary u-rounded-full mt-8 py-5 gap-3 hover:scale-[1.02] active:scale-[0.98]">
                                                 <span className="text-[17px] font-black">학습 시작하기</span>
                                                 <ArrowRight size={20} strokeWidth={3} />
                                             </div>
