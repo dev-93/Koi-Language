@@ -1,5 +1,5 @@
 /**
- * Gemini 콘텐츠 생성 + fal-ai 이미지 생성 + Notion 저장 공통 모듈
+ * Gemini 콘텐츠 생성 + 이미지 생성 + Notion 저장 공통 모듈
  */
 import { put } from '@vercel/blob';
 
@@ -15,8 +15,13 @@ const EXPRESSION_SCHEMA = {
                 title_jp: { type: 'STRING' },
                 desc_kr: { type: 'STRING' },
                 desc_jp: { type: 'STRING' },
+                image_prompt_en: {
+                    type: 'STRING',
+                    description:
+                        'English scene description for image generation (e.g. "walking together under blooming cherry blossom trees in a park, pink petals falling in the air, romantic spring atmosphere")',
+                },
             },
-            required: ['title_kr', 'title_jp', 'desc_kr', 'desc_jp'],
+            required: ['title_kr', 'title_jp', 'desc_kr', 'desc_jp', 'image_prompt_en'],
         },
         expressions: {
             type: 'ARRAY',
@@ -25,7 +30,10 @@ const EXPRESSION_SCHEMA = {
                 properties: {
                     kr: { type: 'STRING' },
                     jp: { type: 'STRING' },
-                    reading_en: { type: 'STRING', description: 'Romaji (e.g. Kimi to issho de...)' },
+                    reading_en: {
+                        type: 'STRING',
+                        description: 'Romaji (e.g. Kimi to issho de...)',
+                    },
                     tip_kr: { type: 'STRING' },
                     tip_jp: { type: 'STRING' },
                     words: {
@@ -54,7 +62,8 @@ const CUSTOM_SERIES = [
     {
         startDate: '2026-04-11',
         days: 2,
-        category: '자연스럽게 말 걸기 (카페에서 옆자리에게, 서점에서 같은 책 고르다가, 편의점 앞에서, 공원 벤치에서 등 일상 속 자연스러운 첫 대화)',
+        category:
+            '자연스럽게 말 걸기 (카페에서 옆자리에게, 서점에서 같은 책 고르다가, 편의점 앞에서, 공원 벤치에서 등 일상 속 자연스러운 첫 대화)',
     },
 ];
 
@@ -109,9 +118,10 @@ export const getSeriesInfo = (targetDate) => {
 };
 
 export const buildPrompt = (targetDate, recentTitles = []) => {
-    const avoidList = recentTitles.length > 0
-        ? `\n\n[최근 생성된 상황 - 반드시 피하세요]\n${recentTitles.map(t => `- ${t}`).join('\n')}`
-        : '';
+    const avoidList =
+        recentTitles.length > 0
+            ? `\n\n[최근 생성된 상황 - 반드시 피하세요]\n${recentTitles.map((t) => `- ${t}`).join('\n')}`
+            : '';
 
     const series = getSeriesInfo(targetDate);
 
@@ -143,7 +153,8 @@ ${categorySection}
 2. 구체적이고 생생한 상황을 만드세요 (예: "비 오는 날 편의점 앞에서 우산 나눠쓰기", "온천 여관에서 유카타 입고 불꽃놀이 보기").
 3. 표현은 최소 3개, 최대 6개로 상황의 복잡도에 따라 자유롭게 조절하세요.
 4. 모든 reading_en 필드에는 영어 로마자 발음(Romaji)을 적으세요.
-5. 각 표현의 words는 핵심 단어 최대 3개만 포함하세요.`;
+5. 각 표현의 words는 핵심 단어 최대 3개만 포함하세요.
+6. image_prompt_en은 상황을 영어로 구체적으로 묘사하세요 (예: "walking together under blooming cherry blossom trees in a park, pink petals falling in the air, romantic spring atmosphere"). 커플의 행동과 장소, 분위기를 포함하세요.`;
 };
 
 // ── Gemini API 호출 (fallback 키 지원) ──
@@ -154,14 +165,31 @@ ${categorySection}
  * @param {string[]} apiKeys - 시도할 API 키 목록
  * @returns {Promise<*>}
  */
-const withFallbackKey = async (requestFn, apiKeys) => {
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+const withRetryAndFallback = async (
+    requestFn,
+    apiKeys,
+    { maxRetries = 3, delayMs = 5000 } = {}
+) => {
     let lastError;
     for (const key of apiKeys) {
-        try {
-            return await requestFn(key);
-        } catch (err) {
-            lastError = err;
-            console.warn(`⚠️ Gemini API 키 실패, 다음 키로 재시도: ${err.message}`);
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                return await requestFn(key);
+            } catch (err) {
+                lastError = err;
+                const isOverloaded =
+                    err.message?.includes('high demand') || err.message?.includes('overloaded');
+                console.warn(
+                    `⚠️ Gemini 실패 (키 ${apiKeys.indexOf(key) + 1}, ${attempt}/${maxRetries}): ${err.message}`
+                );
+                if (isOverloaded && attempt < maxRetries) {
+                    await sleep(delayMs * attempt);
+                } else {
+                    break; // 과부하가 아니면 다음 키로
+                }
+            }
         }
     }
     throw lastError;
@@ -189,54 +217,62 @@ export const geminiGenerateContent = async (prompt, apiKey) => {
 
     const data = await response.json();
     if (data.error) throw new Error(`Gemini API Error: ${data.error.message}`);
-    if (!response.ok) throw new Error(`Gemini API Error (${response.status}): ${JSON.stringify(data)}`);
+    if (!response.ok)
+        throw new Error(`Gemini API Error (${response.status}): ${JSON.stringify(data)}`);
 
     const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
     return JSON.parse(rawText.replace(/[\u0000-\u001F\u007F-\u009F]/g, ' '));
 };
 
-// ── fal-ai 이미지 생성 ──
+// ── Gemini 이미지 생성 ──
 
 const IMAGE_STYLE_PROMPT = 'A cute heartwarming flat vector illustration of a lovely Korean couple';
-const IMAGE_STYLE_SUFFIX = 'soft pastel colors, minimalist background, UI illustration style, clean simple outlines, flat shading, dribbble style, light purple and soft pink tones';
+const IMAGE_STYLE_SUFFIX =
+    'soft pastel colors, minimalist background, UI illustration style, clean simple outlines, flat shading, dribbble style, light purple and soft pink tones, 16:9 aspect ratio, horizontal landscape format';
 
 /**
- * fal-ai FLUX 모델로 상황에 맞는 썸네일 생성
- * @param {string} situationDesc - 상황 설명
- * @param {string} falKey - FAL_KEY
- * @returns {Promise<string|null>} 이미지 URL 또는 null
+ * Gemini (gemini-3.1-flash-image-preview) 로 상황에 맞는 썸네일 생성
+ * @param {string} situationDesc - 영어 장면 묘사
+ * @param {string} apiKey - GEMINI_IMAGE_API_KEY
+ * @returns {Promise<Buffer>} 이미지 Buffer
  */
-export const falGenerateImage = async (situationDesc, falKey) => {
+export const geminiGenerateImage = async (situationDesc, apiKey) => {
     const prompt = `${IMAGE_STYLE_PROMPT} ${situationDesc}, ${IMAGE_STYLE_SUFFIX}`;
 
-    const response = await fetch('https://fal.run/fal-ai/flux/dev', {
-        method: 'POST',
-        headers: {
-            Authorization: `Key ${falKey}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            prompt,
-            image_size: 'landscape_16_9',
-            num_images: 1,
-        }),
-    });
+    const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent?key=${apiKey}`,
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: {
+                    responseModalities: ['TEXT', 'IMAGE'],
+                    imageConfig: { aspectRatio: '16:9' },
+                },
+            }),
+        }
+    );
+
+    if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Gemini Image Error (${response.status}): ${errText}`);
+    }
 
     const data = await response.json();
-    if (!response.ok) throw new Error(`fal-ai Error (${response.status}): ${JSON.stringify(data)}`);
+    const imagePart = data.candidates?.[0]?.content?.parts?.find((p) => p.inlineData);
+    if (!imagePart) throw new Error('Gemini Image: 응답에 이미지가 없습니다');
 
-    return data.images?.[0]?.url ?? null;
+    return Buffer.from(imagePart.inlineData.data, 'base64');
 };
 
 /**
- * 이미지 URL을 다운로드 후 Vercel Blob에 업로드
- * @param {string} imageUrl - 원본 이미지 URL
+ * 이미지 Buffer를 Vercel Blob에 업로드
+ * @param {Buffer} buffer - 이미지 Buffer
  * @param {string} filename - 파일명 (e.g. "2025-04-09.png")
  * @returns {Promise<string>} 업로드된 이미지 URL
  */
-export const uploadToBlob = async (imageUrl, filename) => {
-    const res = await fetch(imageUrl);
-    const buffer = Buffer.from(await res.arrayBuffer());
+export const uploadToBlob = async (buffer, filename) => {
     const { url } = await put(`situations/${filename}`, buffer, {
         access: 'public',
         contentType: 'image/png',
@@ -257,7 +293,8 @@ const notionPost = async (path, body, token) => {
         body: JSON.stringify(body),
     });
     const resBody = await response.json();
-    if (!response.ok) throw new Error(`Notion POST failed (${response.status}): ${JSON.stringify(resBody)}`);
+    if (!response.ok)
+        throw new Error(`Notion POST failed (${response.status}): ${JSON.stringify(resBody)}`);
     return resBody;
 };
 
@@ -267,7 +304,7 @@ const notionPost = async (path, body, token) => {
  * @param {string} opts.targetDate - YYYY-MM-DD
  * @param {string} opts.geminiApiKey
  * @param {string} [opts.geminiApiKeyFallback] - 실패 시 사용할 대체 API 키
- * @param {string} [opts.falKey] - fal-ai API Key (이미지 생성용)
+ * @param {string} [opts.geminiImageApiKey] - 이미지 생성 전용 API 키
  * @param {string} opts.notionToken
  * @param {string} opts.situationDbId
  * @param {string} opts.expressionsDbId
@@ -278,7 +315,7 @@ export const generateAndSave = async ({
     targetDate,
     geminiApiKey,
     geminiApiKeyFallback,
-    falKey,
+    geminiImageApiKey,
     notionToken,
     situationDbId,
     expressionsDbId,
@@ -289,12 +326,16 @@ export const generateAndSave = async ({
     // 1. 최근 상황 제목 조회 (중복 방지용)
     let recentTitles = [];
     try {
-        const recent = await notionPost(`/v1/databases/${situationDbId}/query`, {
-            sorts: [{ property: 'Date', direction: 'descending' }],
-            page_size: 7,
-        }, notionToken);
+        const recent = await notionPost(
+            `/v1/databases/${situationDbId}/query`,
+            {
+                sorts: [{ property: 'Date', direction: 'descending' }],
+                page_size: 7,
+            },
+            notionToken
+        );
         recentTitles = recent.results
-            .map(p => p.properties?.Title_KR?.title?.[0]?.plain_text)
+            .map((p) => p.properties?.Title_KR?.title?.[0]?.plain_text)
             .filter(Boolean);
     } catch (err) {
         console.warn('최근 상황 조회 실패 (계속 진행):', err.message);
@@ -302,20 +343,22 @@ export const generateAndSave = async ({
 
     // 2. 텍스트 콘텐츠 생성 (fallback 키 지원)
     const prompt = buildPrompt(targetDate, recentTitles);
-    const data = await withFallbackKey((key) => geminiGenerateContent(prompt, key), apiKeys);
+    const data = await withRetryAndFallback((key) => geminiGenerateContent(prompt, key), apiKeys);
 
-    // 3. fal-ai 이미지 생성 + Blob 업로드
+    // 3. Gemini 이미지 생성 + Blob 업로드
     let imageUrl = null;
-    if (falKey) {
+    let imageError = null;
+    if (geminiImageApiKey) {
         try {
-            const imagePrompt = `${data.situation.title_kr} - ${data.situation.desc_kr}`;
+            const imagePrompt = `${data.situation.image_prompt_en}`;
             onProgress?.('🎨');
-            const falImageUrl = await falGenerateImage(imagePrompt, falKey);
-            if (falImageUrl) {
-                imageUrl = await uploadToBlob(falImageUrl, `${targetDate}.png`);
+            const imageBuffer = await geminiGenerateImage(imagePrompt, geminiImageApiKey);
+            if (imageBuffer) {
+                imageUrl = await uploadToBlob(imageBuffer, `${targetDate}.png`);
                 onProgress?.('📸');
             }
         } catch (err) {
+            imageError = err.message;
             console.error('이미지 생성/업로드 실패 (계속 진행):', err.message);
         }
     }
@@ -333,28 +376,49 @@ export const generateAndSave = async ({
         situationProperties.URL = { rich_text: [{ text: { content: imageUrl } }] };
     }
 
-    const sitPage = await notionPost('/v1/pages', {
-        parent: { database_id: situationDbId },
-        properties: situationProperties,
-    }, notionToken);
+    const sitPage = await notionPost(
+        '/v1/pages',
+        {
+            parent: { database_id: situationDbId },
+            properties: situationProperties,
+        },
+        notionToken
+    );
 
     // 5. 표현 저장
     for (const expr of data.expressions) {
-        await notionPost('/v1/pages', {
-            parent: { database_id: expressionsDbId },
-            properties: {
-                Title_KR: { title: [{ text: { content: expr.kr } }] },
-                Text_JP: { rich_text: [{ text: { content: expr.jp } }] },
-                Reading: { rich_text: [{ text: { content: expr.reading_en } }] },
-                Tip: { rich_text: [{ text: { content: JSON.stringify({ kr: expr.tip_kr, jp: expr.tip_jp }) } }] },
-                Words: { rich_text: [{ text: { content: JSON.stringify(expr.words) } }] },
-                Target: { select: { name: 'INTEGRATED' } },
-                Situation: { relation: [{ id: sitPage.id }] },
-                Date: { date: { start: targetDate } },
+        await notionPost(
+            '/v1/pages',
+            {
+                parent: { database_id: expressionsDbId },
+                properties: {
+                    Title_KR: { title: [{ text: { content: expr.kr } }] },
+                    Text_JP: { rich_text: [{ text: { content: expr.jp } }] },
+                    Reading: { rich_text: [{ text: { content: expr.reading_en } }] },
+                    Tip: {
+                        rich_text: [
+                            {
+                                text: {
+                                    content: JSON.stringify({ kr: expr.tip_kr, jp: expr.tip_jp }),
+                                },
+                            },
+                        ],
+                    },
+                    Words: { rich_text: [{ text: { content: JSON.stringify(expr.words) } }] },
+                    Target: { select: { name: 'INTEGRATED' } },
+                    Situation: { relation: [{ id: sitPage.id }] },
+                    Date: { date: { start: targetDate } },
+                },
             },
-        }, notionToken);
+            notionToken
+        );
         onProgress?.('.');
     }
 
-    return { situation: data.situation, expressionCount: data.expressions.length, imageUrl };
+    return {
+        situation: data.situation,
+        expressionCount: data.expressions.length,
+        imageUrl,
+        imageError,
+    };
 };
