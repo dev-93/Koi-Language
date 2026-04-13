@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 /**
  * =========================================================================
@@ -110,6 +110,14 @@ const DEFAULT_SCENE = {
 
 const SituationScene = ({ id = '', title = '', date = '', imageUrl = '' }) => {
     const [loaded, setLoaded] = useState(false);
+    const imgRef = useRef(null);
+
+    // SSR hydration 시 이미 로드된 이미지의 onLoad 이벤트를 놓치는 문제 대응
+    useEffect(() => {
+        if (imgRef.current?.complete && imgRef.current?.naturalWidth > 0) {
+            setLoaded(true);
+        }
+    }, []);
 
     // 1. 제목 키워드 매칭 확인 (가장 정확한 방법)
     const findSceneByKey = () => {
@@ -128,9 +136,9 @@ const SituationScene = ({ id = '', title = '', date = '', imageUrl = '' }) => {
 
     // 동적 생성 이미지가 있으면 우선 사용, 없으면 기존 키워드 매칭 fallback
     // 우선순위: imageUrl > /situations/${id}.png > 키워드 매칭 > 날짜 기반
-    const scene = imageUrl ? null : (findSceneByKey() || getFallbackScene() || DEFAULT_SCENE);
+    const scene = imageUrl ? null : findSceneByKey() || getFallbackScene() || DEFAULT_SCENE;
 
-    // ID 기반 이미지가 존재하는지 여부를 확인하는 대신, 
+    // ID 기반 이미지가 존재하는지 여부를 확인하는 대신,
     // 이미지 경로를 결정할 때 ID 기반 경로를 가장 먼저 시도합니다.
     const displayImageUrl = imageUrl || (id ? `/situations/${id}.png` : scene.img);
 
@@ -139,6 +147,7 @@ const SituationScene = ({ id = '', title = '', date = '', imageUrl = '' }) => {
             <div className="scene-container">
                 {!loaded && <div className="scene-skeleton" />}
                 <img
+                    ref={imgRef}
                     src={displayImageUrl}
                     onLoad={() => setLoaded(true)}
                     onError={(e) => {
