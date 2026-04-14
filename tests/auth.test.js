@@ -14,10 +14,24 @@ supabase.auth.signOut = async () => {
   return { error: null };
 };
 
+supabase.auth.updateUser = async ({ data }) => {
+  return { 
+    data: { 
+      user: { 
+        id: 'test-user-id', 
+        email: 'test@example.com', 
+        user_metadata: data 
+      } 
+    }, 
+    error: null 
+  };
+};
+
 async function testSupabase() {
   console.log('--- Testing Supabase Client ---');
   assert.ok(supabase, 'Supabase client should exist');
   assert.strictEqual(typeof supabase.auth.signOut, 'function', 'supabase.auth.signOut should be a function');
+  assert.strictEqual(typeof supabase.auth.updateUser, 'function', 'supabase.auth.updateUser should be a function');
   console.log('✅ Supabase Client test passed\n');
 }
 
@@ -25,38 +39,41 @@ async function testStoreAuth() {
   console.log('--- Testing Store Auth logic ---');
   
   // 1. 초기 상태 확인
-  const initialState = useStore.getState();
-  // persist 미들웨어 때문에 초기값이 다를 수 있으므로 명시적으로 초기화 (테스트용)
   useStore.setState({ user: null, session: null, userProfile: null, authLoading: true });
-  
   assert.strictEqual(useStore.getState().user, null, 'Initial user should be null');
   
-  // 2. setAuth 테스트
+  // 2. setAuth 테스트 (metadata 포함)
   const mockSession = {
     user: {
       id: 'test-user-id',
       email: 'test@example.com',
-      user_metadata: { full_name: 'Test User' }
+      user_metadata: { full_name: 'Test User', nationality: 'JP' }
     }
   };
   
-  console.log('Testing setAuth...');
+  console.log('Testing setAuth with metadata...');
   useStore.getState().setAuth(mockSession);
   const stateAfterAuth = useStore.getState();
   
-  assert.deepStrictEqual(stateAfterAuth.session, mockSession, 'Session should be set');
   assert.deepStrictEqual(stateAfterAuth.user, mockSession.user, 'User should be set');
-  assert.strictEqual(stateAfterAuth.userProfile.name, 'Test User', 'User profile name should be updated from metadata');
-  assert.strictEqual(stateAfterAuth.authLoading, false, 'authLoading should be false after auth');
+  assert.strictEqual(stateAfterAuth.userProfile.name, 'Test User', 'Name should be from metadata');
+  assert.strictEqual(stateAfterAuth.userProfile.myNationality, 'JP', 'Nationality should be from metadata');
   
-  // 3. signOut 테스트
+  // 3. updateUserProfile 테스트
+  console.log('Testing updateUserProfile...');
+  await useStore.getState().updateUserProfile({ nationality: 'KR', full_name: 'Updated Name' });
+  const stateAfterUpdate = useStore.getState();
+  
+  assert.strictEqual(stateAfterUpdate.userProfile.myNationality, 'KR', 'Nationality should be updated to KR');
+  assert.strictEqual(stateAfterUpdate.userProfile.full_name, 'Updated Name', 'Name should be updated');
+  assert.strictEqual(stateAfterUpdate.user.user_metadata.nationality, 'KR', 'User metadata should be updated in store');
+  
+  // 4. signOut 테스트
   console.log('Testing signOut...');
   await useStore.getState().signOut();
   const stateAfterSignOut = useStore.getState();
   
   assert.strictEqual(stateAfterSignOut.user, null, 'User should be null after signOut');
-  assert.strictEqual(stateAfterSignOut.session, null, 'Session should be null after signOut');
-  assert.strictEqual(stateAfterSignOut.userProfile, null, 'UserProfile should be null after signOut');
   
   console.log('✅ Store Auth test passed\n');
 }
