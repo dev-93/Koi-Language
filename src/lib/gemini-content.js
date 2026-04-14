@@ -30,9 +30,15 @@ const EXPRESSION_SCHEMA = {
                 properties: {
                     kr: { type: 'STRING' },
                     jp: { type: 'STRING' },
-                    reading_en: {
+                    reading_kr: {
                         type: 'STRING',
-                        description: 'Romaji (e.g. Kimi to issho de...)',
+                        description:
+                            '일본어(jp)를 한국인이 읽을 수 있는 한글 발음 (e.g. 키미토 잇쇼데...)',
+                    },
+                    reading_jp: {
+                        type: 'STRING',
+                        description:
+                            '한국어(kr)를 일본인이 읽을 수 있는 카타카나 발음 (e.g. キミト イッショデ...)',
                     },
                     tip_kr: { type: 'STRING' },
                     tip_jp: { type: 'STRING' },
@@ -43,13 +49,14 @@ const EXPRESSION_SCHEMA = {
                             properties: {
                                 kr: { type: 'STRING' },
                                 jp: { type: 'STRING' },
-                                reading_en: { type: 'STRING' },
+                                reading_kr: { type: 'STRING' },
+                                reading_jp: { type: 'STRING' },
                             },
-                            required: ['kr', 'jp', 'reading_en'],
+                            required: ['kr', 'jp', 'reading_kr', 'reading_jp'],
                         },
                     },
                 },
-                required: ['kr', 'jp', 'reading_en', 'tip_kr', 'tip_jp', 'words'],
+                required: ['kr', 'jp', 'reading_kr', 'reading_jp', 'tip_kr', 'tip_jp', 'words'],
             },
         },
     },
@@ -152,9 +159,15 @@ ${categorySection}
 1. 위 [최근 생성된 상황]과 비슷한 주제나 키워드는 절대 반복하지 마세요.
 2. 구체적이고 생생한 상황을 만드세요 (예: "비 오는 날 편의점 앞에서 우산 나눠쓰기", "온천 여관에서 유카타 입고 불꽃놀이 보기").
 3. 표현은 최소 3개, 최대 6개로 상황의 복잡도에 따라 자유롭게 조절하세요.
-4. 모든 reading_en 필드에는 영어 로마자 발음(Romaji)을 적으세요.
-5. 각 표현의 words는 핵심 단어 최대 3개만 포함하세요.
-6. image_prompt_en은 상황을 영어로 구체적으로 묘사하세요 (예: "walking together under blooming cherry blossom trees in a park, pink petals falling in the air, romantic spring atmosphere"). 커플의 행동과 장소, 분위기를 포함하세요.`;
+4. reading_kr: 일본어(jp) 문장을 한국인이 읽을 수 있도록 한글 발음으로 적으세요.
+   - 예: "本のタイトルが面白そうですね。" → "혼노 타이토루가 오모시로소우데스네."
+   - 장음은 그대로 표기 (おう → 오우), 촉음(っ)은 쌍자음 (きって → 킷테)
+   - ん은 뒤 자음에 따라 자연스럽게 (ん+ば → 음바, ん+な → 은나)
+5. reading_jp: 한국어(kr) 문장을 일본인이 읽을 수 있도록 카타카나 발음으로 적으세요.
+   - 예: "책 제목이 재미있어 보이네요." → "チェク ジェモギ ジェミイッソ ボイネヨ."
+   - 받침은 일본어 음운에 맞게 변환 (ㄱ→ク, ㄴ→ン, ㅁ→ム 등)
+6. 각 표현의 words는 핵심 단어 최대 3개만 포함하세요. words의 reading_kr, reading_jp도 위 규칙을 따르세요.
+7. image_prompt_en은 상황을 영어로 구체적으로 묘사하세요 (예: "walking together under blooming cherry blossom trees in a park, pink petals falling in the air, romantic spring atmosphere"). 커플의 행동과 장소, 분위기를 포함하세요.`;
 };
 
 // ── Gemini API 호출 (fallback 키 지원) ──
@@ -394,7 +407,18 @@ export const generateAndSave = async ({
                 properties: {
                     Title_KR: { title: [{ text: { content: expr.kr } }] },
                     Text_JP: { rich_text: [{ text: { content: expr.jp } }] },
-                    Reading: { rich_text: [{ text: { content: expr.reading_en } }] },
+                    Reading: {
+                        rich_text: [
+                            {
+                                text: {
+                                    content: JSON.stringify({
+                                        kr: expr.reading_kr,
+                                        jp: expr.reading_jp,
+                                    }),
+                                },
+                            },
+                        ],
+                    },
                     Tip: {
                         rich_text: [
                             {
@@ -405,7 +429,6 @@ export const generateAndSave = async ({
                         ],
                     },
                     Words: { rich_text: [{ text: { content: JSON.stringify(expr.words) } }] },
-                    Target: { select: { name: 'INTEGRATED' } },
                     Situation: { relation: [{ id: sitPage.id }] },
                     Date: { date: { start: targetDate } },
                 },

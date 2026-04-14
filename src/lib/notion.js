@@ -106,7 +106,7 @@ export const getExpressions = async (situationId) => {
                     '';
             }
 
-            // 발음(Reading) 찾기 보강
+            // Reading: JSON {"kr":"...", "jp":"..."} 또는 레거시 평문
             const readingProp = Object.entries(props).find(
                 ([key, val]) =>
                     ['Pronunciation', '발음', 'Pron', 'Reading'].some((name) =>
@@ -124,7 +124,6 @@ export const getExpressions = async (situationId) => {
                     '',
                 reading: readingText,
                 tip: props.Tip?.rich_text?.[0]?.plain_text || '',
-                target: props.Target?.select?.name || props.Type?.select?.name || props.Type?.multi_select?.[0]?.name || '',
                 words: props.Words?.rich_text?.[0]?.plain_text || '', // JSON 형태의 문자열
             };
         });

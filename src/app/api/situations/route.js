@@ -52,6 +52,7 @@ const parseExpression = (page) => {
         tip = tipRaw;
     }
 
+    // Reading: JSON {"kr":"...", "jp":"..."} 또는 레거시 평문
     let reading = readingRaw;
     try {
         reading = JSON.parse(readingRaw);
@@ -63,10 +64,8 @@ const parseExpression = (page) => {
         id: page.id,
         kr: getTitle(page.properties['Title_KR']) || getTitle(page.properties['KR']),
         jp: getRichText(page.properties['Text_JP']) || getRichText(page.properties['JP']),
-        reading, // JSON { kr, jp } 또는 String
+        reading, // JSON { kr, jp } 또는 레거시 String
         tip, // JSON { kr, jp } 또는 String
-        // Target 필드가 없으면 기존 Type 필드를 폴백으로 사용
-        target: getSelect(page.properties['Target']) || getSelect(page.properties['Type']),
         situationIds: getRelationIds(page.properties['Situation']),
         words,
     };
@@ -113,26 +112,12 @@ export async function GET() {
                 };
 
                 const sitExpressions = expressions.filter((e) => e.situationIds.includes(sit.id));
-                const integrated = sitExpressions.filter((e) => {
-                    const target = (e.target || '').toUpperCase();
-                    return target === 'INTEGRATED';
-                });
 
                 return {
                     ...sit,
                     expressions: {
-                        kr_wants_jp: [
-                            ...sitExpressions.filter(
-                                (e) => (e.target || '').toUpperCase() === 'KR'
-                            ),
-                            ...integrated.map((e) => ({ ...e, is_integrated: true })),
-                        ],
-                        jp_wants_kr: [
-                            ...sitExpressions.filter(
-                                (e) => (e.target || '').toUpperCase() === 'JP'
-                            ),
-                            ...integrated.map((e) => ({ ...e, is_integrated: true })),
-                        ],
+                        kr_wants_jp: sitExpressions,
+                        jp_wants_kr: sitExpressions,
                     },
                 };
             })
