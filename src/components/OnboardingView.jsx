@@ -89,11 +89,6 @@ const OnboardingView = () => {
                 const { error } = await supabase.auth.signUp({
                     email: formData.email,
                     password: formData.password,
-                    options: {
-                        data: {
-                            nationality: formData.nationality,
-                        }
-                    }
                 });
                 if (error) throw error;
                 setErrorMessage('인증 이메일을 확인해주세요! (로그인 시도 가능)');
@@ -109,47 +104,16 @@ const OnboardingView = () => {
         }
     };
 
-    const handleGoogleLogin = async () => {
-        setIsLoading(true);
-        try {
-            const { error } = await supabase.auth.signInWithOAuth({
-                provider: 'google',
-                options: {
-                    redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/onboarding` : undefined,
-                }
+    const handleComplete = () => {
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('onboarding_complete', 'true');
+            localStorage.setItem('user_nationality', formData.nationality);
+            setUserProfile({ 
+                ...useStore.getState().userProfile, 
+                myNationality: formData.nationality 
             });
-            if (error) throw error;
-        } catch (error) {
-            setErrorMessage(error.message || 'Google 로그인 중 오류가 발생했습니다.');
-            setIsLoading(false);
         }
-    };
-
-    const handleComplete = async () => {
-        setIsLoading(true);
-        try {
-            if (typeof window !== 'undefined') {
-                localStorage.setItem('onboarding_complete', 'true');
-                localStorage.setItem('user_nationality', formData.nationality);
-            }
-            
-            // 로그인 상태라면 Supabase user_metadata에도 저장 (기기 간 동기화)
-            if (user) {
-                const { updateUserProfile } = useStore.getState();
-                await updateUserProfile({ nationality: formData.nationality });
-            } else {
-                setUserProfile({ 
-                    ...useStore.getState().userProfile, 
-                    myNationality: formData.nationality 
-                });
-            }
-            
-            router.push('/');
-        } catch (error) {
-            setErrorMessage('설정 저장 중 오류가 발생했습니다: ' + error.message);
-        } finally {
-            setIsLoading(false);
-        }
+        router.push('/');
     };
 
     const steps = [
@@ -235,22 +199,6 @@ const OnboardingView = () => {
 
                     {step === 2 && (
                         <div className="w-full mt-10 space-y-4">
-                            <motion.button
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={handleGoogleLogin}
-                                disabled={isLoading}
-                                className="w-full bg-white border-2 border-gray-100 u-rounded-2xl py-4 d-flex items-center justify-center gap-3 font-black text-gray-600 hover:bg-gray-50 cursor-pointer transition-colors mb-6 shadow-sm"
-                            >
-                                <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
-                                <span>Google로 시작하기</span>
-                            </motion.button>
-
-                            <div className="relative d-flex items-center justify-center my-6">
-                                <div className="absolute w-full h-[1px] bg-gray-100" />
-                                <span className="relative bg-white px-4 text-xs font-bold text-gray-300">또는 이메일로 계속하기</span>
-                            </div>
-
                             <div className="relative">
                                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                                 <input 

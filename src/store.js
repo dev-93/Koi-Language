@@ -19,37 +19,15 @@ const useStore = create(
             setUserProfile: (profile) => set({ userProfile: profile }),
             setAuth: (session) => {
                 const user = session?.user || null;
-                const metadata = user?.user_metadata || {};
-                
                 set((state) => ({
                     session,
                     user,
                     authLoading: false,
                     userProfile: user ? { 
                         ...state.userProfile, 
-                        name: metadata.full_name || user.email,
-                        myNationality: metadata.nationality || state.userProfile?.myNationality || 'KR'
+                        name: state.userProfile?.name || user.user_metadata?.full_name || user.email 
                     } : state.userProfile
                 }));
-            },
-            updateUserProfile: async (updates) => {
-                const { supabase } = await import('./lib/supabase.js');
-                const { data, error } = await supabase.auth.updateUser({
-                    data: updates
-                });
-                
-                if (error) throw error;
-                
-                set((state) => ({
-                    user: data.user,
-                    userProfile: {
-                        ...state.userProfile,
-                        ...updates,
-                        // metadata.nationality가 있으면 myNationality로 매핑
-                        myNationality: updates.nationality || state.userProfile?.myNationality
-                    }
-                }));
-                return data;
             },
             signOut: async () => {
                 const { supabase } = await import('./lib/supabase.js');
