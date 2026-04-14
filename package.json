@@ -12,13 +12,11 @@
         "post:notion": "node scripts/seed-notion.js",
         "get:notion": "node scripts/fetchFromNotion.js",
         "check:notion": "node tests/notion-validation.test.js",
-        "cron:run": "node scripts/run-cron-now.js",
-        "test:auth": "node tests/auth.test.js"
+        "cron:run": "node scripts/run-cron-now.js"
     },
     "dependencies": {
         "@google/genai": "^1.46.0",
         "@notionhq/client": "^5.15.0",
-        "@supabase/supabase-js": "^2.103.0",
         "@vercel/analytics": "^2.0.1",
         "@vercel/blob": "^2.3.3",
         "@vercel/speed-insights": "^2.0.0",

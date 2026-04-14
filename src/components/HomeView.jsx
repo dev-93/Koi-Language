@@ -15,15 +15,13 @@ import {
     Check,
     Volume2,
     Trash2,
-    LogOut,
-    Mail,
 } from 'lucide-react';
 import SituationScene from './SituationScene';
 import useStore from '@/store';
 
 export default function HomeView({ initialSituations = [] }) {
     const router = useRouter();
-    const { user, signOut, favorites, toggleFavorite } = useStore();
+    const { favorites, toggleFavorite } = useStore();
     const [situations, setSituations] = useState(initialSituations);
     const [searchQuery, setSearchQuery] = useState('');
     const [learnedIds, setLearnedIds] = useState([]);
@@ -153,14 +151,6 @@ export default function HomeView({ initialSituations = [] }) {
 
     const handleResetProfile = () => {
         if (confirm('프로필을 다시 설정하시겠습니까?')) {
-            localStorage.removeItem('onboarding_complete');
-            router.push('/onboarding');
-        }
-    };
-
-    const handleSignOut = async () => {
-        if (confirm('로그아웃 하시겠습니까?')) {
-            await signOut();
             localStorage.removeItem('onboarding_complete');
             router.push('/onboarding');
         }
@@ -363,61 +353,39 @@ export default function HomeView({ initialSituations = [] }) {
                 {tab === 'settings' && (
                     <div className="w-full max-w-[420px] d-flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 px-4">
                         <div className="u-bg-white\/80 u-backdrop-blur u-shadow-xl u-rounded-3xl p-8 d-flex flex-col items-center">
-                            <div className="w-20 h-20 bg-peach-light u-rounded-full d-flex items-center justify-center mb-4 shadow-sm border-4 border-white">
+                            <div className="w-20 h-20 bg-peach-light u-rounded-full d-flex items-center justify-center mb-6 shadow-sm border-4 border-white">
                                 <UserCircle size={48} className="text-peach" />
                             </div>
-
-                            {user?.email && (
-                                <div className="d-flex items-center gap-1.5 mb-6 px-3 py-1 bg-gray-50 u-rounded-full border border-gray-100">
-                                    <Mail size={12} className="text-gray-400" />
-                                    <span className="text-[11px] font-bold text-gray-400 tracking-tight">{user.email}</span>
-                                </div>
-                            )}
-
                             <div className="w-full space-y-6">
                                 <div className="text-center mb-8">
-                                    <h2 className="m-0 text-2xl font-black text-gray-800 mb-1">설정</h2>
-                                    <p className="text-sm text-gray-400 font-medium">나의 학습 환경을 관리합니다</p>
+                                    <h2 className="m-0 text-2xl font-black text-gray-800 mb-1">기본 정보</h2>
+                                    <p className="text-sm text-gray-400 font-medium">학습에 반영되는 프로필 정보입니다</p>
                                 </div>
-
                                 <div className="space-y-4">
-                                    <div className="px-1">
-                                        <p className="text-[13px] font-black text-peach opacity-60 uppercase tracking-wider mb-3">기본 정보</p>
-                                        <div className="space-y-3">
-                                            <div className="d-flex justify-between items-center p-5 bg-gray-50/50 rounded-2xl border border-gray-100">
-                                                <span className="font-bold text-gray-400">대상 국적</span>
-                                                <span className="font-black text-gray-700">일본</span>
-                                            </div>
-                                            <div className="d-flex justify-between items-center p-5 bg-gray-50/50 rounded-2xl border border-gray-100">
-                                                <span className="font-bold text-gray-400">학습 목적</span>
-                                                <span className="font-black text-gray-700">
-                                                    {typeof window !== 'undefined' && localStorage.getItem('user_gender') === 'M' ? '남성' : '여성'} → {''}
-                                                    {typeof window !== 'undefined' && localStorage.getItem('target_gender') === 'M' ? '남성' : '여성'}
-                                                </span>
-                                            </div>
-                                        </div>
+                                    <div className="d-flex justify-between items-center p-5 bg-gray-50/50 rounded-2xl border border-gray-100">
+                                        <span className="font-bold text-gray-400">대상 국적</span>
+                                        <span className="font-black text-gray-700">일본</span>
+                                    </div>
+                                    <div className="d-flex justify-between items-center p-5 bg-gray-50/50 rounded-2xl border border-gray-100">
+                                        <span className="font-bold text-gray-400">보</span>
+                                        <span className="font-black text-gray-700">
+                                            나는
+                                            {typeof window !== 'undefined' && localStorage.getItem('user_gender') === 'M' ? ' 남성' : ' 여성'}
+                                            이고, {''}
+                                            {typeof window !== 'undefined' && localStorage.getItem('target_gender') === 'M' ? '남성' : '여성'}
+                                            을/를 알고싶어요
+                                        </span>
                                     </div>
                                 </div>
-
-                                <div className="d-flex flex-col gap-3 mt-8">
-                                    <button
-                                        onClick={handleResetProfile}
-                                        className="w-full btn btn-primary py-5 u-rounded-3xl shadow-lg hover:scale-[1.02] active:scale-[0.98]"
-                                    >
-                                        <span className="text-lg font-black">프로필 다시 수정하기</span>
-                                    </button>
-
-                                    <button
-                                        onClick={handleSignOut}
-                                        className="w-full flex items-center justify-center gap-2 py-4 u-rounded-2xl bg-gray-100 text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition-all font-bold"
-                                    >
-                                        <LogOut size={18} />
-                                        <span className="text-sm">로그아웃</span>
-                                    </button>
-                                </div>
+                                <button
+                                    onClick={handleResetProfile}
+                                    className="w-full btn btn-primary mt-8 py-5 u-rounded-3xl shadow-xl hover:scale-[1.02] active:scale-[0.98]"
+                                >
+                                    <span className="text-lg font-black">프로필 다시 수정하기</span>
+                                </button>
                             </div>
                         </div>
-                        <p className="text-center text-xs text-gray-300 font-medium mt-4 pb-20">KOI LANGUAGE Made with Taenam</p>
+                        <p className="text-center text-xs text-gray-300 font-medium mt-4">KOI LANGUAGE Made with Taenam</p>
                     </div>
                 )}
 

@@ -5,9 +5,6 @@ const useStore = create(
     persist(
         (set, get) => ({
             userProfile: null, // { myNationality: 'KR'|'JP', myGender: 'M'|'F', targetGender: 'M'|'F', name: string }
-            user: null,
-            session: null,
-            authLoading: true,
             currentTab: 'today', // 'today' | 'archive' | 'settings'
             dailyProgress: {
                 date: new Date().toDateString(),
@@ -17,23 +14,6 @@ const useStore = create(
             favorites: [], // 마음에 드는 표현 저장 [{exprId, jp, kr, reading, tip, situationTitle, savedAt}]
 
             setUserProfile: (profile) => set({ userProfile: profile }),
-            setAuth: (session) => {
-                const user = session?.user || null;
-                set((state) => ({
-                    session,
-                    user,
-                    authLoading: false,
-                    userProfile: user ? { 
-                        ...state.userProfile, 
-                        name: state.userProfile?.name || user.user_metadata?.full_name || user.email 
-                    } : state.userProfile
-                }));
-            },
-            signOut: async () => {
-                const { supabase } = await import('./lib/supabase.js');
-                await supabase.auth.signOut();
-                set({ user: null, session: null, userProfile: null });
-            },
             resetUserProfile: () => set({ userProfile: null }),
             setCurrentTab: (tab) => set({ currentTab: tab }),
 
