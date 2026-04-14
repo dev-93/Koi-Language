@@ -41,14 +41,34 @@ export async function GET(request) {
         const geminiApiKey = process.env.GEMINI_API_KEY;
         if (!notionToken || !geminiApiKey) throw new Error('Env configuration missing');
 
+        const situationDbId =
+            process.env.NOTION_SITUATION_DB_ID || process.env.NOTION_SITUATIONS_DB_ID;
+
+        // 오늘 날짜 데이터가 이미 있으면 스킵 (재시도 cron 중복 방지)
+        const existing = await fetch(`https://api.notion.com/v1/databases/${situationDbId}/query`, {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${notionToken}`,
+                'Notion-Version': '2022-06-28',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                filter: { property: 'Date', date: { equals: targetDate } },
+                page_size: 1,
+            }),
+        }).then((r) => r.json());
+
+        if (existing.results?.length > 0) {
+            return NextResponse.json({ skipped: true, message: `${targetDate} 데이터 이미 존재` });
+        }
+
         const result = await generateAndSave({
             targetDate,
             geminiApiKey,
             geminiApiKeyFallback: process.env.GEMINI_API_KEY_FALLBACK,
             geminiImageApiKey: process.env.GEMINI_IMAGE_API_KEY,
             notionToken,
-            situationDbId:
-                process.env.NOTION_SITUATION_DB_ID || process.env.NOTION_SITUATIONS_DB_ID,
+            situationDbId,
             expressionsDbId:
                 process.env.NOTION_EXPRESSION_DB_ID || process.env.NOTION_EXPRESSIONS_DB_ID,
         });
