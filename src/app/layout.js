@@ -1,5 +1,6 @@
 import '@/app/globals.css';
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import AuthListener from '@/components/AuthListener';
 
 export const metadata = {
     metadataBase: new URL('https://koi-language.vercel.app'),
@@ -44,6 +45,7 @@ export default function RootLayout({ children }) {
             </head>
             <body className="antialiased">
                 <div id="root">
+                    <AuthListener />
                     {children}
                     <SpeedInsights />
                 </div>

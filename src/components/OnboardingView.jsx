@@ -2,22 +2,31 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Heart, ArrowRight, ArrowLeft, Globe } from 'lucide-react';
+import { Heart, ArrowRight, ArrowLeft, Globe, Mail, Lock, Loader2, LogIn, UserPlus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '@/lib/supabase';
+import useStore from '@/store';
 
 /**
  * 온보딩 뷰 컴포넌트
- * 사용자 국적 및 초기 설정을 도와주는 프리미엄 인터페이스
+ * 사용자 인증, 국적 및 초기 설정을 도와주는 프리미엄 인터페이스
  */
 const OnboardingView = () => {
     const router = useRouter();
+    const { user, setUserProfile } = useStore();
     const [step, setStep] = useState(1);
-    const [formData, setFormData] = useState({ nationality: 'KR' });
+    const [formData, setFormData] = useState({ 
+        nationality: 'KR',
+        email: '',
+        password: '',
+    });
+    const [authMode, setAuthMode] = useState('login'); // 'login' | 'signup'
+    const [isLoading, setIsLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
     const [isUpdate, setIsUpdate] = useState(false);
     const [isMounted, setIsMounted] = useState(false);
 
     // 하이드레이션 에러 방지 및 초기 데이터 로드 (SSR 대응)
-    // requestAnimationFrame을 사용하여 동기적 setState로 인한 cascading render 경고 방지
     useEffect(() => {
         const rafId = requestAnimationFrame(() => {
             setIsMounted(true);
@@ -25,7 +34,7 @@ const OnboardingView = () => {
             const onboardingComplete = localStorage.getItem('onboarding_complete');
 
             if (savedNationality) {
-                setFormData({ nationality: savedNationality });
+                setFormData(prev => ({ ...prev, nationality: savedNationality }));
             }
             if (onboardingComplete === 'true') {
                 setIsUpdate(true);
@@ -35,19 +44,74 @@ const OnboardingView = () => {
         return () => cancelAnimationFrame(rafId);
     }, []);
 
-    const handleNext = () => {
-        if (step < 2) setStep(step + 1);
-        else handleComplete();
+    // 로그인된 상태에서 2단계에 진입하면 자동으로 3단계로 이동
+    useEffect(() => {
+        if (user && step === 2) {
+            setStep(3);
+        }
+    }, [user, step]);
+
+    const handleNext = async () => {
+        if (step === 1) {
+            setStep(2);
+        } else if (step === 2) {
+            if (user) {
+                setStep(3);
+            } else {
+                await handleAuth();
+            }
+        } else {
+            handleComplete();
+        }
     };
 
     const handlePrev = () => {
         if (step > 1) setStep(step - 1);
     };
 
+    const handleAuth = async () => {
+        if (!formData.email || !formData.password) {
+            setErrorMessage('이메일과 비밀번호를 입력해주세요.');
+            return;
+        }
+
+        setIsLoading(true);
+        setErrorMessage('');
+
+        try {
+            if (authMode === 'login') {
+                const { error } = await supabase.auth.signInWithPassword({
+                    email: formData.email,
+                    password: formData.password,
+                });
+                if (error) throw error;
+            } else {
+                const { error } = await supabase.auth.signUp({
+                    email: formData.email,
+                    password: formData.password,
+                });
+                if (error) throw error;
+                setErrorMessage('인증 이메일을 확인해주세요! (로그인 시도 가능)');
+                setAuthMode('login');
+                setIsLoading(false);
+                return;
+            }
+            // 로그인 성공 시 useEffect에 의해 step 3로 이동함
+        } catch (error) {
+            setErrorMessage(error.message || '인증 중 오류가 발생했습니다.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const handleComplete = () => {
         if (typeof window !== 'undefined') {
             localStorage.setItem('onboarding_complete', 'true');
             localStorage.setItem('user_nationality', formData.nationality);
+            setUserProfile({ 
+                ...useStore.getState().userProfile, 
+                myNationality: formData.nationality 
+            });
         }
         router.push('/');
     };
@@ -61,6 +125,12 @@ const OnboardingView = () => {
         },
         {
             id: 2,
+            title: authMode === 'login' ? '다시 만나서 반가워요! 👋' : '새로운 시작을 축하해요! ✨',
+            desc: authMode === 'login' ? '로그인하여 학습 내역을 동기화하세요.' : '계정을 만들고 일본어 공부를 시작해보세요.',
+            icon: authMode === 'login' ? <LogIn size={48} className="text-peach" /> : <UserPlus size={48} className="text-peach" />,
+        },
+        {
+            id: 3,
             title: '당신의 국적은 어디인가요? 🗼',
             desc: '맞춤형 학습 콘텐츠를 위해\n국적을 선택해 주세요.',
             icon: <Globe size={48} className="text-peach" />,
@@ -92,7 +162,7 @@ const OnboardingView = () => {
                     <div className="w-12 h-12" />
                 )}
                 <div className="d-flex gap-2 items-center">
-                    {[1, 2].map((s) => (
+                    {[1, 2, 3].map((s) => (
                         <motion.div
                             key={s}
                             initial={false}
@@ -128,11 +198,45 @@ const OnboardingView = () => {
                     </p>
 
                     {step === 2 && (
+                        <div className="w-full mt-10 space-y-4">
+                            <div className="relative">
+                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                                <input 
+                                    type="email" 
+                                    placeholder="이메일 주소"
+                                    value={formData.email}
+                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                    className="w-full bg-gray-50 border-2 border-gray-100 u-rounded-2xl py-4 pl-12 pr-4 font-bold text-gray-600 focus:outline-none focus:border-peach transition-colors"
+                                />
+                            </div>
+                            <div className="relative">
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                                <input 
+                                    type="password" 
+                                    placeholder="비밀번호"
+                                    value={formData.password}
+                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                    className="w-full bg-gray-50 border-2 border-gray-100 u-rounded-2xl py-4 pl-12 pr-4 font-bold text-gray-600 focus:outline-none focus:border-peach transition-colors"
+                                />
+                            </div>
+                            {errorMessage && (
+                                <p className="text-red-500 text-sm font-bold mt-2">{errorMessage}</p>
+                            )}
+                            <button 
+                                onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
+                                className="text-peach font-black text-sm hover:underline bg-transparent border-none cursor-pointer mt-2"
+                            >
+                                {authMode === 'login' ? '계정이 없으신가요? 회원가입' : '이미 계정이 있으신가요? 로그인'}
+                            </button>
+                        </div>
+                    )}
+
+                    {step === 3 && (
                         <div className="w-full d-flex flex-col gap-4 mt-12">
                             <motion.button
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
-                                onClick={() => setFormData({ nationality: 'KR' })}
+                                onClick={() => setFormData({ ...formData, nationality: 'KR' })}
                                 className={`onboarding-btn-option border-none cursor-pointer d-flex items-center justify-center gap-3 transition-colors ${
                                     formData.nationality === 'KR'
                                         ? 'bg-peach text-white shadow-lg'
@@ -144,7 +248,7 @@ const OnboardingView = () => {
                             <motion.button
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
-                                onClick={() => setFormData({ nationality: 'JP' })}
+                                onClick={() => setFormData({ ...formData, nationality: 'JP' })}
                                 className={`onboarding-btn-option border-none cursor-pointer d-flex items-center justify-center gap-3 transition-colors ${
                                     formData.nationality === 'JP'
                                         ? 'bg-peach text-white shadow-lg'
@@ -163,16 +267,23 @@ const OnboardingView = () => {
                 <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
+                    disabled={isLoading}
                     onClick={handleNext}
-                    className="btn btn-primary u-rounded-full py-5 u-shadow-xl text-[18px] font-black d-flex items-center justify-center gap-3"
+                    className="btn btn-primary w-full u-rounded-full py-5 u-shadow-xl text-[18px] font-black d-flex items-center justify-center gap-3 disabled:opacity-70"
                 >
-                    <span>
-                        {step === 2 ? (isUpdate ? '수정 완료' : '시작하기') : '다음 단계로'}
-                    </span>
-                    <ArrowRight size={22} strokeWidth={3} />
+                    {isLoading ? (
+                        <Loader2 className="animate-spin" size={22} />
+                    ) : (
+                        <>
+                            <span>
+                                {step === 3 ? (isUpdate ? '수정 완료' : '시작하기') : '다음 단계로'}
+                            </span>
+                            <ArrowRight size={22} strokeWidth={3} />
+                        </>
+                    )}
                 </motion.button>
-                <p className="m-0 text-center text-[12px] font-bold text-gray-300 mt-6 tracking-wide">
-                    {step} / 2 PAGES
+                <p className="m-0 text-center text-[12px] font-bold text-gray-300 mt-6 tracking-wide uppercase">
+                    {step} / 3 PAGES
                 </p>
             </div>
         </div>
@@ -180,3 +291,4 @@ const OnboardingView = () => {
 };
 
 export default OnboardingView;
+
