@@ -170,7 +170,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const withRetryAndFallback = async (
     requestFn,
     apiKeys,
-    { maxRetries = 3, delayMs = 5000 } = {}
+    { maxRetries = 3, delayMs = 10000 } = {}
 ) => {
     let lastError;
     for (const key of apiKeys) {
