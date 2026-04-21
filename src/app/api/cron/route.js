@@ -89,7 +89,7 @@ export async function GET(request) {
         return NextResponse.json({ success: true });
     } catch (err) {
         console.error('Cron Error:', err);
-        await sendTelegramMessage(`❌ <b>Koi Language</b> 동기화 실패\n에러: ${err.message}`);
+        console.error('Cron failed:', err.message);
         return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }
